@@ -1,0 +1,25 @@
+@import "./default.scss";
+
+.shiki {
+    background-color: rgb(246, 248, 250) !important;
+    code {
+        white-space: pre-wrap;
+    }
+
+    code::before {
+        counter-reset: listing;
+    }
+
+    code>span {
+        counter-increment: listing;
+    }
+
+    code>span::before {
+        content: counter(listing) ". ";
+        display: inline-block;
+        width: 2.5em;
+        padding-left: auto;
+        margin-left: auto;
+        text-align: right;
+    }
+}

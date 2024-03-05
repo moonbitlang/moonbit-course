@@ -1,0 +1,15 @@
+.DS_Store
+.vscode/
+node_modules
+lib/
+~*
+*.bs.js
+
+# draw.io backup and dump
+.$*
+
+*.pptx
+*.html
+
+# scss
+*.css.map

@@ -1,0 +1,300 @@
+{
+  "name": "abnf",
+  "scopeName": "source.abnf",
+  "fileTypes": [
+    "abnf"
+  ],
+  "license": "Copyright (c) 2018-2022, John Gardner\n\nPermission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.\n\n  THE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.",
+  "from": "https://github.com/Alhadis/language-grammars/tree/daa8548cc820359b078192dc85b6c8845e9db54c",
+  "patterns": [
+    {
+      "include": "#main"
+    }
+  ],
+  "firstLineMatch": "(?x)\n\n# Emacs modeline\n-\\*-(?i:[ \\t]*(?=[^:;\\s]+[ \\t]*-\\*-)|(?:.*?[ \\t;]|(?<=-\\*-))[ \\t]*mode[ \\t]*:[ \\t]*)\n\t(?i:abnf)\n(?=[ \\t;]|(?<![-*])-\\*-).*?-\\*-\n\n|\n\t\n# Vim modeline\n(?:(?:^|[ \\t])(?:vi|Vi(?=m))(?:m[<=>]?[0-9]+|m)?|[ \\t]ex)(?=:(?=[ \\t]*set?[ \\t][^\\r\\n:]+:)|:(?![ \\t]*set?[ \\t]))\n(?:(?:[ \\t]*:[ \\t]*|[ \\t])\\w*(?:[ \\t]*=(?:[^\\\\\\s]|\\\\.)*)?)*[ \\t:]\n(?:filetype|ft|syntax)[ \\t]*=\n\t(?i:abnf)\n(?=$|\\s|:)",
+  "repository": {
+    "main": {
+      "patterns": [
+        {
+          "include": "#comment"
+        },
+        {
+          "include": "#rule"
+        }
+      ]
+    },
+    "assignment": {
+      "patterns": [
+        {
+          "name": "keyword.operator.assignment.increment.abnf",
+          "match": "=/"
+        },
+        {
+          "name": "keyword.operator.assignment.colon.non-standard.abnf",
+          "match": ":+="
+        },
+        {
+          "name": "keyword.operator.assignment.abnf",
+          "match": "="
+        }
+      ]
+    },
+    "comment": {
+      "name": "comment.line.semicolon.abnf",
+      "begin": ";",
+      "end": "$",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.comment.abnf"
+        }
+      }
+    },
+    "core-rules": {
+      "name": "support.constant.reference.core-rule.abnf",
+      "match": "(?x)\n\\b (?<!-)\n(ALPHA|BIT|CHAR|CRLF|CR|CTL|DIGIT|DQUOTE\n|HEXDIG|HTAB|LF|LWSP|OCTET|SP|VCHAR|WSP)\n\\b (?!-)"
+    },
+    "group": {
+      "name": "meta.group.abnf",
+      "begin": "\\(",
+      "end": "\\)",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.round.bracket.begin.abnf"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.round.bracket.end.abnf"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#rhs"
+        }
+      ]
+    },
+    "optional": {
+      "name": "meta.optional.abnf",
+      "begin": "\\[",
+      "end": "\\]",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.square.bracket.begin.abnf"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.square.bracket.end.abnf"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#rhs"
+        }
+      ]
+    },
+    "rule": {
+      "name": "meta.ruleset.$2.abnf",
+      "begin": "(?:^|\\G)(\\s*)([A-Za-z][-A-Za-z0-9]*)",
+      "end": "^(?!\\1\\s+\\S)|^(?=\\S)",
+      "beginCaptures": {
+        "0": {
+          "name": "meta.lhs.abnf"
+        },
+        "1": {
+          "name": "punctuation.whitespace.leading.abnf"
+        },
+        "2": {
+          "name": "entity.name.rule.identifier.abnf"
+        }
+      },
+      "contentName": "meta.rhs.abnf",
+      "patterns": [
+        {
+          "include": "#rhs"
+        }
+      ]
+    },
+    "rhs": {
+      "patterns": [
+        {
+          "include": "#assignment"
+        },
+        {
+          "include": "#string"
+        },
+        {
+          "include": "#terminal"
+        },
+        {
+          "include": "#comment"
+        },
+        {
+          "include": "#quantifier"
+        },
+        {
+          "include": "#group"
+        },
+        {
+          "include": "#optional"
+        },
+        {
+          "include": "#core-rules"
+        },
+        {
+          "include": "#reference"
+        },
+        {
+          "include": "#prose"
+        },
+        {
+          "match": "/",
+          "name": "keyword.operator.logical.or.alternation.pipe.abnf"
+        }
+      ]
+    },
+    "prose": {
+      "name": "string.other.prose.abnf",
+      "begin": "<",
+      "end": ">",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.abnf"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.abnf"
+        }
+      }
+    },
+    "quantifier": {
+      "name": "meta.quantifier.abnf",
+      "match": "([0-9]*)(\\*)",
+      "captures": {
+        "1": {
+          "name": "constant.numeric.decimal.integer.int.abnf"
+        },
+        "2": {
+          "name": "keyword.operator.logical.repetition.asterisk.star.abnf"
+        }
+      }
+    },
+    "reference": {
+      "name": "variable.parameter.argument.identifier.reference.abnf",
+      "match": "[A-Za-z][-A-Za-z0-9]*"
+    },
+    "string": {
+      "name": "string.quoted.double.abnf",
+      "begin": "\"",
+      "end": "\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.abnf"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.abnf"
+        }
+      }
+    },
+    "terminal": {
+      "patterns": [
+        {
+          "name": "meta.terminal.numeric.decimal.abnf",
+          "begin": "(%)(d|D)",
+          "end": "(?=$|[;()\\[\\]{}\\s])",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.terminal.percentage-sign.abnf"
+            },
+            "2": {
+              "name": "storage.type.modifier.radix.abnf"
+            }
+          },
+          "patterns": [
+            {
+              "name": "invalid.illegal.syntax.abnf",
+              "match": "[0-9A-Fa-f]*[^-\\s0-9.;()\\[\\]{}][^-.;()\\[\\]{}]*"
+            },
+            {
+              "name": "constant.numeric.integer.int.decimal.abnf",
+              "match": "[0-9]+"
+            },
+            {
+              "name": "punctuation.separator.range.dash.hyphen.abnf",
+              "match": "-"
+            },
+            {
+              "name": "keyword.operator.concatenation.abnf",
+              "match": "\\."
+            }
+          ]
+        },
+        {
+          "name": "meta.terminal.numeric.hexadecimal.hex.abnf",
+          "begin": "(%)(x|X)",
+          "end": "(?=$|[;()\\[\\]{}\\s])",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.terminal.percentage-sign.abnf"
+            },
+            "2": {
+              "name": "storage.type.modifier.radix.abnf"
+            }
+          },
+          "patterns": [
+            {
+              "name": "invalid.illegal.syntax.abnf",
+              "match": "[0-9A-Fa-f]*[^-\\s0-9A-Fa-f.;()\\[\\]{}][^-.;()\\[\\]{}]*"
+            },
+            {
+              "name": "constant.numeric.integer.int.hexadecimal.hex.abnf",
+              "match": "[0-9A-Fa-f]+"
+            },
+            {
+              "name": "punctuation.separator.range.dash.hyphen.abnf",
+              "match": "-"
+            },
+            {
+              "name": "keyword.operator.concatenation.abnf",
+              "match": "\\."
+            }
+          ]
+        },
+        {
+          "name": "meta.terminal.numeric.binary.bin.abnf",
+          "begin": "(%)(b|B)",
+          "end": "(?=$|[;()\\[\\]{}\\s])",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.terminal.percentage-sign.abnf"
+            },
+            "2": {
+              "name": "storage.type.modifier.radix.abnf"
+            }
+          },
+          "patterns": [
+            {
+              "name": "invalid.illegal.syntax.abnf",
+              "match": "[0-1]*[^-\\s0-1.;()\\[\\]{}][^-.;()\\[\\]{}]*"
+            },
+            {
+              "name": "constant.numeric.integer.int.binary.bin.abnf",
+              "match": "[0-1]+"
+            },
+            {
+              "name": "punctuation.separator.range.dash.hyphen.abnf",
+              "match": "-"
+            },
+            {
+              "name": "keyword.operator.concatenation.abnf",
+              "match": "\\."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

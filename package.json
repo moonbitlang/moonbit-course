@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "@marp-team/marp-cli": "^3.4.0",
+    "github-markdown-css": "^5.5.1",
+    "sass": "^1.71.1",
+    "shiki": "^1.1.7"
+  },
+  "scripts": {
+    "pdf": "node scripts/pdf.mjs",
+    "theme": "npx sass theme/custom.scss custom.css"
+  }
+}
