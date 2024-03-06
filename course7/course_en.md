@@ -1,36 +1,108 @@
-# Modern Programming Concepts Overview: Imperative Programming
+# Modern Programming Thoughts: Imperative Programming
 
-## Imperative vs. Functional Programming
+## Revisiting Functional Programming
 
-- **Imperative**: Focuses on how to change program state through commands and variables.
-- **Functional**: Views computation as the evaluation of expressions and avoids changing state.
+The core idea of functional programming is that each input corresponds to a fixed output, and identifiers can be directly substituted with their corresponding values, a property known as referential transparency. However, developing practical programs often requires "side effects" beyond calculations, such as input/output operations and modifying data in memory. These side effects may lead to inconsistent results upon multiple executions, breaking referential transparency.
 
-## Core Concepts
+```moonbit
+let x: Int = 1 + 1 // x can be directly replaced with 2
+fn square(x: Int) -> Int { x * x }
+let z: Int = square(x) // can be replaced with { 2 * 2 }, still resulting in 4
+```
 
-- **Referential Transparency**: Functions and expressions can be replaced with their values without affecting program behavior.
-- **Side Effects**: Actions that alter the program's state or external environment, which can include I/O operations.
-- **Single-Value Types**: Functions that perform actions without returning a value, often used for side effects.
+## Commands and Side Effects
 
-## Data Handling
+The `print` command in Moonbite allows us to output strings, such as `print("hello moonbit")`. We can define initialization instructions in the `init` code block, serving as the program entry point. However, output commands may break referential transparency.
 
-- **Variables**: Stores data that can be mutable or immutable.
-- **Structs**: Complex data structures with mutable fields, allowing for aliasing and direct manipulation of data.
+```moonbit
+fn init {
+  let x: Int = {
+    println("hello moonbit") // First, execute the command and perform output
+    1 + 1 // Then, take the last value of the expression block as the block's value
+  }
+  let z: Int = square(x) // Output once
+}
+```
 
-## Control Structures
+We typically use the unit type `Unit` to represent the return value of functions or commands with side effects. It has only one value: `()`.
 
-- **Loops**: Repeatedly execute code based on a condition, with control over iteration and termination (break and continue).
-- **Recursion**: Functions calling themselves to solve problems, equivalent to certain types of loops.
+## Variables and Aliases
 
-## Debugging and Checking
+In Moonbite, we can define temporary variables using `let mut`. The assignment operation itself is a command. Struct fields are immutable by default, but we can use `mut` to identify mutable fields, which are treated as references.
 
-- **Debugger**: A tool for real-time runtime data inspection to aid in understanding and correcting code.
-- **Moonbit Checks**: Automatic checks for variable modifications and matching function return types to declarations.
+```moonbit
+struct Ref[T] { mut val : T }
+
+fn init {
+  let ref: Ref[Int] = { val: 1 } // ref itself is just a data binding
+  ref.val = 10 // We can modify the fields of the struct
+  println(ref.val.to_string()) // Output 10
+}
+```
+
+Multiple identifiers pointing to the same mutable data structure can be considered aliases, which need to be handled carefully.
+
+## Loops
+
+We can define loops using variables in Moonbite. A loop includes defining the loop variable and its initial value, checking whether to continue the loop, and iterating the variable.
+
+```moonbit
+let mut i = 0
+while i < 2, i = i + 1 {
+  println("Output")
+} // Repeat output 2 times
+```
+
+The loop execution flow is: check the condition -> execute commands -> iterate the variable -> repeat the above process. Moonbite provides a debugger that allows observing the changes in runtime data during the loop process.
+
+## Loops and Recursion
+
+Loops and recursion are equivalent. A loop can be written in a recursive form. Taking the calculation of the Fibonacci sequence as an example:
+
+```moonbit
+// Loop form
+fn fib_mut(n: Int) -> Int {
+  let mut a = 0; let mut b = 1; let mut i = 0
+  while i < n, i = i + 1 {
+    let t = a + b
+    a = b; b = t
+  }
+  a
+}
+
+// Recursive form
+fn fib(n: Int) -> Int {
+  if n == 0 { 0 }
+  else if n == 1 { 1 }
+  else { fib(n - 1) + fib(n - 2) }
+}
+```
+
+## Controlling Loop Flow
+
+Within a loop, we can use `break` to exit the loop prematurely and `continue` to skip the remaining part of the current loop iteration.
+
+```moonbit
+fn print_first_3() {
+  let mut i = 0
+  while i < 10, i = i + 1 {
+    if i == 3 {
+      break // Skip from 3 onwards
+    } else {
+      println(i.to_string())
+    }
+  }
+}
+```
+
+## Moonbite Checks
+
+Moonbite checks whether a variable is modified, which can help avoid mistakes like forgetting to add an iteration condition in a loop. It also checks if the function's return value type matches the declared type, preventing incorrect type declarations.
 
 ## Mutable Data
 
-- **Usage**: Manipulating external environments, enhancing performance, constructing complex data structures, and space reuse.
-- **Considerations**: Careful handling to maintain referential transparency and avoid conflicts.
+Mutable data has various applications, such as direct hardware manipulation, performance advantages (e.g., random access arrays), construction of complex data structures, and in-place modification to save space. Mutable data does not always conflict with referential transparency. For example, when calculating the Fibonacci sequence, although mutable data is used, the final result is still fixed for the same input.
 
 ## Summary
 
-This document introduces imperative and functional programming paradigms, emphasizing the importance of understanding state changes, side effects, and referential transparency. It covers data handling with variables and structs, control structures like loops and recursion, and the role of debugging tools. Mutable data is presented as a versatile but cautious approach to programming.
+This chapter introduces the basics of imperative programming, including using commands, variables, and loops. Imperative programming differs inherently from functional programming, and it is essential to understand the advantages and disadvantages of both and use them appropriately.
