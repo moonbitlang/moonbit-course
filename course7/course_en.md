@@ -12,7 +12,7 @@ let z: Int = square(x) // can be replaced with { 2 * 2 }, still resulting in 4
 
 ## Commands and Side Effects
 
-The `print` command in Moonbite allows us to output strings, such as `print("hello moonbit")`. We can define initialization instructions in the `init` code block, serving as the program entry point. However, output commands may break referential transparency.
+The `print` command in MoonBit enables us to output strings, such as `print("hello moonbit")`. We can define initialization instructions in the `init` code block, serving as the program entry point. However, output commands may break referential transparency.
 
 ```moonbit
 fn init {
@@ -28,7 +28,7 @@ We typically use the unit type `Unit` to represent the return value of functions
 
 ## Variables and Aliases
 
-In Moonbite, we can define temporary variables using `let mut`. The assignment operation itself is a command. Struct fields are immutable by default, but we can use `mut` to identify mutable fields, which are treated as references.
+In MoonBit, we can define temporary variables using `let mut`. The assignment operation itself is a command. Struct fields are immutable by default, but we can use `mut` to identify mutable fields, which are treated as references.
 
 ```moonbit
 struct Ref[T] { mut val : T }
@@ -44,7 +44,7 @@ Multiple identifiers pointing to the same mutable data structure can be consider
 
 ## Loops
 
-We can define loops using variables in Moonbite. A loop includes defining the loop variable and its initial value, checking whether to continue the loop, and iterating the variable.
+We can define loops using variables in MoonBit. A loop includes defining the loop variable and its initial value, checking whether to continue the loop, and iterating the variable.
 
 ```moonbit
 let mut i = 0
@@ -53,7 +53,7 @@ while i < 2, i = i + 1 {
 } // Repeat output 2 times
 ```
 
-The loop execution flow is: check the condition -> execute commands -> iterate the variable -> repeat the above process. Moonbite provides a debugger that allows observing the changes in runtime data during the loop process.
+The loop execution flow is: check the condition -> execute commands -> iterate the variable -> repeat the above process. MoonBit provides a debugger that enables observing the changes in runtime data during the loop process.
 
 ## Loops and Recursion
 
@@ -95,9 +95,9 @@ fn print_first_3() {
 }
 ```
 
-## Moonbite Checks
+## MoonBit Checks
 
-Moonbite checks whether a variable is modified, which can help avoid mistakes like forgetting to add an iteration condition in a loop. It also checks if the function's return value type matches the declared type, preventing incorrect type declarations.
+MoonBit checks whether a variable is modified, which can help avoid mistakes like forgetting to add an iteration condition in a loop. It also checks if the function's return value type matches the declared type, preventing incorrect type declarations.
 
 ## Mutable Data
 
