@@ -1,4 +1,4 @@
-# Modern Programming Thoughts: Imperative Programming
+# Modern Programming Ideology: Imperative Programming
 
 ## Revisiting Functional Programming
 
@@ -42,14 +42,34 @@ fn init {
 
 Multiple identifiers pointing to the same mutable data structure can be considered aliases, which need to be handled carefully.
 
+```moonbit
+fn alter(a: Ref[Int], b: Ref[Int]) {
+  a.val = 10
+  b.val = 20
+}
+
+fn init {
+  let x: Ref[Int] = { val : 1 }
+  alter(x, x)
+  println(x.val.to_string()) // x.val will be changed twice
+}
+```
+
+## Debugger
+
+- Moon Rabbit's debugger allows us to see real-time running data during operation and better understand the running process
+
+![](../pics/debugger.png)
+
 ## Loops
 
 We can define loops using variables in MoonBit. A loop includes defining the loop variable and its initial value, checking whether to continue the loop, and iterating the variable.
 
 ```moonbit
 let mut i = 0
-while i < 2, i = i + 1 {
+while i < 2 {
   println("Output")
+  i = i + 1
 } // Repeat output 2 times
 ```
 
@@ -62,7 +82,9 @@ Loops and recursion are equivalent. A loop can be written in a recursive form. T
 ```moonbit
 // Loop form
 fn fib_mut(n: Int) -> Int {
-  let mut a = 0; let mut b = 1; let mut i = 0
+  let mut a = 0;
+  let mut b = 1;
+  let mut i = 0
   while i < n, i = i + 1 {
     let t = a + b
     a = b; b = t
@@ -85,17 +107,44 @@ Within a loop, we can use `break` to exit the loop prematurely and `continue` to
 ```moonbit
 fn print_first_3() {
   let mut i = 0
-  while i < 10, i = i + 1 {
+  while i < 10 {
     if i == 3 {
       break // Skip from 3 onwards
     } else {
       println(i.to_string())
     }
+    i = i + 1
   }
 }
 ```
 
-## MoonBit Checks
+the excepted output is
+
+```
+0
+1
+2
+```
+
+if we change `break` to `continue`
+
+```moonbit
+fn print_first_3() {
+  let mut i = 0
+  while i < 10 {
+    if i == 3 {
+      continue // Skip from 3 onwards
+    } else {
+      println(i.to_string())
+    }
+    i = i + 1
+  }
+}
+```
+
+the program will go into infinite loops, so there will be no output.
+
+## MoonBit Check
 
 MoonBit checks whether a variable is modified, which can help avoid mistakes like forgetting to add an iteration condition in a loop. It also checks if the function's return value type matches the declared type, preventing incorrect type declarations.
 
