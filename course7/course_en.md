@@ -69,7 +69,7 @@ We can define loops using variables in MoonBit. A loop includes defining the loo
 let mut i = 0
 while i < 2 {
   println("Output")
-  i = i + 1
+  i += 1
 } // Repeat output 2 times
 ```
 
@@ -85,9 +85,10 @@ fn fib_mut(n: Int) -> Int {
   let mut a = 0;
   let mut b = 1;
   let mut i = 0
-  while i < n, i = i + 1 {
+  while i < n {
     let t = a + b
     a = b; b = t
+    i += 1
   }
   a
 }
@@ -113,7 +114,7 @@ fn print_first_3() {
     } else {
       println(i.to_string())
     }
-    i = i + 1
+    i += 1
   }
 }
 ```
@@ -137,7 +138,7 @@ fn print_first_3() {
     } else {
       println(i.to_string())
     }
-    i = i + 1
+    i += 1
   }
 }
 ```
