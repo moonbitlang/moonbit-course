@@ -2,7 +2,9 @@
 
 ## Revisiting Functional Programming
 
-The core idea of functional programming is that each input corresponds to a fixed output, and identifiers can be directly substituted with their corresponding values, a property known as referential transparency. However, developing practical programs often requires "side effects" beyond calculations, such as input/output operations and modifying data in memory. These side effects may lead to inconsistent results upon multiple executions, breaking referential transparency.
+Imperative programming is a style of programming where we give the computer a set of commands to execute, much like giving instructions to a person. It's about telling the computer exactly what to do, step by step. This is different from functional programming, where you define what you want in terms of mathematical functions. In functional programming, the same input will always give you the same output, and there's a concept called "referential transparency," which means you can replace a function call with its result without changing the program's behavior.
+
+However, in the real world, we often need our programs to do more than just calculations. We might need them to read from a file, write to the screen, or change data in memory. These actions are called "side effects," and they can make our programs behave differently each time they run, even with the same input. This breaks the referential transparency, making our programs harder to understand and predict.
 
 ```moonbit
 let x: Int = 1 + 1 // x can be directly replaced with 2
@@ -10,9 +12,11 @@ fn square(x: Int) -> Int { x * x }
 let z: Int = square(x) // can be replaced with { 2 * 2 }, still resulting in 4
 ```
 
+Let's look at an example in MoonBit, a fictional programming language. We can declare a variable `x` and assign it the result of an expression, like `1 + 1`. This is straightforward and mirrors what we do in mathematics. We can also define a function `square` that takes an integer and returns its square. When we call `square(x)`, we get the result `4`, just like if we replaced `square(x)` with `{ 2 * 2 }`.
+
 ## Commands and Side Effects
 
-The `print` command in MoonBit enables us to output strings, such as `print("hello moonbit")`. We can define initialization instructions in the `init` code block, serving as the program entry point. However, output commands may break referential transparency.
+In MoonBit, we can use the `print` command to output text to the screen. This is a side effect because it changes the state of the world outside our program. When we define a function, we usually want it to return a value, but sometimes we just want to perform an action without a return value. In such cases, we use the `Unit` type, which represents the absence of a meaningful return value, like a placeholder.
 
 ```moonbit
 fn init {
@@ -24,11 +28,11 @@ fn init {
 }
 ```
 
-We typically use the unit type `Unit` to represent the return value of functions or commands with side effects. It has only one value: `()`.
+Here's a simple example: we define a function `init` that prints a greeting message and then calculates the value of `x`. The `println` command is executed first, and then the result of the expression `1 + 1` is used as the value of `x`. This function has a side effect (printing), but it also returns a value (the value of `x`), which is why we use the `Unit` type to indicate that the primary purpose of this function is not to return a value.
 
 ## Variables and Aliases
 
-In MoonBit, we can define temporary variables using `let mut`. The assignment operation itself is a command. Struct fields are immutable by default, but we can use `mut` to identify mutable fields, which are treated as references.
+In MoonBit, we can create temporary variables using `let mut`. The `mut` keyword tells MoonBit that the variable can change. This is important because it affects how we think about the data. For example, if we have a struct (a collection of values) called `Ref`, we can create a mutable reference to an integer inside it. We can then change the value of that integer, and any other references to the same `Ref` struct will see the updated value. This is because they are aliases, or different names for the same data.
 
 ```moonbit
 struct Ref[T] { mut val : T }
@@ -57,13 +61,13 @@ fn init {
 
 ## Debugger
 
-- Moon Rabbit's debugger allows us to see real-time running data during operation and better understand the running process
+Debugging is like being a detective. You're trying to figure out why your program isn't working as expected. MoonBit's debugger is a tool that helps you do this by showing you what's happening inside your program as it runs. You can pause the program at any point, look at the values of variables, and step through the code one line at a time. This is incredibly useful for understanding complex behavior and fixing bugs.
 
 ![](../pics/debugger.png)
 
 ## Loops
 
-We can define loops using variables in MoonBit. A loop includes defining the loop variable and its initial value, checking whether to continue the loop, and iterating the variable.
+Loops are a way to repeat a block of code multiple times. In MoonBit, we can use a `while` loop to do this. We start by defining a loop variable, say `i`, and giving it an initial value. Then we check a condition—if the condition is true, we execute the commands inside the loop, and then we update the loop variable. This process repeats until the condition is no longer true, at which point the loop ends.
 
 ```moonbit
 let mut i = 0
@@ -73,11 +77,13 @@ while i < 2 {
 } // Repeat output 2 times
 ```
 
-The loop execution flow is: check the condition -> execute commands -> iterate the variable -> repeat the above process. MoonBit provides a debugger that enables observing the changes in runtime data during the loop process.
+For example, we might want to print the numbers from `0` to `1`. We can do this with a loop that checks if `i` is less than `2`. If it is, we print the current value of `i`, increment `i` by `1`, and then repeat the process. The loop continues until `i` is no longer less than `2`, and then we're done.
 
 ## Loops and Recursion
 
-Loops and recursion are equivalent. A loop can be written in a recursive form. Taking the calculation of the Fibonacci sequence as an example:
+Loops and recursion are equivalent. A loop is a set of instructions that we repeat until a certain condition is met, while recursion is a way of solving a problem by breaking it down into smaller, similar problems. In programming, we can often rewrite a loop as a recursive function and vice versa.
+
+For example, let's consider calculating the Fibonacci sequence. We can do this with a loop that keeps track of the last two numbers and updates them as it goes. Alternatively, we can write a recursive function that calls itself with smaller numbers until it reaches the base cases (0 and 1).
 
 ```moonbit
 // Loop form
@@ -103,18 +109,22 @@ fn fib(n: Int) -> Int {
 
 ## Controlling Loop Flow
 
-Within a loop, we can use `break` to exit the loop prematurely and `continue` to skip the remaining part of the current loop iteration.
+Sometimes we want to control the flow of a loop more precisely. We might want to skip the rest of the current iteration or exit the loop entirely. In MoonBit, we can use `break` to exit a loop early or `continue` to skip the rest of the current iteration and move on to the next one.
+
+For example, if we're printing numbers from `0` to `9`, but we want to skip the number `3`, we can use `continue` in the loop condition. If we want to stop the loop entirely when we reach `3`, we can use `break`.
 
 ```moonbit
 fn print_first_3() {
   let mut i = 0
   while i < 10 {
+    i += 1
+    print(i)
+    println(" yes")
     if i == 3 {
       break // Skip from 3 onwards
     } else {
       println(i.to_string())
     }
-    i += 1
   }
 }
 ```
@@ -122,37 +132,52 @@ fn print_first_3() {
 the excepted output is
 
 ```
-0
-1
-2
+1 yes
+2 yes
 ```
 
-if we change `break` to `continue`
+but if we change `break` to `continue`
 
 ```moonbit
 fn print_first_3() {
   let mut i = 0
   while i < 10 {
+    i += 1
+    print(i)
+    println(" yes")
     if i == 3 {
-      continue // Skip from 3 onwards
+      continue // go into the next iteration
     } else {
       println(i.to_string())
     }
-    i += 1
   }
 }
 ```
 
-the program will go into infinite loops, so there will be no output.
+the excepted output is
+
+```
+1 yes
+2 yes
+ yes
+ yes
+ yes
+ yes
+ yes
+ yes
+ yes
+```
 
 ## MoonBit Check
 
-MoonBit checks whether a variable is modified, which can help avoid mistakes like forgetting to add an iteration condition in a loop. It also checks if the function's return value type matches the declared type, preventing incorrect type declarations.
+MoonBit has some built-in checks to help us write better code. It checks if a variable that's supposed to be mutable has been modified, which can help us catch mistakes like forgetting to update a loop counter. It also checks that the return value of a function matches the declared return type, which helps us avoid type errors.
 
 ## Mutable Data
 
-Mutable data has various applications, such as direct hardware manipulation, performance advantages (e.g., random access arrays), construction of complex data structures, and in-place modification to save space. Mutable data does not always conflict with referential transparency. For example, when calculating the Fibonacci sequence, although mutable data is used, the final result is still fixed for the same input.
+Mutable data is data that can be changed after it's been created. This is different from immutable data, which can't be altered once it's defined. Mutable data can be very useful for things like directly controlling hardware, improving performance with data structures like arrays, constructing complex data structures, and saving space by modifying data in place instead of creating new copies.
+
+While mutable data can make our programs more complex and harder to reason about, it doesn't necessarily conflict with the concept of referential transparency. For example, when calculating the Fibonacci sequence, even though we're using mutable data to store intermediate results, the final output is still determined solely by the input, so we can still reason about the function as if it were pure.
 
 ## Summary
 
-This chapter introduces the basics of imperative programming, including using commands, variables, and loops. Imperative programming differs inherently from functional programming, and it is essential to understand the advantages and disadvantages of both and use them appropriately.
+In this chapter, we've explored the basics of imperative programming. We've learned about using commands to tell the computer what to do, variables to store values, and loops to repeat actions. Imperative programming is inherently different from functional programming, and it's important to understand the trade-offs between the two. By understanding these concepts, we can choose the right tools for the job and write programs that are both effective and easy to understand.
