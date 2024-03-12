@@ -171,8 +171,9 @@ while <Check if the condition for continuing the loop is met>, <Iterate the vari
 
 ```moonbit
 let mut i = 0
-while i < 2, i = i + 1 {
+while i < 2 {
   println("Output") // Repeat the output twice.
+  i = i + 1
 }
 ```
 
@@ -187,8 +188,9 @@ while i < 2, i = i + 1 {
 
 ```moonbit
 let mut i = 0 // <-- At this point, i is equal to 0
-while i < 2, i = i + 1 { // <-- Here, we check if i < 2 is true.
+while i < 2 { // <-- Here, we check if i < 2 is true.
   println("Output") // <-- 0 < 2, so continue execution, output the first time.
+  i = i + 1
 } // <-- At this point, we execute i = i + 2.
 ```
 
@@ -203,8 +205,9 @@ while i < 2, i = i + 1 { // <-- Here, we check if i < 2 is true.
 
 ```moonbit
 // At this point, i is equal to 1
-while i < 2, i = i + 1 { // <-- Here, we check if i < 2 is true.
+while i < 2 { // <-- Here, we check if i < 2 is true.
   println("Output") // <-- 1 < 2, so continue execution, output the second time.
+  i = i + 1
 } // <-- At this point, we execute i = i + 2.
 ```
 
@@ -219,7 +222,8 @@ while i < 2, i = i + 1 { // <-- Here, we check if i < 2 is true.
 
 ```moonbit
 // At this point, i is equal to 2
-while i < 2, i = i + 1 { // <-- Here, we check if i < 2 is true, which is false.
+while i < 2 { // <-- Here, we check if i < 2 is true, which is false.
+i = i + 1
 } // <-- Skip.
 // <-- Continue with subsequent execution.
 ```
@@ -258,8 +262,9 @@ loop_(<initial value>)
 
 ```moonbit
 let mut i = 0
-while i < 2, i = i + 1 {
+while i < 2 {
   println("Hello!")
+  i = i + 1
 }
 ```
 
@@ -282,7 +287,8 @@ loop_(0)
 ```moonbit
 fn print_first_3() {
   let mut i = 0
-  while i < 10, i = i + 1 {
+  while i < 10 {
+    i = i + 1
     if i == 3 {
       break // Skip from 3 onwards.
     } else {
@@ -301,7 +307,8 @@ fn print_first_3() {
 ```moonbit
 fn print_skip_3() {
   let mut i = 0
-  while i < 10, i = i + 1 {
+  while i < 10 {
+    i = i + 1
     if i == 3 {
         continue // Skip 3.
     } else { () }
@@ -329,9 +336,10 @@ fn print_skip_3() {
 ```moonbit
 fn fib_mut(n: Int) -> Int { // Always the same output for the same input
   let mut acc1 = 0; let mut acc2 = 1; let mut i = 0
-  while i < n, i = i + 1 {
+  while i < n {
     let t = acc1 + acc2
     acc1 = acc2; acc2 = t
+    i = i + 1
   }
   acc1
 }
