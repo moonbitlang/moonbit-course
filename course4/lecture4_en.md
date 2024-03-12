@@ -281,7 +281,7 @@ A more interesting example is `List`, using `List[Int]` as an example.
 
 $$
 \begin{array}{rl}
-\texttt{enum} \;\; \texttt{List} & = \texttt{Nil} + \texttt{Int} \times \texttt{List} \\  
+\texttt{enum} \ \ \texttt{List} & = \texttt{Nil} + \texttt{Int} \times \texttt{List} \\  
 & = \texttt{1} + \texttt{Int} \times \texttt{List} \\
 & = \texttt{1} + \texttt{Int} \times (\texttt{1} + \texttt{Int} \times \texttt{List} ) \\
 & = \texttt{1} + \texttt{Int} \times \texttt{1} + \texttt{Int} \times \texttt{Int} \times \texttt{List} \\
