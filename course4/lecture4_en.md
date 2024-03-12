@@ -2,7 +2,7 @@
 
 Hello everyone, welcome to the open course on modern programming concepts brought to you by the IDEA's Digital Infrastructure Innovation. Today's topic is tuples, structures, and enumerated types. In a nutshell, we will be exploring how to customize data structures in MoonBit.
 
-# Review: Tuples
+## Review: Tuples
 
 First, review the fundamental data type in MoonBit introduced in course 2: Tuples.
 
@@ -24,7 +24,7 @@ You may be familiar with the concept of the Cartesian product. The Cartesian pro
 
 Tuples, on the other hand, go beyond the Cartesian product of two sets; they represent the Cartesian product of multiple sets, making them more accurately termed as ordered sets. Consequently, tuples are also known as product types. You might wonder if there are sum types alongside product types. We will introduce sum types and explore the concepts of **zero** and **one** later.
 
-# Structures
+## Structures
 
 The problem is that it is hard to understand the data represented by tuples. For example, `(String, Int)` – does it represent a person's name and age, or a person's name and phone number, or perhaps address and email?
 
@@ -84,7 +84,7 @@ let not_accepted: Bool = accept(({ val : 1, other : 2 }: B)) // DO NOT COMPILE
 let accepted: Bool = accept(({other: 2, val: 1}: A))
 ```
 
-# Pattern Matching
+## Pattern Matching
 
 Pattern matching is another way to access tuples and structures.
 
@@ -169,7 +169,7 @@ We define our function with pattern matching. Here, we match a pairs by construc
 
 Lastly, pattern matching is not limited to `match`; it can also be used in data binding. In local definitions, we can use pattern matching expressions to bind corresponding substructures to identifiers. It's essential to note that if value comparison occurs at this point and the match fails, the program will encounter a runtime error, leading to program termination.
 
-# Enumerated Types
+## Enumerated Types
 
 Now, let's delve into the enumerated types.
 
@@ -225,7 +225,7 @@ enum ComputeResult {
 
 To do this, simply enclose parameters with parentheses and separate them by commas after each variant. In the second example, we define the case of successful integer operation, and the value is an integer. Enumerated types correspond to a distinguishable union. What does that mean? First, it is a union of different cases, for example, the set represented by the type `T` for `Some` and the set defined by the singular value `None`. Second, this union is distinguishable because each case has a unique name. Even if there are two cases with the same data type, they are entirely different. Thus, enumerated types are also known as sum types.
 
-# Algebraic Data Types
+## Algebraic Data Types
 
 We've mentioned product types and sum types. Now, let me briefly introduce algebraic data types. It's important to note that this introduction to algebraic data types is quite basic. Please read the references for a deeper understanding.
 
@@ -291,7 +291,7 @@ $$
 
 The definition of `List[Int]` tells us that a list of intergers is either an empty list or composed of an integer with a sublist. An empty list is isomorphic to the Unit type, so it can be expressed as `1 + Int * List`. As `List` is recursive, it can be substituted with `1 + Int * 1 + Int * List`. Applying the associative law of multiplication, we get `1 + Int * (1 + Int * List)`. Continuing the substitution and simplification, we find that the set of integer lists is a distinguishable union of a single-value set, an integer set, two integer sets, and even an infinite Cartesian product of integer sets. This corresponds with reality.
 
-# Summary
+## Summary
 
 In this section, we explored various custom data types in MoonBit, including:
 
