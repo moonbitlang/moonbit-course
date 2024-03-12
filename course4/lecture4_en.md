@@ -1,4 +1,4 @@
-# Modern Programming Concepts: Tuples, Structures, and Enumerated Types
+# Modern Programming Ideology: Tuples, Structures, and Enumerated Types
 
 Hello everyone, welcome to the open course on modern programming concepts brought to you by the IDEA's Digital Infrastructure Innovation. Today's topic is tuples, structures, and enumerated types. In a nutshell, we will be exploring how to customize data structures in MoonBit.
 
@@ -20,7 +20,7 @@ Tuple members are accessed by indexes, starting from 0 on the left. For example,
 
 You may be familiar with the concept of the Cartesian product. The Cartesian product of two sets is a set where all elements are ordered pairs formed by the elements of the original two sets. For example, the Cartesian product of the set of card suits and the numbers 1 to 52 forms all possible ordered pairs of suits and numbers. 
 
-{ ♥️ ♦️ ♠️ ♣️ } $\times \{ n \in \mathbb{N} | 1 \leq n \leq 52 \}$ 
+${ ♥️ ♦️ ♠️ ♣️ } $\times \{ n \in \mathbb{N} | 1 \leq n \leq 52 \}$ 
 
 Tuples, on the other hand, go beyond the Cartesian product of two sets; they represent the Cartesian product of multiple sets, making them more accurately termed as ordered sets. Consequently, tuples are also known as product types. You might wonder if there are sum types alongside product types. We will introduce sum types and explore the concepts of **zero** and **one** later.
 
@@ -104,7 +104,7 @@ fn get_or_else(option_int: Option[Int], default: Int) -> Int {
 }
 ```
 
-We have previously used pattern matching to inspect the structure of lists and Options. For instance, using `Nil` and `Cons` to match lists; `None` and `Some` to match Options. In fact, pattern matching can match values (logical values, numbers, characters, strings) as well as constructors. 
+We have previously used pattern matching to inspect the structure of `List` and `Option`. For instance, using `Nil` and `Cons` to match lists; `None` and `Some` to match Options. In fact, pattern matching can match values (booleans, numbers, characters, strings) as well as constructors. 
 
 
 ```moonbit
@@ -194,7 +194,7 @@ The construction of an enumerated type is as follows:
 enum <type_name> { <variant>; }
 ```
 
-Here, each possible variant is a constructor. For instance, `let monday = Monday`, where `Monday` defines the day of the week as Monday. Different enumerated types may cause conflicts because they might use the same names for some cases. In such cases, we distinguish them by adding `<type>::` in front of the constructor.
+Here, each possible variant is a constructor. For instance, `let monday = Monday`, where `Monday` defines the day of the week as Monday. Different enumerated types may cause conflicts because they might use the same names for some cases. In such cases, we distinguish them by adding `<type>::` in front of the constructor, such as `DaysOfWeek::Monday`.
 
 Now we need to ask, why do we need enumerated types? Why not just use numbers from one to seven to represent Monday to Sunday? Let's compare the following two functions. 
 
@@ -204,7 +204,7 @@ fn tomorrow(today: DaysOfWeek) -> DaysOfWeek
 let tuesday = 1 * 2 // Is this Tuesday?
 ```
 
-The most significant difference is that functions defined with enumerated types are total functions, while those defined with integers are partial functions. This increases the possibility of users providing incorrect inputs – they might pass -1 or 8, and we have no way to prevent this through the compiler. Another consideration is, what does adding one to a day of the week mean? What is the meaning of multiplying the day of the week by a number? Why is Monday multiplied by two equal to Tuesday? Why is Tuesday divided by two equal to Monday? Enumerated types can distinguish themselves from existing types and better abstraction.
+The most significant difference is that functions defined with enumerated types are total functions, while those defined with integers are partial functions. This increases the possibility of users providing incorrect inputs – they might pass -1 or 8, and we have no way to prevent this through the compiler. Another consideration is, what does adding one to a day of the week mean? What is the meaning of multiplying the day of the week by a number? Why is Monday multiplied by two equal to Tuesday? Why is Tuesday divided by two equal to Monday? Enumerated types can distinguish themselves from existing types and abstract better.
 
 Additionally, enumerated types prevent the representation of irrational data. For instance, when using various services, user identification can be based on either a phone number or an email, both of which are optional but only one is required. If we use a structure with two nullable fields to represent this, there is a risk of both fields being empty or both having data, which is not what we want. Therefore, enumerated types can be used to better restrict the range of reasonable data.
 
