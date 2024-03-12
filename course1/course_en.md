@@ -91,7 +91,7 @@ The design of this course is inspired by [UPenn CIS 1200](https://www.seas.upenn
 
 **Program design** is the process of converting informal specifications into a program.
 
-It is highly recommended to adopt a **test-driven development** (TDD) workflow, _viz._,
+It is recommended to adopt a **test-driven development** (TDD) workflow, namely,
 
 1. **Understand the problem**: What variables are involved and how are they related?
 2. **Define the interfaces**: How should the program interact with the environment?
@@ -138,15 +138,9 @@ fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
 # Step 3: Write the Test Cases
 
 ```moonbit
-fn assert(assertion: Bool) {
-  if assertion.not() {
-    abort("Test failed")
-  }
-}
-
 test {
-  assert(num_water_bottles(9, 3) ==  13) // 9 + 3 + 1 = 13
-  assert(num_water_bottles(15, 4) ==  19)
+  @assertion.assert_eq(num_water_bottles(9, 3), 13)? // 9 + 3 + 1 = 13
+  @assertion.assert_eq(num_water_bottles(15, 4), 19)?
 }
 ```
 
@@ -160,8 +154,8 @@ A sample implementation:
 fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
   fn consume(num_bottles, num_drunk) {
     if num_bottles >= num_exchange {
-      let num_bottles -= num_exchange + 1
-      let num_drunk += num_exchange
+      let num_bottles = num_bottles - num_exchange + 1
+      let num_drunk = num_drunk + num_exchange
       consume(num_bottles, num_drunk)
     } else {
       num_bottles + num_drunk
@@ -187,7 +181,7 @@ fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
 
 # Summary
 
-- It is highly recommended to adopt a **test-driven development** (TDD) workflow, _viz._,
+- It is recommended to adopt a **test-driven development** (TDD) workflow, namely,
 
     1. **Understand the problem**
     2. **Define the interfaces**
