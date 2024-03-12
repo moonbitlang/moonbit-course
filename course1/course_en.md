@@ -24,7 +24,7 @@ The design of this course is inspired by [UPenn CIS 1200](https://www.seas.upenn
 - This is a course on **program design**.
     - Target audience: all programming enthusiasts.
 - Practical techniques
-    - Writing larger programs (~10,000 LOC).
+    - Writing large-scale programs (~10,000 LOC).
     - Independent problem analysis and solving.
     - Test-driven development and program design.
 - Foundational concepts
@@ -40,7 +40,7 @@ The design of this course is inspired by [UPenn CIS 1200](https://www.seas.upenn
     - A modern, statically-typed, **multi-paradigm** programming language
     - with newbie-friendly lightweight syntax
     - supported on multiple kinds of development environments:
-        - browsers, cloud-native environments, local editors/IDEs, etc.
+        - browsers, cloud-native environments, local IDEs, etc.
 
 ---
 
@@ -129,7 +129,7 @@ It is recommended to adopt a **test-driven development** (TDD) workflow, namely,
 
 ```moonbit
 fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
-    abort("To be done")
+  abort("To be done")
 }
 ```
 
@@ -168,14 +168,14 @@ fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
 
 ---
 
-# [Let's have a try!](https://try.moonbitlang.cn/#bc2238e7)
+# [Let's have a try!](https://try.moonbitlang.com/#bc2238e7)
 
 ---
 
 # Quiz
 
 - For some abnormal inputs, the sample program may fail. Can you identify them?
-    - Hint: In Java, the range of `int` values is $-2^{31}$ to $2^{31} - 1$.
+    - Hint: In MoonBit, the range of `Int` values is $-2^{31}$ to $2^{31} - 1$.
 
 ---
 
