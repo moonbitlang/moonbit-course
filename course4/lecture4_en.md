@@ -24,6 +24,8 @@ ${ ♥️ ♦️ ♠️ ♣️ } $\times \{ n \in \mathbb{N} | 1 \leq n \leq 52 
 
 Tuples, on the other hand, go beyond the Cartesian product of two sets; they represent the Cartesian product of multiple sets, making them more accurately termed as ordered sets. Consequently, tuples are also known as product types. You might wonder if there are sum types alongside product types. We will introduce sum types and explore the concepts of **zero** and **one** later.
 
+Beyond the Cartesian product of two sets, tuples represent the Cartesian product of multiple sets, named n-tuple. Consequently, tuples are also known as product types. You might wonder if there are sum types alongside product types. We will introduce sum types and explore the concepts of **zero** and **one** later.
+
 ## Structures
 
 The problem is that it is hard to understand the data represented by tuples. For example, `(String, Int)` – does it represent a person's name and age, or a person's name and phone number, or perhaps address and email?
@@ -38,7 +40,7 @@ We can clearly understand the information about the data and the meaning of each
 
 The syntax of defining a structure is `struct <struct_name> { <field_name>: <type> ; ... }`. For example: `struct PersonalInfo { name: String; age: Int }`. As we have mentioned, the semicolons can be omitted when the fields are on separate lines.
 
-Definitions of the values of a structure are enclosed in braces, with each field assigned a value: `<field_name>: <value>`; each field assignment is followed by a comma. For instance: `let info: PersonalInfo = { name: "Moonbit", age: 1, }`. Note the comma after each value. It can be omitted if the last comma is directly followed by the closing brace without a newline. The order of fields does not matter, for example, `{ age: 1, name: "Moonbit" }`. If two structures happen to have exactly the same field names and types, they cannot be distinguished solely by the defined values. In such cases, we can differentiate them by adding a type declaration after the structure's value, such as `: A`.
+Definitions of the values of a structure are enclosed in braces, with each field assigned a value: `<field_name>: <value>`; each field assignment is followed by a comma. For instance: `let info: PersonalInfo = { name: "Moonbit", age: 1, }`. Note the comma after each value. It can be omitted if the last comma is directly followed by the closing brace without a newline. The order of fields does not matter, for example, `{ age: 1, name: "Moonbit" }`. If two structures have the exact same fields with the same types, it's challenging to tell them apart just by their field values. To resolve this, we add type annotations like `let jack = ({ ... } : PersonInfo)` to specify the type of a value.
 
 Accessing the fields of a structure is similar to tuples – by using the field name to retrieve the corresponding data, for example, `.age` to retrieve the field `age`. When creating a new structure based on an existing one, redeclaring each field can be tedious, especially if the original structure is large. For convenience, MoonBit also provides a feature to update only specific fields. We can simply indicate the base structure with `.. <original_structure>` before the definition of the structure values, and then only declare the fields that have been modified. See the example below.
 
@@ -129,7 +131,7 @@ fn contains_zero(l: List[Int]) -> Bool {
 }
 ```
 
-In this example, the first `Cons` uses the number 0 to match lists starting with 0, and the second `Cons` uses a wildcard and an identifier `tl` to match remaining lists while binding the sublist to the identifier `tl` for further processing. The value of the current list is discarded by the wildcard.
+In this example, the branch `Cons(0, _)` matches lists starting with 0 with the literal number 0. The branch `Cons(_, tl)` matches other lists, while binding the sublist to the identifier `tl` for further processing. The head of the current list is discarded by the wildcard.
 
 Pattern matching for tuples and structures is just like for constructions. 
 
@@ -167,7 +169,7 @@ fn zip(l1: List[Int], l2: List[Char]) -> List[(Int, Char)] {
 
 We define our function with pattern matching. Here, we match a pairs by constructing a tuple and then match the nested tuple pattern, effectively matching both lists simultaneously. If either of the input lists is empty, the result is an empty list. When both lists are non-empty, we get a non-empty result. The first item of the result is a tuple of the two values we take from the inputs, followed by the zipped result of the sublists of both lists. Note that the order of pattern matching is top-down. (If a wildcard is placed at the top, the subsequent patterns will never be matched, and the code will never run. The good news is that MoonBit can detect this and provide warnings. These warnings are advisory and won't prevent compilation, so it's crucial to pay attention to the issues panel in your IDE.)
 
-Lastly, pattern matching is not limited to `match`; it can also be used in data binding. In local definitions, we can use pattern matching expressions to bind corresponding substructures to identifiers. It's essential to note that if value comparison occurs at this point and the match fails, the program will encounter a runtime error, leading to program termination.
+Lastly, pattern matching is not limited to `match`; it can also be used in data binding. In local definitions, we can use pattern matching expressions to bind corresponding substructures to identifiers. It's essential to note that if the match fails, the program will encounter a runtime error and terminate.
 
 ## Enumerated Types
 
@@ -303,4 +305,4 @@ We also touched upon the concept of algebraic data types, which encompass tuples
 
 For further exploration, we recommend reading Chapter 6 of [Category Theory for Programmers](https://bartoszmilewski.com/2015/01/13/simple-algebraic-data-types/).
 
-You can also experiment with MoonBit: [try.moonbitlang.com/#44a4eb28](https://try.moonbitlang.com/#44a4eb28).
+You can also experiment with MoonBit: [try.moonbitlang.com](https://try.moonbitlang.com/course/lec4/data_structures.mbt).
