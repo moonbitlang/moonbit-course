@@ -171,6 +171,12 @@ We define our function with pattern matching. Here, we match a pairs by construc
 
 Lastly, pattern matching is not limited to `match`; it can also be used in data binding. In local definitions, we can use pattern matching expressions to bind corresponding substructures to identifiers. It's essential to note that if the match fails, the program will encounter a runtime error and terminate.
 
+```moonbit
+let ok_one = Result::Ok(1);
+let Result::Ok(one) = ok_one; 
+let Result::Err(e) = ok_one; // Runtime error
+```
+
 ## Enumerated Types
 
 Now, let's delve into the enumerated types.
