@@ -16,7 +16,7 @@ The definition of tuples is represented by expressions enclosed in parentheses a
 
 Tuple members are accessed by indexes, starting from 0 on the left. For example, `(2023, 10, 24).0 == 2023`.
 
-# Cartesian Product
+## Cartesian Product
 
 You may be familiar with the concept of the Cartesian product. The Cartesian product of two sets is a set where all elements are ordered pairs formed by the elements of the original two sets. For example, the Cartesian product of the set of card suits and the numbers 1 to 52 forms all possible ordered pairs of suits and numbers. 
 
@@ -49,7 +49,7 @@ let new_info = { .. old_info, age: 2, }
 let other_info = { .. old_info, name: "Hello", }
 ```
 
-# Relationship Between Tuples and Structures
+## Relationship Between Tuples and Structures
 
 You may notice that tuples and structures seem quite similar. In fact, a structure and a tuple composed of the same types are isomorphic. Isomorphism, in this context, means there exists a one-to-one mapping between two sets. If there are mappings `f: (A) -> B` and `g: (B) -> A` between sets `A` and `B`, such that for any `a` and `b`, it satisfies `g(f(a)) == a` and `f(g(b)) == b`, as shown in the diagram below, then these two sets are isomorphic.
 
