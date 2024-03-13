@@ -20,7 +20,7 @@ Tuple members are accessed by indexes, starting from 0 on the left. For example,
 
 You may be familiar with the concept of the Cartesian product. The Cartesian product of two sets is a set where all elements are ordered pairs formed by the elements of the original two sets. For example, the Cartesian product of the set of card suits and the numbers 1 to 52 forms all possible ordered pairs of suits and numbers. 
 
-${ ♥️ ♦️ ♠️ ♣️ } $\times \{ n \in \mathbb{N} | 1 \leq n \leq 52 \}$ 
+{ ♥️ ♦️ ♠️ ♣️ } $\times \lbrace n \in \mathbb{N} | 1 \leq n \leq 52 \rbrace$ 
 
 Tuples, on the other hand, go beyond the Cartesian product of two sets; they represent the Cartesian product of multiple sets, making them more accurately termed as ordered sets. Consequently, tuples are also known as product types. You might wonder if there are sum types alongside product types. We will introduce sum types and explore the concepts of **zero** and **one** later.
 
