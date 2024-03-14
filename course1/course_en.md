@@ -9,7 +9,11 @@ style: |
     }
 ---
 
-![bg cover](../pics/course1_front.png)
+# Modern Programming Ideology
+
+## Course Introduction & Program Design
+
+### Hongbo Zhang
 
 ---
 
