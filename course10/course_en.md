@@ -31,7 +31,7 @@ headingDivider: 1
     - `trait Hash { hash(Self) -> Int }`
     - `"ThisIsAVeryVeryLongString".hash() == -321605584`
 - HashMap:
-  - Using hash functions to to map data to indices in an array, providing efficient data access and manipulation (adding and updating data).
+  - Using hash functions to map data to indices in an array, providing efficient data access and manipulation (adding and updating data).
     
     ```moonbit
     // For a: Array[(Key, Value)], key: Key, value: Value
@@ -99,7 +99,7 @@ struct HT_bucket[K, V] {
   - Then perform key lookup by traversing the collection:
     - If key exists, update the value.
     - Else, add the key-value pair.
-- Silimilar case for the remove operation.
+- Similar case for the remove operation.
 
     ![height:200px](../pics/separate_chaining_op_en.drawio.svg)
 
@@ -210,7 +210,7 @@ struct HT_open[K, V] {
 // Probe to the right of the index of the original hash, return the index of the first empty slot
 fn find_slot[K : Hash + Eq, V](map : HT_open[K, V], key : K) -> Int {
   let hash = key.hash() // Hash value of the key
-  let mut i = hash.mod_u(map.length) // Index to be sotred at if there's no hash collision
+  let mut i = hash.mod_u(map.length) // Index to be stored at if there's no hash collision
   while map.occupied[i], i = (i + 1).mod_u(map.length) {
     if map.values[i].key == key { // If a key already exists, return its index
       return i
