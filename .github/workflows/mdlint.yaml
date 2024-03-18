@@ -1,0 +1,26 @@
+name: Check Markdown
+on:
+  pull_request
+
+jobs:
+  check-markdown:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '21'
+
+      - name: Install mdlint
+        run: npm install -g @moonbit/markdown-linter
+
+      - name: Install moonBit
+        run: /bin/bash -c "$(curl -fsSL https://cli.moonbitlang.com/ubuntu_x86_64_moon_setup.sh)"
+
+      - name: Run mdlint
+        run: mdlint course*/*.md
+        env: 
+          PATH: /home/runner/.moon/bin:$PATH
