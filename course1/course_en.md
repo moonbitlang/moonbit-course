@@ -13,7 +13,7 @@ style: |
 
 ## Course Introduction & Program Design
 
-### Hongbo Zhang
+### MoonBit Open Course Team
 
 ---
 
