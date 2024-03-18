@@ -13,7 +13,7 @@ style: |
 
 ## Development Environments & Expressions
 
-### Hongbo Zhang
+### MoonBit Open Course Team
 
 ---
 
