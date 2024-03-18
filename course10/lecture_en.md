@@ -42,7 +42,9 @@ Another approach is open addressing which does not change the type of the array,
 
 ## HashMap Based on Direct Addressing
 
-Let's start with direct addressing. When a hash/index collision occurs, store the data of the same index into some data structure like lists. For example, when adding 0 and 5 (with hash values of 0 and 5 respectively) into an array of length 5, both 0 and 5 mod length 5 will be 0 and are added into a list at index 0: ![img](file:///Users/yqw/Desktop/UP/0_2024Spring/mb/moonbit-course/pics/separate_chaining.drawio.svg?lastModify=1710643280)
+Let's start with direct addressing. When a hash/index collision occurs, store the data of the same index into some data structure like lists. For example, when adding 0 and 5 (with hash values of 0 and 5 respectively) into an array of length 5, both 0 and 5 mod length 5 will be 0 and are added into a list at index 0:
+
+![](../pics/separate_chaining.drawio.svg)
 
 For implementation, we'll define two additional data structures: 1) a key-value pair that enables convenient in-place value updates; and 2) a mutable list where a null value means an empty list, and otherwise the tuples are the head element plus the remaining list. Finally, let's define the HashMap. It contains an array of lists of key-value pairs, and we dynamically maintain the length of the array and the number of key-value pairs.
 
@@ -63,7 +65,7 @@ struct HT_bucket[K, V] {
 }
 ```
 
-For the add/update operation, we first calculate the position to store the key based on its hash value. Then, we look up if the key already exists by traversing the list. If the key exists, we update the value, and if not we add the key-value pair. Similarly, we check the corresponding list and update it for the remove operation.![height:200px](file:///Users/yqw/Desktop/UP/0_2024Spring/mb/moonbit-course/pics/separate_chaining_op_en.drawio.svg?lastModify=1710643280)
+For the add/update operation, we first calculate the position to store the key based on its hash value. Then, we look up if the key already exists by traversing the list. If the key exists, we update the value, and if not we add the key-value pair. Similarly, we check the corresponding list and update it for the remove operation.![height:200px](../pics/separate_chaining_op_en.drawio.svg)
 
 The following code demonstrates adding and updating data. We first calculate the hash value of the key at line 2 with the hash interface specified in `K : Hash` at line 1. Then we find and traverse the corresponding data structure. We're using a mutable data structure with an infinite while loop at line 4. We break out of the loop if we find the key already exists or reach the end of the list. If the key is found, we update the data in place. Otherwise, we update the bucket to be the remaining list so the loop terminates. When we reach the end of the list and haven't found the key, we add a new pair of data at the end of the list. At last, we check if it needs resizing based on the current load factor.
 
@@ -117,7 +119,7 @@ fn remove[K : Hash + Eq, V](map : HT_bucket[K, V], key : K) -> Unit {
 
 Let's continue with open addressing. Recall that linear probing is when a hash collision occurs, we keep incrementing the index to find the next empty slot to place the collided key. In the following example, we first add 0 whose hash value is 0 into slot 0. Then, we add 1 whose hash value is 1 into slot 1. Lastly, we add 5 whose hash value is 5, but it exceeds the range of indices and we use modulo to get 0 instead. In theory, we should store 5 in slot 0, but the slot was already taken. Therefore, we increment the index until we find the next empty slot which is slot 2 as slot 1 was also taken. Note that an invariant must be maintained throughout the program: there should be no empty slots between the original slot and the slot where the key-value pair is actually stored. This ensures we won't waste time traversing the whole HashMap to check if some key-value pair already exists or not. Also, since we made sure there's no gap between the slots, we can exit the loop once the next empty slot is found.
 
-![height:300px](file:///Users/yqw/Desktop/UP/0_2024Spring/mb/moonbit-course/pics/open_address_en.drawio.svg?lastModify=1710650848)
+![height:300px](../pics/open_address_en.drawio.svg)
 
 To implement open addressing, we will use an array with default values similar to the implementation of a circular queue introduced in the last lecture. Feel free to try and implement it using Option as well. Besides the array to store key-value pairs, we also have an array of boolean values to determine if the current slot is empty. As usual, we dynamically maintain the length of the array and the number of key-value pairs.
 
@@ -176,7 +178,7 @@ The remove operation is more complicated. Recall that we have an invariant to ma
 
 A simple solution is to define a special state that marks a slot as "deleted"  to ensure subsequent data can still be reached and found. Another solution is to check if any element from the slot of data removal to the next empty slot needs to move location so as to maintain the invariant. Here we demonstrate the simpler marking method, also known as "tombstone". 
 
-![height:320px](file:///Users/yqw/Desktop/UP/0_2024Spring/mb/moonbit-course/pics/open_address_delete_en.drawio.svg?lastModify=1710650848)
+![height:320px](../pics/open_address_delete_en.drawio.svg)
 
 We define a new `Status` enum consisting of `Empty`, `Occupied` and `Deleted`, and update the type of the occupied array from boolean value to Status. 
 
@@ -232,7 +234,7 @@ Next, let's introduce another implementation of open addressing: rearrange eleme
 
 First, we check element 5 and notice that 5 should be mapped to index 0, but is stored in the current slot to handle hash collision. Now that element 1 has been removed, the invariant no longer holds as there's an empty slot between indices 0 and 2. To solve this, we need to move element 5 forward to the index previously storing element 1. Then we check element 3 and it's in the slot it should be mapped to, so we do not move it. We encounter an empty slot after element 3. The elements after the empty spot won't be affected, so we stop checking.
 
-![img](file:///Users/yqw/Desktop/UP/0_2024Spring/mb/moonbit-course/pics/rearrange_en.drawio.svg?lastModify=1710650848)
+![](../pics/rearrange_en.drawio.svg)
 
 Let's look at another example as follows: we have an array of size 10, so a number that ends in *n* will be mapped to index *n* with modulo, like the index for element 0 is 0, for element 11 is 1, for element 13 is 3, etc. We will remove the data at index 1 and rearrange the elements in the HashMap. We check the elements at index 1 to 5 and: 
 
@@ -240,7 +242,7 @@ We find element 11 should be stored at index 1 if there were no hash collision. 
 
 Now, the invariant holds again: there should be no empty slots between the original slot and the slot where the key-value pair is actually stored. The detailed implementation is left as an exercise and feel free to give it a try!
 
-![img](file:///Users/yqw/Desktop/UP/0_2024Spring/mb/moonbit-course/pics/rearrange_2_en.drawio.svg?lastModify=1710650848)
+![](../pics/rearrange_2_en.drawio.svg)
 
 ## Closure
 
