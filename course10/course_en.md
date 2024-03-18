@@ -15,18 +15,18 @@ headingDivider: 1
 # Review
 
 - Map
-  - A collection of key-value pairs, where the each key is unique.
-  - Simple implementation: list of tuples:
+  - A collection of key-value pairs, where each key is unique.
+  - Simple implementation with a list of tuples:
     - Add to the head of the list.
-    - Traverse from the head to query.
-  - Tree implementation: balanced binary tree:
-    - Modify based on the balanced binary tree introduced in Lecture 5, each node now stores key-value pair.
-    - Compare with the first parameter in the key-value pair for tree operations.
+    - Traverse from the head for lookup.
+  - Tree implementation with balanced binary tree:
+    - Modify the balanced binary tree introduced in Lecture 5, each node now stores a key-value pair.
+    - Compare with the first parameter of the key-value pair in tree operations.
 
 # HashMap
 
 - Hash function:
-  - Mapping data of arbitrary size to fixed-size values.
+  - Mapping data of arbitrary size to data of fixed length.
   - The `Hash` interface in MoonBit maps data to values in the range of integers  
     - `trait Hash { hash(Self) -> Int }`
     - `"ThisIsAVeryVeryLongString".hash() == -321605584`
@@ -37,7 +37,7 @@ headingDivider: 1
     // For a: Array[(Key, Value)], key: Key, value: Value
     let index = key.hash().mod_u(a.length()) // key value--hashing-->hash value--modulo operation-->index in array
     a[ index ] = value // add or update data
-    let value = a[ index ] // query data
+    let value = a[ index ] // look up data
     ```
     
   - Ideally, operations are all in constant time (the balanced binary tree operations are in logarithmic time).
@@ -46,16 +46,16 @@ headingDivider: 1
 
 - According to the pigeonhole principle/birthday problem:
   - Different pieces of data may have the same hash value.
-  - Different hashe values may be mapped to the same index in array.
+  - Different hash values may be mapped to the same index in an array.
 - Collision Handling in HashMap:
-  - Direct Addressing (separate chaining): use another data structure to store items when multiple items are hashed into the same index.
+  - Direct Addressing (separate chaining): use another data structure to store items when multiple items are hashed to the same index.
     - Linked Lists
     - Balanced Binary Search Trees, etc.
 
 # Hash Collision
 
 - Collision Handling in HashMap:
-  - Direct Addressing (separate chaining): use another data structure to store items when multiple items are hashed into the same index.
+  - Direct Addressing (separate chaining): use another data structure to store items when multiple items are hashed to the same index.
     - Linked Lists
     - Balanced Binary Search Trees, etc.
 
@@ -67,7 +67,7 @@ headingDivider: 1
 
 # HashMap Based on Direct Addressing
 
-- When a hash/index collision occurs, store the data of same index into some data structure.
+- When a hash/index collision occurs, store the data of the same index into some data structure.
   - For example: Adding 0 and 5 (with hash values of 0 and 5 respectively) into an array of length 5:
     ![](../pics/separate_chaining.drawio.svg)
 
@@ -97,7 +97,7 @@ struct HT_bucket[K, V] {
 - Add/Update Operation:
   - To add, first calculate which position to store the key based on its hash value.
   - Then perform key lookup by traversing the collection:
-    - If key exists, update the value.
+    - If the key exists, update the value.
     - Else, add the key-value pair.
 - Similar case for the remove operation.
 
@@ -133,10 +133,10 @@ fn put[K : Hash + Eq, V](map : HT_bucket[K, V], key : K, value : V) -> Unit {
 
 # HashMap Based on Direct Addressing
 
-- Although we won't run out of space with the current array, resize operation is still needed.
+- Although we won't run out of space with the current array, a resize operation is still needed.
 - Load factor: the ratio of the number of key-value pairs to the length of the array.
-  - Higher load factor means more collisions, longer linked lists, and slower CRUD operations.
-  - Solution: If the load factor exceeds a the threshold, reallocate a larger array.
+  - A higher load factor means more collisions, longer linked lists, and slower CRUD operations.
+  - Solution: If the load factor exceeds the threshold, reallocate a larger array.
     - Threshold too high: slower traversal.
     - Threshold too low: slower resizing.
 
@@ -147,7 +147,7 @@ fn put[K : Hash + Eq, V](map : HT_bucket[K, V], key : K, value : V) -> Unit {
 ```moonbit
 fn remove[K : Hash + Eq, V](map : HT_bucket[K, V], key : K) -> Unit {
   let index = key.hash().mod_u(map.length) // Calculate the index
-  let mut bucket = map.values[index] // Get the corresponding data 
+  let mut bucket = map.values[index] // Get the corresponding data structure
   while true {
     match bucket.val {
       None => break // Exit after finishing traversal
@@ -165,7 +165,7 @@ fn remove[K : Hash + Eq, V](map : HT_bucket[K, V], key : K) -> Unit {
 # HashMap Based on Open Addressing
 
 - Linear Probing: Under hash collision, keep incrementing the index to find the next empty slot to place the collided key.
-  - Invariant: No empty slot between the originally intended slot and the slot where the key-value pair is actually stored.
+  - Invariant: No empty slots between the originally intended slot and the slot where the key-value pair is actually stored.
 
     - Else, traverse the whole HashMap to check if the key exists.
 
@@ -198,7 +198,7 @@ struct HT_open[K, V] {
     - If it's the same key, update the value.
     - Else, keep probing.
   - Store the key-value pair when an empty slot occurs.
-- We assume empty slot exists.
+- We can assume an empty slot exists.
 
 # HashMap Based on Open Addressing
 
@@ -244,10 +244,10 @@ fn put[K : Hash + Eq + Default, V : Default](map : HT_open[K, V], key : K, value
 
 # HashMap Based on Open Addressing
 
-- Invariant for remove operation: No empty slot between the originally intended slot and the slot where the key-value pair is actually stored.
+- Invariant for remove operation: No empty slots between the originally intended slot and the slot where the key-value pair is actually stored.
 ![height:320px](../pics/open_address_delete_en.drawio.svg)
 - Solution: 
-  - Mark the slot as "deleted", and treat as if it still contains data during lookup.
+  - Mark the slot as "deleted", and treat it as if it still contains data during lookup.
   - Rearrange the elements in HashMap.
 
 # HashMap Based on Open Addressing
@@ -271,7 +271,7 @@ struct HT_open[K, V] {
 
 # HashMap Based on Open Addressing
 
-- During key or empty slot lookup, record the first empty slot occurred：denoted by status`Empty` or `Deleted`
+- During key or empty slot lookup, record the first empty slot occurred: denoted by status`Empty` or `Deleted`
   - We still need to find the next `Empty` slot to determine that the key does not exist.
 
 ```moonbit
@@ -312,7 +312,7 @@ fn find_slot[K : Hash + Eq, V](map : HT_open[K, V], key : K) -> Int {
 
 # HashMap Based on Open Addressing
 
-- Another implementation of  open addressing: compress after removal
+- Another implementation of open addressing: compress after removal
   - Maintain the invariant by moving elements, instead of marking status.
   - Fill in the empty slots after removing the element.
   ![](../pics/rearrange_en.drawio.svg)
@@ -325,7 +325,7 @@ fn find_slot[K : Hash + Eq, V](map : HT_open[K, V], key : K) -> Int {
 
 - Closure: the combination of a function bundled together with references to its surrounding state (the lexical environment).
 - Surrounding State of Closure:
-  - Lexical Environment:  Refer to the program structure, and determined at code definition.
+  - Lexical Environment:  Refer to the program structure, and is determined at code definition.
   ```moonbit
   fn init {
     let mut i = 2
@@ -342,8 +342,8 @@ fn find_slot[K : Hash + Eq, V](map : HT_open[K, V], key : K) -> Int {
 # Closure: Data Encapsulation
 
 - We can use closures to encapsulate data and behavior:
-  - Users can't directly access the data, but to use the provided functions instead.
-  -  Restrict user operations, conduct parameter validation etc., to ensure data integrity.
+  - Users can't directly access the data, but use the provided functions instead.
+  -  Restrict user operations, conduct parameter validation, etc., to ensure data integrity.
 
 ```moonbit
 fn natural_number_get_and_set()
@@ -379,7 +379,7 @@ struct Map[K, V] {
 fn Map::hash_open_address[K : Hash + Eq + Default, V : Default]() -> Map[K, V] { ... }
 // Implementation of direct addressing
 fn Map::hash_bucket[K : Hash + Eq, V]() -> Map[K, V] { ... }
-// Implementation with simple list or tree, etc.
+// Implementation with a simple list or tree, etc.
 
 fn init {
   let map : Map[Int, Int] = Map::hash_bucket() // Replace the initialization function only, and keep the subsequent code unchanged
@@ -416,7 +416,7 @@ fn Map::hash_bucket[K : Hash + Eq, V]() -> Map[K, V] {
 
 # Closure: Data Encapsulation
 
-- We can build more methods upon the struct for convenience.
+- We can build more methods based on the struct for convenience.
 
 ```moonbit
 fn Map::is_empty[K, V](map : Map[K, V]) -> Bool {
@@ -439,7 +439,7 @@ fn init {
 
 # Summary
 
-- In this section we introduced
+- In this section, we introduced
   - Two ways to implement HashMap
     - Direct Addressing
     - Open Addressing
