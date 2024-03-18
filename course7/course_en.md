@@ -78,7 +78,7 @@ the `alter` function takes two mutable references to `Ref` structs, and then cha
 
 Debugging is like being a detective. You're trying to figure out why your program isn't working as expected. MoonBit's debugger is a tool that helps you do this by showing you what's happening inside your program as it runs. You can pause the program at any point, look at the values of variables, and step through the code one line at a time. This is incredibly useful for understanding complex behavior and fixing bugs.
 
-![](../pics/debugger.png)
+![debugger](../pics/debugger.png)
 
 ## Loops
 
@@ -144,7 +144,7 @@ fn print_first_3() {
 
 the excepted output is
 
-```
+```text
 1 yes
 2 yes
 ```
@@ -169,7 +169,7 @@ fn print_first_3() {
 
 the excepted output is
 
-```
+```text
 1 yes
 2 yes
  yes
