@@ -369,4 +369,4 @@ $$
     - Enumerated types
     - The concept of algebraic data types
 - Recommended reading
-    - Category Theory for Programmers: Chapter 6
+    - *Category Theory for Programmers*: Chapter 6
