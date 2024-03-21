@@ -308,7 +308,8 @@ fn Map::hash_bucket[K : Hash + Eq, V]() -> Map[K, V] { ... }
 // Implementation with a simple list or tree, etc.
 
 fn init {
-  let map : Map[Int, Int] = Map::hash_bucket() // Replace the initialization function only, and keep the subsequent code unchanged
+  // Replace the initialization function, rest of the code unchanged
+  let map : Map[Int, Int] = Map::hash_bucket()
   // let map : Map[Int, Int] = Map::hash_open_address()
   (map.put)(1, 1)
   debug((map.size)())
