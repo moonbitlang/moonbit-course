@@ -10,7 +10,7 @@ headingDivider: 1
 
 ## Tuples, Structures, and Enumerated Types
 
-### Hongbo Zhang
+### MoonBit Open Course Team
 
 # Basic Data Types: Tuples and Structures
 
