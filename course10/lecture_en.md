@@ -8,7 +8,7 @@ Another implementation is based on the balanced binary tree(BBT) we introduced i
 
 ## HashMap
 
-Hash function:
+### Hash function
 
 First, what is a hash function or hashing? A hash function maps or binds data of arbitrary length to data of fixed length. For example, you may have heard of the MD5 algorithm, which maps files of any size or format to a short 128-bit digest(compressed data representation). 
 
@@ -19,7 +19,7 @@ trait Hash { hash(Self) -> Int }
 "ThisIsAVeryVeryLongString".hash() == -321605584
 ```
 
-HashMap:
+### HashMap
 
 HashMaps use this mechanism to efficiently handle data by mapping the data to a hash value, and then the hash value to an array index. This makes adding, looking up, and updating data fast because random access to arrays is the most efficient operation in modern computers. HashMap operations are ideally in constant time, which means the running time does not increase as the data input size grows (independent of the input size). However, operations on balanced binary trees are in logarithmic time. Here's the example pseudocode snippet demonstrating the mapping mechanism in a HashMap:
 
@@ -36,9 +36,9 @@ Suppose we have an array of key-value pairs and want to add, update, or look up 
 
 According to the [pigeonhole principle](https://en.wikipedia.org/wiki/Pigeonhole_principle) or [birthday problem](https://en.wikipedia.org/wiki/Birthday_problem), the amount of data we map may exceed the range of integers, and the hash value may far exceed the valid array indices. For example, we obviously can't directly allocate an array with 2.1 billion slots, and then collisions will occur where multiple data have the same array index (different pieces of data may have the same hash value, and different hash values may be mapped to the same index in an array). There are several ways to handle hash collisions. 
 
-One approach is direct addressing. When data must be stored in the slot corresponding to the array index we calculated, different pieces of data might be stored in the same slot causing issues. So, we use another data structure in each slot to store items hashed to the same index. Possible data structures include lists, balanced binary trees, and the original array turns into an array of lists or trees.
+One approach is **direct addressing**. When data must be stored in the slot corresponding to the array index we calculated, different pieces of data might be stored in the same slot causing issues. So, we use another data structure in each slot to store items hashed to the same index. Possible data structures include lists, balanced binary trees, and the original array turns into an array of lists or trees.
 
-Another approach is open addressing which does not change the type of the array, so the array still stores data directly but follows specific rules about finding empty slots to store the data. For example, linear probing can be used to find the next empty slot to store data starting from the original slot, while quadratic probing increments the index by $1^2$, $2^2$, $3^2$ ... to find empty slots. In this lecture, we'll focus on direct addressing with lists and open addressing with linear probing.
+Another approach is **open addressing** which does not change the type of the array, so the array still stores data directly but follows specific rules about finding empty slots to store the data. For example, linear probing can be used to find the next empty slot to store data starting from the original slot, while quadratic probing increments the index by $1^2$, $2^2$, $3^2$ ... to find empty slots. In this lecture, we'll focus on direct addressing with lists and open addressing with linear probing.
 
 ## HashMap Based on Direct Addressing
 
@@ -146,10 +146,11 @@ We can define a helper method to check if a key already exists. If so, we direct
 fn find_slot[K : Hash + Eq, V](map : HT_open[K, V], key : K) -> Int {
   let hash = key.hash() // Hash value of the key
   let mut i = hash.mod_u(map.length) // Index to be stored at if there's no hash collision
-  while map.occupied[i], i = (i + 1).mod_u(map.length) {
+  while map.occupied[i] {
     if map.values[i].key == key { // If a key already exists, return its index
       return i
     }
+    i = (i + 1).mod_u(map.length)
   }
   return i // Otherwise, return when an empty slot occurs
 }
@@ -205,13 +206,14 @@ fn find_slot[K : Hash + Eq, V](map : HT_open[K, V], key : K) -> Int {
   let index = key.hash().mod_u(map.length)
   let mut i = index
   let mut empty = -1 // Record the first empty slot occurred: status Empty or Deleted
-  while (map.occupied[i] === Empty).not(), i = (i + 1).mod_u(map.length) {
+  while (map.occupied[i] === Empty).not() {
     if map.values[i].key == key {
       return i
     }
     if map.occupied[i] === Deleted && empty != -1 { // Update empty slot
       empty = i
     }
+    i = (i + 1).mod_u(map.length)
   }
   return if empty == -1 { i } else { empty } // Return the first empty slot
 }
@@ -238,7 +240,7 @@ First, we check element 5 and notice that 5 should be mapped to index 0, but is 
 
 Let's look at another example as follows: we have an array of size 10, so a number that ends in *n* will be mapped to index *n* with modulo, like the index for element 0 is 0, for element 11 is 1, for element 13 is 3, etc. We will remove the data at index 1 and rearrange the elements in the HashMap. We check the elements at index 1 to 5 and: 
 
-We find element 11 should be stored at index 1 if there were no hash collision. After removing the data at index 1, we now have an empty slot at index 1 and can move element 11 to it. Then we check element 3 and it's already in the slot it should be mapped to. Next,  we check element 21 which should be stored at index 1, but now we see a gap between slot 1 to the actual slot element 21 is stored. This is caused by moving element 11 earlier, so also move element 21 forward. Lastly, we check element 13 which should be stored at index 3. Now there's a gap after moving element 21, so we move element 13 forward as well. 
+We find element 11 should be stored at index 1 if there were no hash collision. After removing the data at index 1, we now have an empty slot at index 1 and can move element 11 to it. Then we check element 3 and it's already in the slot it should be mapped to. Next, we check element 21 which should be stored at index 1, but now we see a gap between slot 1 to the actual slot element 21 is stored. This is caused by moving element 11 earlier, so also move element 21 forward. Lastly, we check element 13 which should be stored at index 3. Now there's a gap after moving element 21, so we move element 13 forward as well. 
 
 Now, the invariant holds again: there should be no empty slots between the original slot and the slot where the key-value pair is actually stored. The detailed implementation is left as an exercise and feel free to give it a try!
 
@@ -248,7 +250,7 @@ Now, the invariant holds again: there should be no empty slots between the origi
 
 It's time for the last topic in this lecture! What is a closure? A closure is the combination of a function bundled together with references to its surrounding state. Its surrounding state is determined by the lexical environment. For example, in the following code, when we define the function at line 3, the `i` here corresponds to the `i` at line 2. Therefore, when we call `debug_i` later at line 3, it outputs the value of `i` from line 2. Then we update `i` at line 4, and the output will also be updated accordingly. 
 
-However, when we introduce another `i` at line 7,  although the variable names are the same, the new variable `i` has nothing to do with our closure, so the output at line 8 will not change. The environment captured by the closure corresponds to the program structure and is determined at code definition, but not runtime.
+However, when we introduce another `i` at line 7, although the variable names are the same, the new variable `i` has nothing to do with our closure, so the output at line 8 will not change. The environment captured by the closure corresponds to the program structure and is determined at code definition, but not runtime.
 
 ```moonbit
 fn init {

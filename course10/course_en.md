@@ -10,7 +10,7 @@ headingDivider: 1
 
 ## HashMap and Closure
 
-### Hongbo Zhang
+### MoonBit Open Course Team
 
 # Review
 
@@ -27,7 +27,7 @@ headingDivider: 1
 
 - Hash function:
   - Mapping data of arbitrary size to data of fixed length.
-  - The `Hash` interface in MoonBit maps data to values in the range of integers  
+  - The `Hash` interface in MoonBit maps data to values in the range of integers: 
     - `trait Hash { hash(Self) -> Int }`
     - `"ThisIsAVeryVeryLongString".hash() == -321605584`
 - HashMap:
@@ -49,8 +49,7 @@ headingDivider: 1
   - Different hash values may be mapped to the same index in an array.
 - Collision Handling in HashMap:
   - Direct Addressing (separate chaining): use another data structure to store items when multiple items are hashed to the same index.
-    - Linked Lists
-    - Balanced Binary Search Trees, etc.
+  - Open Addressing: probe and store an item in the next available slot in the array when multiple items are hashed to the same index.
 
 # Hash Collision
 
@@ -58,12 +57,10 @@ headingDivider: 1
   - Direct Addressing (separate chaining): use another data structure to store items when multiple items are hashed to the same index.
     - Linked Lists
     - Balanced Binary Search Trees, etc.
+  - Open Addressing: probe and store an item in the next available slot in the array when multiple items are hashed to the same index.
+    - Linear Probing: mitigate collision by incrementing the index to find the next empty slot to store the item.
+    - Quadratic Probing(incrementing index by $1^2$ $2^2$ $3^2$) etc.
 
-- Open Addressing:
-
-  - Linear Probing: mitigate collision by incrementing the index to find the next empty slot to store the item.
-
-  - Quadratic Probing(incrementing index by $1^2$ $2^2$ $3^2$) etc.
 
 # HashMap Based on Direct Addressing
 
@@ -211,10 +208,11 @@ struct HT_open[K, V] {
 fn find_slot[K : Hash + Eq, V](map : HT_open[K, V], key : K) -> Int {
   let hash = key.hash() // Hash value of the key
   let mut i = hash.mod_u(map.length) // Index to be stored at if there's no hash collision
-  while map.occupied[i], i = (i + 1).mod_u(map.length) {
+  while map.occupied[i] {
     if map.values[i].key == key { // If a key already exists, return its index
       return i
     }
+    i = (i + 1).mod_u(map.length)
   }
   return i // Otherwise, return when an empty slot occurs
 }
@@ -280,13 +278,14 @@ fn find_slot[K : Hash + Eq, V](map : HT_open[K, V], key : K) -> Int {
   let index = key.hash().mod_u(map.length)
   let mut i = index
   let mut empty = -1 // Record the first empty slot occurred: status Empty or Deleted
-  while (map.occupied[i] === Empty).not(), i = (i + 1).mod_u(map.length) {
+  while (map.occupied[i] === Empty).not() {
     if map.values[i].key == key {
       return i
     }
     if map.occupied[i] === Deleted && empty != -1 { // Update empty slot
       empty = i
     }
+    i = (i + 1).mod_u(map.length)
   }
   return if empty == -1 { i } else { empty } // Return the first empty slot
 }
@@ -382,7 +381,8 @@ fn Map::hash_bucket[K : Hash + Eq, V]() -> Map[K, V] { ... }
 // Implementation with a simple list or tree, etc.
 
 fn init {
-  let map : Map[Int, Int] = Map::hash_bucket() // Replace the initialization function only, and keep the subsequent code unchanged
+  // Replace the initialization function only, and keep the subsequent code unchanged
+  let map : Map[Int, Int] = Map::hash_bucket()
   // let map : Map[Int, Int] = Map::hash_open_address()
   (map.put)(1, 1)
   debug((map.size)())
@@ -445,5 +445,5 @@ fn init {
     - Open Addressing
   - The concept of closure and its application
 - Recommended Readings
-  - Introduction to Algorithms, Chapter 11, or
-  - Algorithms, Section 3.4
+  - *Introduction to Algorithms*, Chapter 11, or
+  - *Algorithms*, Section 3.4
