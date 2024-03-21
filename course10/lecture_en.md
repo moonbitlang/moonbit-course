@@ -365,13 +365,3 @@ fn init {
 ## Summary
 
 We introduced two ways to implement HashMap with direct addressing and open addressing. Meanwhile, we talked about the concept of a closure and how to use it for encapsulation. We recommend reading Chapter 11 of *Introduction to Algorithms* or Section 3.4 of *Algorithms* to better understand the algorithms.
-
-
-
-
-
-
-
-
-
-
