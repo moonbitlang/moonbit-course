@@ -353,7 +353,7 @@ We call tuples, structures, enumerated types, etc. algebraic data types, which h
 - Definition of `List` (`List[Int]` as an example)：
 $$
 \begin{array}{r@{}l}
-\texttt{enum} \;\; \texttt{List} & = \texttt{Nil} + \texttt{Int} \times \texttt{List} \\  
+\texttt{enum} \ \ \texttt{List} & = \texttt{Nil} + \texttt{Int} \times \texttt{List} \\  
 & = \texttt{1} + \texttt{Int} \times \texttt{List} \\
 & = \texttt{1} + \texttt{Int} \times (\texttt{1} + \texttt{Int} \times \texttt{List} ) \\
 & = \texttt{1} + \texttt{Int} \times \texttt{1} + \texttt{Int} \times \texttt{Int} \times \texttt{List} \\
