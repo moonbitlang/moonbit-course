@@ -1,5 +1,5 @@
 ---
-marp: false
+marp: true
 math: mathjax
 paginate: true
 backgroundImage: url('../pics/background_moonbit.png')
