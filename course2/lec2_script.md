@@ -50,8 +50,8 @@ fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
     // 条件表达式
     if num_bottles >= num_exchange {
       // 数据绑定
-      num_bottles := num_bottles - num_exchange + 1
-      num_drunk := num_drunk + num_exchange
+      let num_bottles = num_bottles - num_exchange + 1
+      let num_drunk = num_drunk + num_exchange
       // 函数运算
       consume(num_bottles, num_drunk)
     } else {
@@ -61,11 +61,11 @@ fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
   consume(num_bottles, 0)
 }
 
-// 程序入口
-fn init {
+// 程序测试
+test {
   // 命令
-  assert(num_water_bottles(9, 3) == 13)
-  assert(num_water_bottles(15, 4) == 19)
+  @assertion.assert_eq(num_water_bottles(9, 3), 13)?
+  @assertion.assert_eq(num_water_bottles(15, 4), 19)?
 }
 ```
 
