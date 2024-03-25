@@ -61,7 +61,7 @@ MoonBit Course © 2024 by DII, International Digital Economy Academy is licensed
 
 ### 样例代码
 
-Copyright [2024] [DII, International Digital Economy Academy]
+Copyright 2024 DII, International Digital Economy Academy
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

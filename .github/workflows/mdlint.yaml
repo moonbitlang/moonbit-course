@@ -1,0 +1,36 @@
+name: Check Markdown
+on:
+  pull_request
+
+jobs:
+  check-markdown:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '21'
+
+      - name: Install mdlint
+        run: npm install -g @moonbit/markdown-linter
+
+      - name: Install moonBit
+        run: /bin/bash -c "$(curl -fsSL https://cli.moonbitlang.com/ubuntu_x86_64_moon_setup.sh)"
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v43
+
+      - name: Run mdlint
+        env:
+          PATH: /home/runner/.moon/bin:$PATH
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          for file in ${ALL_CHANGED_FILES}; do
+            if [[ $file == *.md ]]; then
+              mdlint $file
+            fi
+          done
