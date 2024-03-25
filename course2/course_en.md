@@ -329,10 +329,10 @@ The type/value of an expression block is the type/value of the last expression.
 ```moonbit
 // Top-level (global) refers to functions or identifiers defined outside all expression blocks in a file.
 let top_level_identifier = 10
-fn top_level_function() {
+fn top_level_function() -> Unit {
   // Local refers to functions or identifiers defined inside an expression block.
   fn local_function() { 
-    local_identifier := 1 // Local variable bindings can be simplified.
+    let local_identifier = 1 // Local variable binding.
     local_identifier // Value of the expression block.
   }
 }
@@ -359,7 +359,8 @@ Top-level definitions have a global scope, while local definitions have a local 
 - Omit the variable binding part.
 - Reduce the remaining expressions.
 
-```moonbit
+```moonbit expr
+let y: Int = 10
 let value = {
   let x = 1
   let tmp = x * 2
@@ -370,8 +371,6 @@ let value = {
   }
   tmp + another_tmp + y
 }
-
-let y: Int = 10
 ```
 
 ---
@@ -383,7 +382,8 @@ let y: Int = 10
 - Omit the variable binding part.
 - Reduce the remaining expressions.
 
-```moonbit
+```moonbit expr
+let y: Int = 10
 let value = {
   let x = 1
   let tmp = 1 * 2 // Replace x
@@ -394,8 +394,6 @@ let value = {
   }
   tmp + another_tmp + 10 // Replace y
 }
-
-let y: Int = 10
 ```
 
 ---
@@ -407,7 +405,8 @@ let y: Int = 10
 - Omit the variable binding part.
 - Reduce the remaining expressions.
 
-```moonbit
+```moonbit expr
+// Omit the variable binding of y
 let value = {
   // Omit the variable binding of x
   let tmp = 2 // Reduce the expression on the right-hand side
@@ -418,8 +417,6 @@ let value = {
   }
   tmp + another_tmp + 10
 }
-
-// Omit the variable binding of y
 ```
 
 ---
@@ -431,7 +428,7 @@ let value = {
 - Omit the variable binding part.
 - Reduce the remaining expressions.
 
-```moonbit
+```moonbit expr
 let value = {
 
   let tmp = 2
@@ -453,7 +450,7 @@ let value = {
 - Omit the variable binding part.
 - Reduce the remaining expressions.
 
-```moonbit
+```moonbit expr
 let value = {
 
   let tmp = 2
@@ -471,7 +468,7 @@ let value = {
 - Omit the variable binding part.
 - Reduce the remaining expressions.
 
-```moonbit
+```moonbit expr
 let value = {
 
   let tmp = 2
@@ -489,7 +486,7 @@ let value = {
 - Omit the variable binding part.
 - Reduce the remaining expressions.
 
-```moonbit
+```moonbit expr
 let value = 15
 ```
 
