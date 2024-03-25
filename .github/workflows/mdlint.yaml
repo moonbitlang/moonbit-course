@@ -20,7 +20,16 @@ jobs:
       - name: Install moonBit
         run: /bin/bash -c "$(curl -fsSL https://cli.moonbitlang.com/ubuntu_x86_64_moon_setup.sh)"
 
+      - name: Get changed files
+        uses: tj-actions/changed-files@v43
+
       - name: Run mdlint
-        run: mdlint course*/*.md
-        env: 
+        env:
           PATH: /home/runner/.moon/bin:$PATH
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          for file in ${ALL_CHANGED_FILES}; do
+            if [[ $file == *.md ]]; then
+              mdlint $file
+            fi
+          done
