@@ -8,7 +8,7 @@ First, review the fundamental data type in MoonBit introduced in course 2: Tuple
 
 A MoonBit tuple is a composite of data which have different types with a fixed length. In comparison, lists are collections of data which have the same type with arbitrary lengths. For example, the length of the list below is not fixed, but the values stored must all be of the character type. In the previous lesson, we didn't discuss why `Cons` is named `Cons`. It is an abbreviation for `Construct`.
 
-```moonbit
+```moonbit no-check
 Cons('H', Cons('i', Cons('!', Nil)))
 ```
 
@@ -32,9 +32,15 @@ The problem is that it is hard to understand the data represented by tuples. For
 
 Structures allow us to assign **names** to the data, both to the entire type and to each field individually. For instance:
 
-- `struct PersonalInfo { name: String; age: Int }`
-- `struct ContactInfo { name: String; telephone: Int }`
-- `struct AddressInfo { address: String; postal: Int }`
+- ```moonbit
+  struct PersonalInfo { name: String; age: Int }
+  ```
+- ```moonbit
+  struct ContactInfo { name: String; telephone: Int }
+  ```
+- ```moonbit
+  struct AddressInfo { address: String; postal: Int }
+  ```
 
 We can clearly understand the information about the data and the meaning of each corresponding field by names.
 
@@ -44,7 +50,7 @@ Definitions of the values of a structure are enclosed in braces, with each field
 
 Accessing the fields of a structure is similar to tuples – by using the field name to retrieve the corresponding data, for example, `.age` to retrieve the field `age`. When creating a new structure based on an existing one, redeclaring each field can be tedious, especially if the original structure is large. For convenience, MoonBit also provides a feature to update only specific fields. We can simply indicate the base structure with `.. <original_structure>` before the definition of the structure values, and then only declare the fields that have been modified. See the example below.
 
-```moonbit
+```moonbit no-check
 let new_info = { .. old_info, age: 2, }
 let other_info = { .. old_info, name: "Hello", }
 ```
@@ -57,7 +63,7 @@ You may notice that tuples and structures seem quite similar. In fact, a structu
 
 For example, `PersonalInfo` and `(String, Int)` are isomorphic, as we can establish the following pair of mappings:
 
-```moonbit
+```moonbit expr
 fn f(info: PersonalInfo) -> (String, Int) { (info.name, info.age) }
 
 fn g(pair: (String, Int)) -> PersonalInfo { { name: pair.0, age: pair.1, }}
@@ -76,7 +82,7 @@ let accepted: Bool = accept((1, "Yes"))
 
 On the other hand, structures are *nominal*, meaning compatibility is based on the type name, and the internal order can be rearranged. In the first example, even though the structures are identical, the function cannot accept the structure because the type names are different. In the second example, the function can accept it because the types are the same even if the order of the fields is different.
 
-```moonbit
+```moonbit no-check
 struct A { val : Int ; other: Int }
 struct B { val : Int ; other: Int }
 fn accept(a: A) -> Bool {
@@ -171,7 +177,7 @@ We define our function with pattern matching. Here, we match a pairs by construc
 
 Lastly, pattern matching is not limited to `match`; it can also be used in data binding. In local definitions, we can use pattern matching expressions to bind corresponding substructures to identifiers. It's essential to note that if the match fails, the program will encounter a runtime error and terminate.
 
-```moonbit
+```moonbit no-check
 let ok_one = Result::Ok(1);
 let Result::Ok(one) = ok_one; 
 let Result::Err(e) = ok_one; // Runtime error
@@ -198,7 +204,7 @@ enum Coin {
 
 The construction of an enumerated type is as follows:
 
-```moonbit
+```moonbit no-check
 enum <type_name> { <variant>; }
 ```
 
@@ -206,7 +212,7 @@ Here, each possible variant is a constructor. For instance, `let monday = Monday
 
 Now we need to ask, why do we need enumerated types? Why not just use numbers from one to seven to represent Monday to Sunday? Let's compare the following two functions. 
 
-```moonbit
+```moonbit no-check
 fn tomorrow(today: Int) -> Int
 fn tomorrow(today: DaysOfWeek) -> DaysOfWeek
 let tuesday = 1 * 2 // Is this Tuesday?
@@ -247,7 +253,7 @@ Here, **Zero** is a type that corresponds to an **empty type**. We can define an
 
 Let's verify the properties mentioned earlier: any number multiplied by 1 equals itself, and any number plus 0 equals itself.
 
-```moonbit
+```moonbit no-check
 fn f[T](t: T) -> (T, Unit) { (t, ()) }
 fn g[T](pair: (T, Unit)) -> T { pair.0 }
 ```
@@ -255,16 +261,18 @@ fn g[T](pair: (T, Unit)) -> T { pair.0 }
 In this context, a type `T` multiplied by 1 implies that `(T, Unit)` is isomorphic to `T`. We can establish a set of mappings: it's straightforward to go from `T` to `(T, Unit)` by simply adding the zero-tuple. Conversely, going from `(T, Unit)` to `T` involves ignoring the zero-tuple. You can intuitively find that they are isomorphic. 
 
 ```moonbit
+enum Nothing {}
+
 enum PlusZero[T] { CaseT(T); CaseZero(Nothing) }
 
-fn f[T](t: PlusZero) -> T {
+fn f[T](t: PlusZero[T]) -> T {
   match t {
     CaseT(t) => t
     CaseZero(_) => abort("Impossible case, no such value.")
   }
 }
 
-fn g[T](t: T) -> PlusZero { CaseT(t) }
+fn g[T](t: T) -> PlusZero[T] { CaseT(t) }
 ```
 
 The property of any type plus zero equals itself means that, for any type, we define an enumerated type `PlusZero`. One case contains a value of type `T`, and the other case contains a value of type `Nothing`. This type is isomorphic to `T`, and we can construct a set of mappings. Starting with `PlusZero`, we use pattern matching to discuss the cases. If the included value is of type `T`, we map it directly to `T`. If the type is `Nothing`, this case will never happen because there are no values of type `Nothing`, so we use `abort` to handle, indicating that the program will terminate. Conversely, we only need to wrap `T` with `CaseT`. It's essential to emphasize that this introduction is quite basic, providing an intuitive feel. Explore further if you are interested.
@@ -277,7 +285,7 @@ enum Coins { Head; Tail }
 
 $\texttt{Coins} = 1 + 1 = 2$
 
-```moonbit
+```moonbit no-check
 enum DaysOfWeek { Monday; Tuesday; ...; }
 ```
 
