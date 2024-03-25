@@ -305,7 +305,7 @@ Therefore, $(2 + 3) * (5 - 2) \Rightarrow 15$.
 # Variable Binding
 
 `let <identifier> : <type> = <expression>`
-- Variable binding assigns a **identifier** to a value represented by an expression.
+- Variable binding assigns an **identifier** to a value represented by an expression.
 - Type declaration is often optional as the compiler can infer it based on the expression's type.
   - `let x = 10`
   - `let y = "String"`
