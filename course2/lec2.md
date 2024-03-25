@@ -86,11 +86,11 @@ fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
   consume(num_bottles, 0)
 }
 
-// 程序入口
-fn init {
+// 程序测试
+test {
   // 命令
-  assert(num_water_bottles(9, 3) == 13)
-  assert(num_water_bottles(15, 4) == 19)
+  @assertion.assert_eq(num_water_bottles(9, 3), 13)?
+  @assertion.assert_eq(num_water_bottles(15, 4), 19)?
 }
 ```
 ---
@@ -317,7 +317,7 @@ $\mapsto$ `15`                               因为
 ```moonbit
 // 顶层（全局）即指定义在一个文件中所有表达式块外部定义的函数或标识符
 let 顶层标识符 = 10
-fn 顶层函数(): Unit {
+fn 顶层函数() -> Unit {
   // 本地（局部）即指某个表达式块内部的函数或标识符
   fn 本地函数() { 
     let 本地标识符 = 1 // 局部数值绑定可以简化
@@ -348,6 +348,8 @@ fn 顶层函数(): Unit {
 - 对剩余表达式进行化简
 
 ```moonbit expr
+let y: Int = 10
+
 let value = {
   let x = 1
   let tmp = x * 2
@@ -358,8 +360,6 @@ let value = {
   }
   tmp + another_tmp + y
 }
-
-let y: Int = 10
 ```
 
 ---
@@ -372,6 +372,8 @@ let y: Int = 10
 - 对剩余表达式进行化简
 
 ```moonbit expr
+let y: Int = 10
+
 let value = {
   let x = 1
   let tmp = 1 * 2 // 替换x
@@ -382,8 +384,6 @@ let value = {
   }
   tmp + another_tmp + 10 // 替换y
 }
-
-let y: Int = 10
 ```
 
 ---
@@ -396,6 +396,8 @@ let y: Int = 10
 - 对剩余表达式进行化简
 
 ```moonbit expr
+// 省略y的定义
+
 let value = {
   // 省略x的定义
   let tmp = 2 // 简化右侧表达式
@@ -406,8 +408,6 @@ let value = {
   }
   tmp + another_tmp + 10
 }
-
-// 省略y的定义
 ```
 
 ---
