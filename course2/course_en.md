@@ -97,10 +97,10 @@ fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
 }
 
 // entry point
-fn init {
+test {
   // statements
-  assert(num_water_bottles(9, 3) == 13)
-  assert(num_water_bottles(15, 4) == 19)
+  @assertion.assert_eq(num_water_bottles(9, 3), 13)?
+  @assertion.assert_eq(num_water_bottles(15, 4), 19)?
 }
 ```
 
