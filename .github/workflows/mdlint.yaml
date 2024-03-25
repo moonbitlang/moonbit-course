@@ -21,6 +21,7 @@ jobs:
         run: /bin/bash -c "$(curl -fsSL https://cli.moonbitlang.com/ubuntu_x86_64_moon_setup.sh)"
 
       - name: Get changed files
+        id: changed-fiels
         uses: tj-actions/changed-files@v43
 
       - name: Run mdlint
