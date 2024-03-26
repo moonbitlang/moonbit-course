@@ -27,9 +27,11 @@ headingDivider: 1
 - We can define data bindings and functions as follows:
 
 ```moonbit
-let x: Int = 1 + 1
-fn square(x: Int) -> Int { x * x }
-let z: Int = square(x) // 4
+fn init {
+  let x: Int = 1 + 1
+  fn square(x: Int) -> Int { x * x }
+  let z: Int = square(x) // 4
+}
 ```
 
 - We can directly replace `square` and `x` with their corresponding values without changing the result:
@@ -98,7 +100,7 @@ fn init {
   - `fn println(String) -> Unit`
 - The type of a command is also a single-value type.
 
-```moonbit
+```moonbit no-check
 fn do_nothing() { // When the return value is a single-value type, the return type declaration can be omitted
   let _x = 0 // The result is of single-value type, which is consistent with the function definition
 }
@@ -109,8 +111,10 @@ fn do_nothing() { // When the return value is a single-value type, the return ty
 - In Moonbit, we can define temporary variables within a code block using `let mut`.
 
 ```moonbit
-let mut x = 1
-x = 10 // The assignment operation is a command.
+fn init {
+  let mut x = 1
+  x = 10 // The assignment operation is a command.
+}
 ```
 
 - In Moonbit, the fields of a struct are immutable by default, and we also allow mutable fields, which need to be marked with `mut`.
@@ -246,7 +250,7 @@ while <Check if the loop should continue>, <Iterate the variable> {
 
 - With mutable variables, it can be written as:
 
-```moonbit
+```moonbit no-check
 fn loop_(<parameter>) {
   if <Check if the loop should continue> {
     <Commands to be repeated>

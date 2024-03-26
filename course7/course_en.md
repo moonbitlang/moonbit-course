@@ -7,9 +7,11 @@ Imperative programming is a style of programming where we give the computer a se
 However, in the real world, we often need our programs to do more than just calculations. We might need them to read from a file, write to the screen, or change data in memory. These actions are called "side effects," and they can make our programs behave differently each time they run, even with the same input. This breaks the referential transparency, making our programs harder to understand and predict.
 
 ```moonbit
-let x: Int = 1 + 1 // x can be directly replaced with 2
-fn square(x: Int) -> Int { x * x }
-let z: Int = square(x) // can be replaced with { 2 * 2 }, still resulting in 4
+fn init {
+  let x: Int = 1 + 1 // x can be directly replaced with 2
+  fn square(x: Int) -> Int { x * x };
+  let z: Int = square(x) // can be replaced with { 2 * 2 }, still resulting in 4
+}
 ```
 
 Let's look at the example here in MoonBit. We can declare a variable `x` and assign it the result of an expression, like `1 + 1`. This is straightforward and mirrors what we do in mathematics. We can also define a function `square` that takes an integer and returns its square. When we call `square(x)`, we get the result `4`, just like if we replaced `square(x)` with `{ 2 * 2 }`.
@@ -85,11 +87,13 @@ Debugging is like being a detective. You're trying to figure out why your progra
 Loops are a way to repeat a block of code multiple times. In MoonBit, we can use a `while` loop to do this. We start by defining a loop variable, say `i`, and giving it an initial value. Then we check the condition defined in the `while` loop. If the condition is true, we execute the commands inside the `while` loop's body. This process repeats until the condition is no longer true, at which point the loop ends. To avoid an infinite loop, we need to update the loop variable inside the loop body.
 
 ```moonbit
-let mut i = 0
-while i < 2 {
-  println("Output")
-  i += 1
-} // Repeat output 2 times
+fn init {
+  let mut i = 0
+  while i < 2 {
+    println("Output")
+    i += 1
+  } // Repeat output 2 times
+}
 ```
 
 For example, we might want to print the numbers from `0` to `1`. We can do this with a loop that checks if `i` is less than `2`. If it is, we print the current value of `i`, increment `i` by `1`, and then repeat the process. The loop continues until `i` is no longer less than `2`, and then we're done.
@@ -102,9 +106,12 @@ For example, let's consider calculating the Fibonacci sequence. We can do this w
 
 ```moonbit
 // Loop form
-let mut i = 0
-while i < 2, i = i + 1 {
-  println("Hello!")
+fn init {
+  let mut i = 0
+  while i < 2 {
+    println("Hello!")
+    i = i + 1
+  }
 }
 ```
 
@@ -117,7 +124,9 @@ fn loop_(i: Int) {
     loop_(i + 1)
   } else { () }
 }
-loop_(0)
+fn init {
+  loop_(0)
+}
 ```
 
 ### Controlling Loop Flow
@@ -127,7 +136,7 @@ Sometimes we want to control the flow of a loop more precisely. We might want to
 For example, if we're printing numbers from `0` to `9`, but we want to skip the number `3`, we can use `continue` in the loop condition. If we want to stop the loop entirely when we reach `3`, we can use `break`.
 
 ```moonbit
-fn print_first_3() {
+fn print_first_3_break() {
   let mut i = 0
   while i < 10 {
     i += 1
@@ -152,7 +161,7 @@ the excepted output is
 but if we change `break` to `continue`
 
 ```moonbit
-fn print_first_3() {
+fn print_first_3_continue() {
   let mut i = 0
   while i < 10 {
     i += 1
