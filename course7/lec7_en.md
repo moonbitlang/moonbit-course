@@ -303,7 +303,7 @@ fn init {
   - The `continue` instruction can skip the rest of the execution and go directly to the next loop.
 
 ```moonbit
-fn print_first_3() {
+fn print_first_3() -> Unit {
   let mut i = 0
   while i < 10 {
     i = i + 1
@@ -323,7 +323,7 @@ fn print_first_3() {
   - The `continue` instruction can skip the rest of the execution and go directly to the next loop.
 
 ```moonbit
-fn print_skip_3() {
+fn print_skip_3() -> Unit {
   let mut i = 0
   while i < 10 {
     i = i + 1
