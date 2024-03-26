@@ -23,7 +23,7 @@ trait Hash { hash(Self) -> Int }
 
 HashMaps use this mechanism to efficiently handle data by mapping the data to a hash value, and then the hash value to an array index. This makes adding, looking up, and updating data fast because random access to arrays is the most efficient operation in modern computers. HashMap operations are ideally in constant time, which means the running time does not increase as the data input size grows (independent of the input size). However, operations on balanced binary trees are in logarithmic time. Here's the example pseudocode snippet demonstrating the mapping mechanism in a HashMap:
 
-```moonbit
+```moonbit no-check
 // For a: Array[(Key, Value)], key: Key, value: Value
 let index = key.hash().mod_u(a.length()) // key value--hashing-->hash value--modulo operation-->index in array
 a[ index ] = value // add or update data
@@ -300,7 +300,8 @@ struct Map[K, V] {
   remove : (K) -> Unit
   size : () -> Int
 }
-
+```
+```moonbit no-check
 // Implementation of open addressing
 fn Map::hash_open_address[K : Hash + Eq + Default, V : Default]() -> Map[K, V] { ... }
 // Implementation of direct addressing
@@ -318,7 +319,7 @@ fn init {
 
 Here is the main code snippet. We implement the `map` table inside `hash_bucket`, then capture it in multiple functions, store these functions in a struct, and return it. 
 
-```moonbit
+```moonbit no-check
 fn Map::hash_bucket[K : Hash + Eq, V]() -> Map[K, V] {
   let initial_length = 10
   let load = 0.75

@@ -33,7 +33,7 @@ headingDivider: 1
 - HashMap:
   - Using hash functions to map data to indices in an array, providing efficient data access and manipulation (adding and updating data).
     
-    ```moonbit
+    ```moonbit no-check
     // For a: Array[(Key, Value)], key: Key, value: Value
     let index = key.hash().mod_u(a.length()) // key value--hashing-->hash value--modulo operation-->index in array
     a[ index ] = value // add or update data
@@ -365,7 +365,6 @@ fn init {
 # Closure: Data Encapsulation
 
 - We can use closure + struct to hide the underlying data structure from users.
-
 ```moonbit
 struct Map[K, V] {
   get : (K) -> Option[V]
@@ -373,7 +372,8 @@ struct Map[K, V] {
   remove : (K) -> Unit
   size : () -> Int
 }
-
+```
+```moonbit no-check
 // Implementation of open addressing
 fn Map::hash_open_address[K : Hash + Eq + Default, V : Default]() -> Map[K, V] { ... }
 // Implementation of direct addressing
@@ -381,7 +381,7 @@ fn Map::hash_bucket[K : Hash + Eq, V]() -> Map[K, V] { ... }
 // Implementation with a simple list or tree, etc.
 
 fn init {
-  // Replace the initialization function, rest of the code unchanged
+  // Replace the initialization function, others unchanged
   let map : Map[Int, Int] = Map::hash_bucket()
   // let map : Map[Int, Int] = Map::hash_open_address()
   (map.put)(1, 1)
@@ -390,8 +390,7 @@ fn init {
 ```
 
 # Closure: Data Encapsulation
-
-```moonbit
+```moonbit no-check
 fn Map::hash_bucket[K : Hash + Eq, V]() -> Map[K, V] {
   let initial_length = 10
   let load = 0.75
