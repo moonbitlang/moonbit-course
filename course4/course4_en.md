@@ -60,16 +60,17 @@ headingDivider: 1
 
 - Access to the fields of a structure: `<structure>.<field>`
   
-```moonbit no-check
+```moonbit 
+struct PersonalInfo { name: String; age: Int}
 let old_info: PersonalInfo = { name: "Moonbit", age: 1, }
 let a: Int = old_info.age // 1
 ```
 
 - To update the original structure, we can reuse the original part:
   
-```moonbit no-check
-let new_info = { .. old_info, age: 2, }
-let other_info = { .. old_info, name: "Hello", }
+```moonbit expr
+let new_info: PersonalInfo = { .. old_info, age: 2, }
+let other_info: PersonalInfo = { .. old_info, name: "Hello", }
 ```
 
 # Relationship between Tuples and Structures
@@ -115,7 +116,7 @@ let accepted: Bool = accept(({other: 2, val: 1}: A))
 
 - We can use pattern matching to eliminate tuples and structures
 
-```moonbit no-check
+```moonbit
 fn head_opt(list: List[Int]) -> Option[Int] {
   match list {
     Nil => None
@@ -124,7 +125,7 @@ fn head_opt(list: List[Int]) -> Option[Int] {
 }
 ```
 
-```moonbit no-check
+```moonbit 
 fn get_or_else(option_int: Option[Int], default: Int) -> Int {
   match option_int {
     None => default
@@ -137,7 +138,7 @@ fn get_or_else(option_int: Option[Int], default: Int) -> Int {
 
 - Match **values** (booleans, numbers, characters, strings) or **constructors**
 
-```moonbit no-check
+```moonbit
 fn is_zero(i: Int) -> Bool {
   match i {
     0 => true
@@ -149,7 +150,7 @@ fn is_zero(i: Int) -> Bool {
 
 - Constructors can be **nested patterns** or **identifiers** to bind corresponding structures
 
-```moonbit no-check
+```moonbit 
 fn contains_zero(l: List[Int]) -> Bool {
   match l {
     Nil => false
@@ -163,7 +164,7 @@ fn contains_zero(l: List[Int]) -> Bool {
 
 - Pattern matching for tuples requires one-to-one correspondence
 
-```moonbit no-check
+```moonbit 
 fn first(pair: (Int, Int)) -> Int {
   match pair {
     (first, second) => first
@@ -173,7 +174,7 @@ fn first(pair: (Int, Int)) -> Int {
 
 - Pattern matching for structures can match partial fields; you can use the original field name as the identifier
 
-```moonbit no-check
+```moonbit 
 fn baby_name(info: PersonalInfo) -> Option[String] {
   match info {
     { age: 0, .. } => None
@@ -186,7 +187,7 @@ fn baby_name(info: PersonalInfo) -> Option[String] {
 
 Function `zip` combines two lists into a new list of pairs like a zipper. The length of the resulting list is the minimum of the lengths of the input lists.
 
-```moonbit no-check
+```moonbit
 fn zip(l1: List[Int], l2: List[Char]) -> List[(Int ,Char)] {
   match (l1, l2) {
     (Cons(hd, tl), Cons(hd2, tl2)) => Cons((hd, hd2), zip(tl, tl2))
@@ -201,7 +202,7 @@ fn zip(l1: List[Int], l2: List[Char]) -> List[(Int ,Char)] {
 
 Note that the order of pattern matching is from top to bottom
 
-```moonbit no-check
+```moonbit expr
 fn zip(l1: List[Int], l2: List[Char]) -> List[(Int ,Char)] {
   match (l1, l2) {
     _ => Nil
@@ -235,13 +236,13 @@ The value of the expression is bound to the identifier defined according to the 
 
 To represent different cases of data structures, we use enumerated types
 
-```moonbit no-check
+```moonbit
 enum DaysOfWeek {
   Monday; Tuesday; Wednesday; Thursday; Friday; Saturday; Sunday
 }
 ```
   
-```moonbit no-check
+```moonbit 
 enum Coin {
   Head
   Tail
@@ -257,14 +258,14 @@ enum DaysOfWeek {
 ```
 
 - Every variant is a contructor
-```moonbit no-check
+```moonbit 
 let monday: DaysOfWeek = Monday
 let tuesday: DaysOfWeek = Tuesday 
 ```
 
 - Variant names can be ambiguous. We use `<type>::` to disambiguate
 
-```moonbit no-check
+```moonbit
 enum Repeat1 { A; B }
 enum Repeat2 { A; B }
 let x: Repeat1 = Repeat1::A  
@@ -294,14 +295,14 @@ enum UserId {
 
 - Carrying data in variants
 
-```moonbit no-check
+```moonbit 
 enum Option[T] {
     Some(T)
     None
 }
 ```
 
-```moonbit no-check
+```moonbit 
 enum ComputeResult {
     Success(Int)
     Overflow
@@ -327,21 +328,22 @@ We call tuples, structures, enumerated types, etc. algebraic data types, which h
 
 - $1 \times n = n$
     - For any type `T`, `(T, Unit)` is isomorphic to `T`
-    ```moonbit no-check
-    fn f[T](t: T) -> (T, Unit) { (t, ()) }
-    fn g[T](pair: (T, Unit)) -> T { pair.0 }
+    ```moonbit 
+    fn f1[T](t: T) -> (T, Unit) { (t, ()) }
+    fn g1[T](pair: (T, Unit)) -> T { pair.0 }
     ```
 - $0 + n = n$
     - For any type `T`, `enum PlusZero[T] { CaseT(T); CaseZero(Nothing) }` is isomorphic to `T`
-    ```moonbit no-check
-    fn f[T](t: PlusZero) -> T {
+    ```moonbit 
+    enum Nothing {}
+    enum PlusZero[T] { CaseT(T); CaseZero(Nothing) }
+    fn f2[T](t: PlusZero[T]) -> T {
       match t {
         CaseT(t) => t
         CaseZero(_) => abort("Impossible case, no such value.")
       }
     }
-
-    fn g[T](t: T) -> PlusZero { CaseT(t) }
+    fn g2[T](t: T) -> PlusZero[T] { CaseT(t) }
     ```
 
 # Algebraic Data Types
