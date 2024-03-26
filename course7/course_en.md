@@ -6,12 +6,10 @@ Imperative programming is a style of programming where we give the computer a se
 
 However, in the real world, we often need our programs to do more than just calculations. We might need them to read from a file, write to the screen, or change data in memory. These actions are called "side effects," and they can make our programs behave differently each time they run, even with the same input. This breaks the referential transparency, making our programs harder to understand and predict.
 
-```moonbit
-fn init {
-  let x: Int = 1 + 1 // x can be directly replaced with 2
-  fn square(x: Int) -> Int { x * x };
-  let z: Int = square(x) // can be replaced with { 2 * 2 }, still resulting in 4
-}
+```moonbit expr
+let x: Int = 1 + 1 // x can be directly replaced with 2
+fn square(x: Int) -> Int { x * x };
+let z: Int = square(x) // can be replaced with { 2 * 2 }, still resulting in 4
 ```
 
 Let's look at the example here in MoonBit. We can declare a variable `x` and assign it the result of an expression, like `1 + 1`. This is straightforward and mirrors what we do in mathematics. We can also define a function `square` that takes an integer and returns its square. When we call `square(x)`, we get the result `4`, just like if we replaced `square(x)` with `{ 2 * 2 }`.
@@ -62,7 +60,7 @@ fn init {
 Multiple identifiers pointing to the same mutable data structure can be considered aliases, which need to be handled carefully.
 
 ```moonbit
-fn alter(a: Ref[Int], b: Ref[Int]) {
+fn alter(a: Ref[Int], b: Ref[Int]) -> Unit {
   a.val = 10
   b.val = 20
 }
@@ -118,7 +116,7 @@ fn init {
 // Recursive form
 
 ```moonbit
-fn loop_(i: Int) {
+fn loop_(i: Int) -> Unit {
   if i < 2 {
     println("Hello!")
     loop_(i + 1)
@@ -136,7 +134,7 @@ Sometimes we want to control the flow of a loop more precisely. We might want to
 For example, if we're printing numbers from `0` to `9`, but we want to skip the number `3`, we can use `continue` in the loop condition. If we want to stop the loop entirely when we reach `3`, we can use `break`.
 
 ```moonbit
-fn print_first_3_break() {
+fn print_first_3_break() -> Unit {
   let mut i = 0
   while i < 10 {
     i += 1
@@ -161,7 +159,7 @@ the excepted output is
 but if we change `break` to `continue`
 
 ```moonbit
-fn print_first_3_continue() {
+fn print_first_3_continue() -> Unit {
   let mut i = 0
   while i < 10 {
     i += 1

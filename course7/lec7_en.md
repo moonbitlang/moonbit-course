@@ -100,8 +100,8 @@ fn init {
   - `fn println(String) -> Unit`
 - The type of a command is also a single-value type.
 
-```moonbit no-check
-fn do_nothing() { // When the return value is a single-value type, the return type declaration can be omitted
+```moonbit
+fn do_nothing() -> Unit { // When the return value is a single-value type, the return type declaration can be omitted
   let _x = 0 // The result is of single-value type, which is consistent with the function definition
 }
 ```
