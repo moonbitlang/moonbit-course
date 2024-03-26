@@ -139,8 +139,8 @@ fn init {
 
 - Two identifiers pointing to the same mutable data structure can be considered aliases.
 
-```moonbit
-fn alter(a: Ref[Int], b: Ref[Int]) {
+```moonbit no-check
+fn alter(a: Ref[Int], b: Ref[Int]) -> Unit {
   a.val = 10
   b.val = 20
 }
@@ -164,7 +164,7 @@ fn init {
 
 - Using variables, we can define loops.
 
-```moonbit
+```moonbit no-check
 <Define variables and initial values>
 while <Check if the condition for continuing the loop is met>, <Iterate the variable> {
   <Commands to be repeated>
@@ -174,10 +174,12 @@ while <Check if the condition for continuing the loop is met>, <Iterate the vari
 - For example, we can perform n output operations repeatedly.
 
 ```moonbit
-let mut i = 0
-while i < 2 {
-  println("Output") // Repeat the output twice.
-  i = i + 1
+fn init {
+  let mut i = 0
+  while i < 2 {
+    println("Output") // Repeat the output twice.
+    i = i + 1
+  }
 }
 ```
 
@@ -191,11 +193,13 @@ while i < 2 {
 - For example:
 
 ```moonbit
-let mut i = 0 // <-- At this point, i is equal to 0
-while i < 2 { // <-- Here, we check if i < 2 is true.
-  println("Output") // <-- 0 < 2, so continue execution, output the first time.
-  i = i + 1
-} // <-- At this point, we execute i = i + 2.
+fn init {
+  let mut i = 0 // <-- At this point, i is equal to 0
+  while i < 2 { // <-- Here, we check if i < 2 is true.
+    println("Output") // <-- 0 < 2, so continue execution, output the first time.
+    i = i + 1
+  } // <-- At this point, we execute i = i + 2.
+}
 ```
 
 # Loops
@@ -208,11 +212,14 @@ while i < 2 { // <-- Here, we check if i < 2 is true.
 - For example:
 
 ```moonbit
-// At this point, i is equal to 1
-while i < 2 { // <-- Here, we check if i < 2 is true.
-  println("Output") // <-- 1 < 2, so continue execution, output the second time.
-  i = i + 1
-} // <-- At this point, we execute i = i + 2.
+fn init {
+  let mut i = 0
+  // At this point, i is equal to 1
+  while i < 2 { // <-- Here, we check if i < 2 is true.
+    println("Output") // <-- 1 < 2, so continue execution, output the second time.
+    i = i + 1
+  } // <-- At this point, we execute i = i + 2.
+}
 ```
 
 # Loops
@@ -224,12 +231,15 @@ while i < 2 { // <-- Here, we check if i < 2 is true.
   - Repeat the above process.
 - For example:
 
-```moonbit
-// At this point, i is equal to 2
-while i < 2 { // <-- Here, we check if i < 2 is true, which is false.
-i = i + 1
-} // <-- Skip.
-// <-- Continue with subsequent execution.
+```moonbit no-check
+fn init {
+  let mut i : Int = 0
+  // At this point, i is equal to 2
+  while i < 2 { // <-- Here, we check if i < 2 is true, which is false.
+    i = i + 1
+  } // <-- Skip.
+  // <-- Continue with subsequent execution.
+}
 ```
 
 # Debugger
@@ -241,7 +251,7 @@ i = i + 1
 
 - In fact, loops and recursion are equivalent.
 
-```moonbit
+```moonbit no-check
 let mut <variable> = <initial value>
 while <Check if the loop should continue>, <Iterate the variable> {
   <Commands to be repeated>
@@ -265,21 +275,25 @@ loop_(<initial value>)
 - For example, the following two pieces of code have the same effect.
 
 ```moonbit
-let mut i = 0
-while i < 2 {
-  println("Hello!")
-  i = i + 1
+fn init {
+  let mut i = 0
+  while i < 2 {
+    println("Hello!")
+    i = i + 1
+  }
 }
 ```
 
 ```moonbit
-fn loop_(i: Int) {
-  if i < 2 {
-    println("Hello!")
-    loop_(i + 1)
-  } else { () }
+fn init {
+  fn loop_(i: Int) {
+    if i < 2 {
+      println("Hello!")
+      loop_(i + 1)
+    } else { () }
+  }
+  loop_(0)
 }
-loop_(0)
 ```
 
 # Control of Loop Flow
