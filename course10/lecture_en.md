@@ -70,17 +70,20 @@ For the add/update operation, we first calculate the position to store the key b
 The following code demonstrates adding and updating data. We first calculate the hash value of the key at line 2 with the hash interface specified in `K : Hash` at line 1. Then we find and traverse the corresponding data structure. We're using a mutable data structure with an infinite while loop at line 4. We break out of the loop if we find the key already exists or reach the end of the list. If the key is found, we update the data in place. Otherwise, we update the bucket to be the remaining list so the loop terminates. When we reach the end of the list and haven't found the key, we add a new pair of data at the end of the list. At last, we check if it needs resizing based on the current load factor.
 
 ```moonbit
+let load = 0.75 
+fn resize() -> Unit {} // placeholder for resize implementation
+
 fn put[K : Hash + Eq, V](map : HT_bucket[K, V], key : K, value : V) -> Unit {
   let index = key.hash().mod_u(map.length) // Calculate the index
   let mut bucket = map.values[index] // Get the corresponding data structure
   while true {
     match bucket.val {
       None => { // If doesn't exist, add and exit loop
-        bucket.val = Some({ key, value }, { val: None })
+        bucket.val = Some(({ key, value }, { val: None }))
         map.size = map.size + 1
         break
       }
-      Some(entry, rest) => {
+      Some((entry, rest)) => {
         if entry.key == key { // If exists, update the value
           entry.value = value
           break
@@ -100,11 +103,11 @@ Next, let's briefly go over the remove operation. Similar to the add/update oper
 ```moonbit
 fn remove[K : Hash + Eq, V](map : HT_bucket[K, V], key : K) -> Unit {
   let index = key.hash().mod_u(map.length) // Calculate the index
-  let mut bucket = map.values[index] // Get the corresponding data 
+  let mut bucket = map.values[index] // Get the corresponding data structure
   while true {
     match bucket.val {
       None => break // Exit after finishing traversal
-      Some(entry, rest) => {
+      Some((entry, rest)) => {
         if entry.key == key { // Remove if exists
           bucket.val = rest.val // { Some(entry, { val }) } -> { val }
           map.size = map.size - 1
@@ -123,7 +126,7 @@ Let's continue with open addressing. Recall that linear probing is when a hash c
 
 To implement open addressing, we will use an array with default values similar to the implementation of a circular queue introduced in the last lecture. Feel free to try and implement it using Option as well. Besides the array to store key-value pairs, we also have an array of boolean values to determine if the current slot is empty. As usual, we dynamically maintain the length of the array and the number of key-value pairs.
 
-```moonbit
+```moonbit no-check
 struct Entry[K, V] { // Struct for key-value pair storage
   key : K
   mut value : V // In-place update enabled
@@ -158,7 +161,7 @@ fn find_slot[K : Hash + Eq, V](map : HT_open[K, V], key : K) -> Int {
 
 We then define the add/update, lookup, and remove operations utilizing this helper function. For the add/update operation, we first determine if the key exists by checking if the slot with the calculated index is empty or not. If the key is found, we update its corresponding value; otherwise, we add the key-value pair into the empty slot and update the occupied status and the size of the HashMap. Lastly, we check if resizing is needed.
 
-```moonbit
+```moonbit no-check
 fn put[K : Hash + Eq + Default, V : Default](map : HT_open[K, V], key : K, value : V) -> Unit {
   let index = find_slot(map, key) // Use helper method to look up the key
   if map.occupied[index] { // Check for key or empty slot
@@ -206,11 +209,11 @@ fn find_slot[K : Hash + Eq, V](map : HT_open[K, V], key : K) -> Int {
   let index = key.hash().mod_u(map.length)
   let mut i = index
   let mut empty = -1 // Record the first empty slot occurred: status Empty or Deleted
-  while (map.occupied[i] === Empty).not() {
+  while (physical_equal(map.occupied[i], Empty)).not() {
     if map.values[i].key == key {
       return i
     }
-    if map.occupied[i] === Deleted && empty != -1 { // Update empty slot
+    if physical_equal(map.occupied[i], Deleted) && empty != -1 { // Update empty slot
       empty = i
     }
     i = (i + 1).mod_u(map.length)
@@ -221,10 +224,10 @@ fn find_slot[K : Hash + Eq, V](map : HT_open[K, V], key : K) -> Int {
 
 The remove operation is simpler, we just need to update the status indicator according to the result of the helper function. It's important to note that with this approach, it'll take extra lookup time/overhead after multiple additions and removals as there will be many `Deleted` slots. Therefore, we need to rearrange the elements afterwards.
 
-```moonbit
+```moonbit no-check
 fn remove[K : Hash + Eq + Default, V : Default](map : HT_open[K, V], key : K) -> Unit {
   let index = find_slot(map, key)
-  if map.occupied[index] === Occupied {
+  if physical_equal(map.occupied[index], Occupied) {
     map.values[index] = default()
     map.occupied[index] = Deleted
     map.size = map.size - 1
@@ -324,12 +327,10 @@ fn Map::hash_bucket[K : Hash + Eq, V]() -> Map[K, V] {
   let initial_length = 10
   let load = 0.75
   let map = {
-    values: Array::make(initial_length, { val : None }), // Aliasing
+    values: @array.new(5, fn() { { val : None } }) // Aliasing
     size: 0,
     length: initial_length,
   }
-  fn initialize() { ... } // Initialize the arrays one by one
-  initialize()
 
   fn resize() { ... }
 
@@ -355,7 +356,8 @@ fn Map::contains[K, V](map : Map[K, V], key : K) -> Bool {
     None => false
   }
 }
-
+```
+```moonbit no-check
 fn init {
   let map : Map[Int, Int] = Map::hash_bucket()
   debug(map.is_empty()) // true

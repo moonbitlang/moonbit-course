@@ -105,17 +105,20 @@ struct HT_bucket[K, V] {
 - Add/Update Operation: 
 
 ```moonbit
+let load = 0.75 
+fn resize() -> Unit {} // placeholder for resize implementation
+
 fn put[K : Hash + Eq, V](map : HT_bucket[K, V], key : K, value : V) -> Unit {
   let index = key.hash().mod_u(map.length) // Calculate the index
   let mut bucket = map.values[index] // Get the corresponding data structure
   while true {
     match bucket.val {
       None => { // If doesn't exist, add and exit loop
-        bucket.val = Some({ key, value }, { val: None })
+        bucket.val = Some(({ key, value }, { val: None }))
         map.size = map.size + 1
         break
       }
-      Some(entry, rest) => {
+      Some((entry, rest)) => {
         if entry.key == key { // If exists, update the value
           entry.value = value
           break
@@ -148,7 +151,7 @@ fn remove[K : Hash + Eq, V](map : HT_bucket[K, V], key : K) -> Unit {
   while true {
     match bucket.val {
       None => break // Exit after finishing traversal
-      Some(entry, rest) => {
+      Some((entry, rest)) => {
         if entry.key == key { // Remove if exists
           bucket.val = rest.val // { Some(entry, { val }) } -> { val }
           map.size = map.size - 1
@@ -173,7 +176,7 @@ fn remove[K : Hash + Eq, V](map : HT_bucket[K, V], key : K) -> Unit {
 
 -  Structure definition of HashMap:
   - Here we use an array with default values. Feel free to try and implement it using `Option` as well. 
-```moonbit
+```moonbit no-check
 struct Entry[K, V] { // Struct for key-value pair storage
   key : K
   mut value : V // In-place update enabled
@@ -203,7 +206,7 @@ struct HT_open[K, V] {
   - If so, return its index. 
   - Else, return the index of the next empty slot.
 
-```moonbit
+```moonbit no-check
 // Probe to the right of the index of the original hash, return the index of the first empty slot
 fn find_slot[K : Hash + Eq, V](map : HT_open[K, V], key : K) -> Int {
   let hash = key.hash() // Hash value of the key
@@ -222,7 +225,7 @@ fn find_slot[K : Hash + Eq, V](map : HT_open[K, V], key : K) -> Int {
 
 - Add/Update Operation: 
 
-```moonbit
+```moonbit no-check
 fn put[K : Hash + Eq + Default, V : Default](map : HT_open[K, V], key : K, value : V) -> Unit {
   let index = find_slot(map, key) // Use helper method to look up the key
   if map.occupied[index] { // Check for key or empty slot
@@ -238,7 +241,6 @@ fn put[K : Hash + Eq + Default, V : Default](map : HT_open[K, V], key : K, value
   }
 }
 ```
-
 
 # HashMap Based on Open Addressing
 
@@ -278,11 +280,11 @@ fn find_slot[K : Hash + Eq, V](map : HT_open[K, V], key : K) -> Int {
   let index = key.hash().mod_u(map.length)
   let mut i = index
   let mut empty = -1 // Record the first empty slot occurred: status Empty or Deleted
-  while (map.occupied[i] === Empty).not() {
+  while (physical_equal(map.occupied[i], Empty)).not() {
     if map.values[i].key == key {
       return i
     }
-    if map.occupied[i] === Deleted && empty != -1 { // Update empty slot
+    if physical_equal(map.occupied[i], Deleted) && empty != -1 { // Update empty slot
       empty = i
     }
     i = (i + 1).mod_u(map.length)
@@ -294,10 +296,10 @@ fn find_slot[K : Hash + Eq, V](map : HT_open[K, V], key : K) -> Int {
 # HashMap Based on Open Addressing
 
 - For removal, we only need to update the status indicator:
-  ```moonbit
+  ```moonbit no-check
   fn remove[K : Hash + Eq + Default, V : Default](map : HT_open[K, V], key : K) -> Unit {
     let index = find_slot(map, key)
-    if map.occupied[index] === Occupied {
+    if physical_equal(map.occupied[index], Occupied) {
       map.values[index] = default()
       map.occupied[index] = Deleted
       map.size = map.size - 1
@@ -390,17 +392,16 @@ fn init {
 ```
 
 # Closure: Data Encapsulation
-```moonbit no-check
+
+``` moonbit no-check
 fn Map::hash_bucket[K : Hash + Eq, V]() -> Map[K, V] {
   let initial_length = 10
   let load = 0.75
   let map = {
-    values: Array::make(initial_length, { val : None }), // Aliasing
+    values: @array.new(5, fn() { { val : None } }), // Aliasing
     size: 0,
     length: initial_length,
   }
-  fn initialize() { ... } // Initialize the arrays one by one
-  initialize()
 
   fn resize() { ... }
 
@@ -428,7 +429,8 @@ fn Map::contains[K, V](map : Map[K, V], key : K) -> Bool {
     None => false
   }
 }
-
+```
+```moonbit no-check
 fn init {
   let map : Map[Int, Int] = Map::hash_bucket()
   debug(map.is_empty()) // true
