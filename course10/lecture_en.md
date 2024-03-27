@@ -14,7 +14,7 @@ First, what is a hash function or hashing? A hash function maps or binds data of
 
 For the `Hash` interface in MoonBit, data is mapped to values in the range of integers.  For example,  the string "ThisIsAVeryVeryLongString" will be mapped to the integer -321605584.
 
-```moonbit
+```moonbit no-check
 trait Hash { hash(Self) -> Int }
 "ThisIsAVeryVeryLongString".hash() == -321605584
 ```
@@ -144,7 +144,7 @@ For the add/update operation, we calculate the index to add/update data based on
 
 We can define a helper method to check if a key already exists. If so, we directly return its index; otherwise we return the index of the next empty slot. 
 
-```moonbit
+```moonbit no-check
 // Probe to the right of the index of the original hash, return the index of the first empty slot
 fn find_slot[K : Hash + Eq, V](map : HT_open[K, V], key : K) -> Int {
   let hash = key.hash() // Hash value of the key
