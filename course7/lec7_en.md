@@ -204,12 +204,14 @@ fn init {
 
 # Loops
 
-- When we enter the loop,
-  - We check if the condition for continuing the loop is met.
-  - Execute commands.
-  - Iterate the variable.
-  - Repeat the above process.
-- For example:
+When we enter the loop,
+
+- We check if the condition for continuing the loop is met.
+- Execute commands.
+- Iterate the variable.
+- Repeat the above process.
+
+For example:
 
 ```moonbit
 fn init {
