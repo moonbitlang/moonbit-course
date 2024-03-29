@@ -10,7 +10,7 @@ headingDivider: 1
 
 ## Imperative Programming
 
-### Hongbo Zhang
+### MoonBit Open Course Team
 
 # Functional Programming
 
@@ -45,7 +45,7 @@ let z: Int = { 2 * 2 } // 4
 # Commands
 
 - The function `print` allows us to output a string, for example, `print("hello moonbit")`.
-- In Moonbit, we can define initialization instructions through an `init` code block.
+- In MoonBit, we can define initialization instructions through an `init` code block.
   - This can be simply understood as the main entry point of the program.
 
 ```moonbit
@@ -108,7 +108,7 @@ fn do_nothing() -> Unit { // When the return value is a single-value type, the r
 
 # Variables
 
-- In Moonbit, we can define temporary variables within a code block using `let mut`.
+- In MoonBit, we can define temporary variables within a code block using `let mut`.
 
 ```moonbit
 fn init {
@@ -117,7 +117,7 @@ fn init {
 }
 ```
 
-- In Moonbit, the fields of a struct are immutable by default, and we also allow mutable fields, which need to be marked with `mut`.
+- In MoonBit, the fields of a struct are immutable by default, and we also allow mutable fields, which need to be marked with `mut`.
 
 ```moonbit
 struct Ref[T] { mut val : T }
@@ -244,7 +244,7 @@ fn init {
 
 # Debugger
 
-- Moonbit's debugger allows us to see real-time runtime data during execution, better understanding the process.
+- MoonBit's debugger allows us to see real-time runtime data during execution, better understanding the process.
   ![](../pics/debugger.png)
 
 # Loops and Recursion
@@ -335,11 +335,11 @@ fn print_skip_3() -> Unit {
 }
 ```
 
-# Moonbit's Checks
+# MoonBit's Checks
 
-- Moonbit checks whether a variable has been modified, which can help avoid infinite loops caused by forgetting to increment a condition.
+- MoonBit checks whether a variable has been modified, which can help avoid infinite loops caused by forgetting to increment a condition.
   ![height:150px](../pics/infinite_loop.png)
-- Moonbit also checks if the function's return result matches the type declaration, which can help avoid incorrect return type declarations.
+- MoonBit also checks if the function's return result matches the type declaration, which can help avoid incorrect return type declarations.
   ![height:200px](../pics/forget_type.png)
 
 # Mutable Data

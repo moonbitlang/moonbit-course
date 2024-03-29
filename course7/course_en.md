@@ -192,7 +192,7 @@ the excepted output is
 
 MoonBit has some built-in checks to help us write better code. It checks if a variable that's supposed to be mutable has been modified, which can help us catch mistakes like forgetting to update a loop counter. It also checks that the return value of a function matches the declared return type, which helps us avoid type errors.
 
-![Moonbit Check](moonbit_check.png)
+![MoonBit Check](moonbit_check.png)
 
 ## Mutable Data
 
