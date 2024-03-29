@@ -106,7 +106,7 @@ $$
 
 > 给你两个整数 `num_bottles` 和 `num_exchange` ，返回你**最多**可以喝到多少瓶水。
 
-```moonbit
+```moonbit no-check
 fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
     abort("To be done")
 }
@@ -117,15 +117,9 @@ fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
 # 步骤三：写测试案例
 
 ```moonbit
-fn init {
-    assert(num_water_bottles(9, 3) == 13) // 9 + 3 + 1 = 13
-    assert(num_water_bottles(15, 4) == 19)
-}
-
-fn assert(test: Bool) {
-  if test.not() {
-    abort("Test failed")
-  }
+test {
+  @assertion.assert_eq(num_water_bottles(9, 3), 13)? // 9 + 3 + 1 = 13
+  @assertion.assert_eq(num_water_bottles(15, 4), 19)?
 }
 ```
 

@@ -131,7 +131,7 @@ It is recommended to adopt a **test-driven development** (TDD) workflow, namely,
 
 > Given the two integers `num_bottles` and `num_exchange`, return _the **maximum** number of water bottles you can drink_.
 
-```moonbit
+```moonbit no-check
 fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
   abort("To be done")
 }
