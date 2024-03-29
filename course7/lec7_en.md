@@ -46,7 +46,7 @@ let z: Int = { 2 * 2 } // 4
 
 - The function `print` allows us to output a string, for example, `print("hello moonbit")`.
 - In MoonBit, we can define initialization instructions through an `init` code block.
-  - This can be simply understood as the main entry point of the program.
+- This can be simply understood as the main entry point of the program.
 
 ```moonbit
 fn init {
