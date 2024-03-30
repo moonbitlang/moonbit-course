@@ -106,18 +106,17 @@ test {
 
 ---
 
-# Expression-Based Programming
+# Expression-Oriented Programming
 
 - To write correct programs, we need to understand how programs are computed. Thus, we need to establish a **computational model** to comprehend the process.
-- MoonBit programs can be described using a **value-oriented programming** approach.
-  - Value-oriented programming: _What is what?_
+- MoonBit programs employ an **expression-oriented** approach.
+  - Expression-oriented programming: _What is what?_
     - MoonBit programs consist of **expressions** that represent a value.
   - Imperative programming: _What to do?_
     - Programs are composed of **statements** that may modify the states.
-      - `Create a variable named x`
-      - `Assign 5 to x`
-      - `Let y point to x`
-      - ...
+      - Create a variable named `x`
+      - Assign `5` to `x`
+      - Let `y` point to `x`
 
 ---
 
