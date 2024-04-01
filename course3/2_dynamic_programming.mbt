@@ -1,3 +1,5 @@
+// Top-down 自顶向下
+// Fibonacci using map 利用表计算斐波那契数列
 fn fib1(num: Int) -> Int64 {
   fn aux(num: Int, map: @map.Map[Int, Int64]) -> (Int64, @map.Map[Int, Int64]) {
     match get(map, num) {
@@ -13,6 +15,8 @@ fn fib1(num: Int) -> Int64 {
   aux(num, map).0
 }
 
+// Use mutable variable to avoid passing map around
+// 利用变量避免传递map
 fn fib1_mut(num: Int) -> Int64 {
   let mut map = put(put(make(), 1, 1L), 2, 1L)
   fn aux(num: Int) -> Int64 {
@@ -29,6 +33,7 @@ fn fib1_mut(num: Int) -> Int64 {
   aux(num)
 }
 
+// Bottom-up 自底向上
 fn fib2(num: Int) -> Int64 {
   fn aux(n: Int, map: @map.Map[Int, Int64]) -> Int64 {
     let result = get_or_else(get(map, n - 1), 1L) + get_or_else(get(map, n - 2), 1L)
@@ -38,10 +43,11 @@ fn fib2(num: Int) -> Int64 {
   aux(1, map)
 }
 
-fn init {
-  // println(fib1(60))
-  println(fib1_mut(60))
-  // println(fib2(60))
+// Uncomment to see the speed difference 取消注释以查看速度差异
+test {
+  // @assertion.assert_eq(fib1(60), 1548008755920L)
+  @assertion.assert_eq(fib1_mut(60), 1548008755920L)
+  // @assertion.assert_eq(fib2(60), 1548008755920L)
 }
 
 fn get_or_else(option_int: Option[Int64], default: Int64) -> Int64 {

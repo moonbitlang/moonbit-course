@@ -7,7 +7,7 @@ fn parse[V](self : Lexer[V], str : String) -> Option[(V, String)] {
 fn pchar(predicate : (Char) -> Bool) -> Lexer[Char] {
   Lexer(fn(input) {
     if input.length() > 0 && predicate(input[0]) {
-      Some(input[0], input.to_bytes().sub_string(1, input.length() - 1))
+      Some((input[0], input.to_bytes().sub_string(1, input.length() - 1)))
     } else {
       None
     }
@@ -17,7 +17,7 @@ fn pchar(predicate : (Char) -> Bool) -> Lexer[Char] {
 fn map[I, O](self : Lexer[I], f : (I) -> O) -> Lexer[O] {
   Lexer(fn(input) {
     let (value, rest) = self.parse(input)?
-    Some(f(value), rest)
+    Some((f(value), rest))
   })
 }
 
@@ -25,7 +25,7 @@ fn and[V1, V2](self : Lexer[V1], parser2 : Lexer[V2]) -> Lexer[(V1, V2)] {
   Lexer(fn(input) {
     let (value, rest) = self.parse(input)?
     let (value2, rest2) = parser2.parse(rest)?
-    Some((value, value2), rest2)
+    Some(((value, value2), rest2))
   })
 }
 
@@ -64,13 +64,13 @@ fn many[Value](self: Lexer[Value]) -> Lexer[List[Value]] {
       while true {
         match self.parse(rest) {
           None => break
-          Some(value, new_rest) => {
+          Some((value, new_rest)) => {
             rest = new_rest
             cumul = Cons(value, cumul)
           }
         }
       }
-      Some(reverse_list(cumul), rest)
+      Some((reverse_list(cumul), rest))
   })
 }
 
@@ -118,7 +118,7 @@ let tokens: Lexer[List[Token]] =
   value.or(symbol).and(whitespace.many()).map(fn { (symbols, _) => symbols }).many()
 
 fn init {
-  println("===第一部分===")
+  println("===Lexing===")
   debug(tokens.parse("-10123+-+523 103    ( 5) )  "))
   debug(pchar(fn{ ch => ch == 'a' }).parse("asdf"))
   debug(pchar(fn{ 
@@ -147,14 +147,14 @@ fn parse[V](self : Parser[V], tokens : List[Token]) -> Option[(V, List[Token])] 
 fn ptoken(predicate : (Token) -> Bool) -> Parser[Token] {
   Parser(fn {
     Nil => None
-    Cons(token, rest) => if predicate(token) { Some(token, rest) }  else { None }
+    Cons(token, rest) => if predicate(token) { Some((token, rest)) }  else { None }
   })
 }
 
 fn map[I, O](self : Parser[I], f : (I) -> O) -> Parser[O] {
   Parser(fn(input) {
       let (value, rest) = self.parse(input)?
-      Some(f(value), rest)
+      Some((f(value), rest))
   })
 }
 
@@ -162,7 +162,7 @@ fn and[V1, V2](self : Parser[V1], parser2 : Parser[V2]) -> Parser[(V1, V2)] {
   Parser(fn(input) {
     let (value, rest) = self.parse(input)?
     let (value2, rest2) = parser2.parse(rest)?
-    Some((value, value2), rest2)
+    Some(((value, value2), rest2))
   })
 }
 
@@ -182,13 +182,13 @@ fn many[Value](self: Parser[Value]) -> Parser[List[Value]] {
     while true {
       match self.parse(i) {
         None => break
-        Some(value, rest) => {
+        Some((value, rest)) => {
           i = rest
           cumul = Cons(value, cumul)
         }
       }
     }
-    Some(reverse_list(cumul), i)
+    Some((reverse_list(cumul), i))
   })
 }
 
@@ -246,14 +246,14 @@ trait Expr {
   op_div(Self, Self) -> Self
 }
 
-// 语义：构造语法树
+// Semantic: create syntax tree 语义：构造语法树
 fn Expression::number(i: Int) -> Expression { Number(i) }
 fn Expression::op_add(a: Expression, b: Expression) -> Expression { Plus(a, b) }
 fn Expression::op_sub(a: Expression, b: Expression) -> Expression { Minus(a, b) }
 fn Expression::op_mul(a: Expression, b: Expression) -> Expression { Multiply(a, b) }
 fn Expression::op_div(a: Expression, b: Expression) -> Expression { Divide(a, b) }
 
-// 语义：计算表达式
+// Semantic: compute expression 语义：计算表达式
 type BoxedInt Int derive(Debug)
 
 fn BoxedInt::number(i: Int) -> BoxedInt { BoxedInt(i) }
@@ -262,7 +262,7 @@ fn BoxedInt::op_sub(a: BoxedInt, b: BoxedInt) -> BoxedInt { BoxedInt(a.0 - b.0) 
 fn BoxedInt::op_mul(a: BoxedInt, b: BoxedInt) -> BoxedInt { BoxedInt(a.0 * b.0) }
 fn BoxedInt::op_div(a: BoxedInt, b: BoxedInt) -> BoxedInt { BoxedInt(a.0 / b.0) }
 
-// 语义：输出表达式
+// Semantic: print expression 语义：输出表达式
 struct BoxedString {
   str: String
   level: Int
@@ -318,17 +318,17 @@ fn recursive_parser_with_tagless_final[E : Expr]() -> Parser[E] {
 fn parse_string(str: String) -> Option[(Expression, String, List[Token])] {
   let (token_list, rest_string) = tokens.parse(str)?
   let (expr, rest_token) = parser().parse(token_list)?
-  Some(expr, rest_string, rest_token)
+  Some((expr, rest_string, rest_token))
 }
 
 fn parse_string_tagless_final[E : Expr](str: String) -> Option[(E, String, List[Token])] {
   let (token_list, rest_string) = tokens.parse(str)?
   let (expr, rest_token) : (E, List[Token]) = recursive_parser_with_tagless_final().parse(token_list)?
-  Some(expr, rest_string, rest_token)
+  Some((expr, rest_string, rest_token))
 }
 
 fn init {
-  println("===第二部分===")
+  println("===Parsing===")
   debug(parse_string("1 + 1 * (307 + 7) + 5 - 3 - 2"))
   debug((parse_string_tagless_final("1 + 1 * (307 + 7) + 5 - 3 - 2") 
     : Option[(Expression, String, List[Token])]))

@@ -51,13 +51,14 @@ enum Status {
   Occupied
 } derive(Debug)
 
-/// 哈希表：开放地址实现
+/// HashMap based on open addressing 哈希表：开放地址实现
 /// 
+/// Invariant : there's no empty slots between where a key should be stored and where it is stored
 /// 条件：从键的哈希值开始直到键的实际存储位置之间没有任何的空槽
 pub fn Map::hash_open_address[K : Hash + Eq + Default + Debug, V : Default + Debug]() ->
      Map[K, V] {
   let initial_length = 10
-  // 哈希表的负载
+  // load of the hash map 哈希表的负载
   let load = 0.75
   let map : HT_open[K, V] = {
     values: Array::make(initial_length, Entry::default()),
@@ -66,6 +67,8 @@ pub fn Map::hash_open_address[K : Hash + Eq + Default + Debug, V : Default + Deb
     size: 0,
   }
 
+  // search to the right from where the key should be stored
+  // return where it is stored (key encountered) or where it can be stored (the first empty slot encountered)
   // 从键的哈希值向右查找，返回键或第一个找到的空槽位置的索引
   fn find_slot(key : K) -> Int {
     let hash = key.hash()
@@ -156,7 +159,7 @@ priv struct HT_bucket[K, V] {
   mut size : Int
 } derive(Debug)
 
-/// 哈希表：链表实现
+/// HashMap based on linked list 哈希表：链表实现
 pub fn Map::hash_bucket[K : Hash + Eq + Debug, V : Debug]() -> Map[K, V] {
   let initial_length = 10
   let load = 0.75
@@ -171,17 +174,18 @@ pub fn Map::hash_bucket[K : Hash + Eq + Debug, V : Debug]() -> Map[K, V] {
     map.values = Array::make(length, { val: None })
     map.size = 0
     let mut i = 0
-    while i < length, i = i + 1 {
+    while i < length {
       let mut bucket = values[i]
       while true {
         match bucket.val {
           None => break
-          Some(entry, rest) => {
+          Some((entry, rest)) => {
             put(entry.key, entry.value)
             bucket = rest
           }
         }
       }
+      i = i + 1
     }
   }
 
@@ -191,7 +195,7 @@ pub fn Map::hash_bucket[K : Hash + Eq + Debug, V : Debug]() -> Map[K, V] {
     while true {
       match bucket.val {
         None => break
-        Some(entry, rest) =>
+        Some((entry, rest)) =>
           if entry.key == key {
             return Some(entry.value)
           } else {
@@ -209,11 +213,11 @@ pub fn Map::hash_bucket[K : Hash + Eq + Debug, V : Debug]() -> Map[K, V] {
     while true {
       match bucket.val {
         None => {
-          bucket.val = Some({ key, value }, { val: None })
+          bucket.val = Some(({ key, value }, { val: None }))
           map.size = map.size + 1
           break
         }
-        Some(entry, rest) => {
+        Some((entry, rest)) => {
           if entry.key == key {
             entry.value = value
             break
@@ -236,7 +240,7 @@ pub fn Map::hash_bucket[K : Hash + Eq + Debug, V : Debug]() -> Map[K, V] {
     while true {
       match bucket.val {
         None => break
-        Some(entry, rest) => {
+        Some((entry, rest)) => {
           if entry.key == key {
             bucket.val = rest.val // { Some(entry, { val }) } -> { val }
             map.size = map.size - 1
@@ -265,25 +269,28 @@ fn init {
   let start = 0
   let end = 3
   let mut i = start
-  while i < end, i = i + 1 {
+  while i < end {
     map.put(i, i)
+    i = i + 1
   }
   debug(map.size())
   i = start
-  while i < end, i = i + 1 {
+  while i < end {
     // debug(map.contains(i))
+    i = i + 1
   }
-  while i >= start, i = i - 1 {
+  while i >= start {
     if i % 2 == 0 { map.remove(i) }
+    i = i - 1
   }
   i = end
   (map.debug_map)()
-  while i >= start, i = i - 1 {
+  while i >= start {
     if i % 2 != 0 {
       debug(map.contains(i))
       map.remove(i)
     }
+    i = i - 1
   }
   debug(map.is_empty())
-
 }

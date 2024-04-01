@@ -1,7 +1,7 @@
 enum AVLTree {
   Empty
-  Node(Int, AVLTree, AVLTree, Int) // 数据、左子树、右子树、高度
-} derive (Show)
+  Node(Int, AVLTree, AVLTree, Int) // data, left tree, right tree, height 数据、左子树、右子树、高度
+} derive (Debug, Show)
 
 fn height(tree: AVLTree) -> Int {
   match tree {
@@ -10,23 +10,38 @@ fn height(tree: AVLTree) -> Int {
   }
 }
 
-// 构建平衡树；高度由构建函数维护
+// construct a balanced tree and maintain the height 构建平衡树；高度由构建函数维护
 fn construct(left: AVLTree, root: Int, right: AVLTree) -> AVLTree {
   fn max(i, j) { if i <= j { j } else { i }}
   Node(root, left, right, max(height(left), height(right)) + 1)
 }
 
 fn balance(left: AVLTree, value: Int, right: AVLTree) -> AVLTree {
-  // 判断是否不平衡
+  // test if it is balanced 判断是否不平衡
   if height(left) > height(right) + 1 {
     let z = value
     match left {
-      Node(y, left_l, left_r, _) => { // x在y z同侧
+      Node(y, left_l, left_r, _) => {
+        //                     z
+        //                 /     \
+        //             y          tree
+        //         /     \
+        //      x          tree
+        //    /   \
+        //  tree  tree
         if height(left_l) >= height(left_r) {
           construct(left_l, y, construct(left_r, z, right))
-        } else {
+        }
+        //                  z
+        //            /        \
+        //       x               tree
+        //    /     \
+        //  tree     y
+        //         /   \
+        //        tree tree
+        else {
           match left_r {
-            Node(x, left_right_l, left_right_r, _) => // x在y z两侧
+            Node(x, left_right_l, left_right_r, _) =>
               construct( construct(left_l, y, left_right_l), x, construct(left_right_r, z, right) )
           }
         }
@@ -49,7 +64,7 @@ fn balance(left: AVLTree, value: Int, right: AVLTree) -> AVLTree {
   } else { construct(left, value, right) }
 }
 
-// 插入元素
+// Insert an element 插入元素
 fn insert(tree: AVLTree, value: Int) -> AVLTree {
   match tree {
     Empty => Node(value, Empty, Empty, 0)
@@ -60,7 +75,7 @@ fn insert(tree: AVLTree, value: Int) -> AVLTree {
   }
 }
 
-// 删除左子树最大值
+// Remove the largest element in the left tree 删除左子树最大元素
 fn remove_largest(tree: AVLTree) -> (AVLTree, Int) {
   match tree {
     Empty => abort("Impossible")
@@ -72,7 +87,7 @@ fn remove_largest(tree: AVLTree) -> (AVLTree, Int) {
   }
 }
 
-// 删除元素
+// Remove an element 删除元素
 fn remove(tree: AVLTree, value: Int) -> AVLTree {
   match tree {
     Empty => Empty
@@ -91,7 +106,7 @@ fn remove(tree: AVLTree, value: Int) -> AVLTree {
   }
 }
 
-// 深度优先查找
+// Depth first search 深度优先遍历查找
 fn dfs_search(target: Int, tree: AVLTree) -> Bool {
   match tree {
     Empty => false
@@ -101,7 +116,7 @@ fn dfs_search(target: Int, tree: AVLTree) -> Bool {
   }
 }
 
-// 广度优先查找
+// Breadth first search 广度优先遍历查找
 fn bfs_search(target: Int, queue: Queue[AVLTree]) -> Bool {
   match peek(queue) {
     None => false
@@ -112,7 +127,7 @@ fn bfs_search(target: Int, queue: Queue[AVLTree]) -> Bool {
   }
 }
 
-// 深度优先遍历并输出
+// Depth first search and print all elements 深度优先遍历并输出
 fn dfs_print(tree: AVLTree) -> String {
   match tree {
     Empty => ""
@@ -120,12 +135,12 @@ fn dfs_print(tree: AVLTree) -> String {
       let value_str = value.to_string()
       let left_str = dfs_print(left)
       let right_str = dfs_print(right)
-      left_str + value_str + " " + right_str // 修改顺序以获得不同输出
+      left_str + value_str + " " + right_str
     }
   }
 }
 
-// 广度优先遍历并输出
+// Breadth first search and print all elements 广度优先遍历并输出
 fn bfs_print(queue: Queue[AVLTree]) -> String {
   match peek(queue) {
     None => ""
@@ -136,7 +151,7 @@ fn bfs_print(queue: Queue[AVLTree]) -> String {
   }
 }
 
-// 程序入口
+// Entrance to the main program 程序入口
 fn init {
   let tree = [0, 1, 2, 3, 4, 5, 6, 7, 8] |> stream |> fold_left(insert, AVLTree::Empty)
   println("dfs_print: " + dfs_print(tree))
@@ -152,8 +167,8 @@ fn init {
   println(new_tree)
 }
 
-// ----- Utils -----
-/// construct List from Array.
+// ----- Utils 工具 -----
+/// construct List from Array 从列表构建数组
 fn stream[T](array: Array[T]) -> List[T] {
   fn go(idx: Int) -> List[T] {
     if idx == array.length() { Nil } else { Cons(array[idx], go(idx + 1)) }
@@ -169,7 +184,7 @@ fn fold_left[A, B](list: List[A], f: (B, A) -> B, b: B) -> B {
   }
 }
 
-// ----- Queue -----
+// ----- Queue 队列 -----
 
 struct Queue[T] {
   front:List[T]
@@ -178,31 +193,21 @@ struct Queue[T] {
 
 /// `Queue::default[T]()`
 ///
-/// 创建空队列
+/// Create empty queue 创建空队列
 fn Queue::default[T]() -> Queue[T] {
   { front: Nil, back: Nil }
 }
 
 /// `from_list[T](front: List[T])`
 ///
-/// 从列表创建队列
+/// Create queue from list 从列表创建队列
 fn from_list[T](front: List[T]) -> Queue[T] {
   { front:front, back:Nil }
 }
 
-/// `is_empty[T](q: Queue[T])`
-///
-/// 检查列表是否为空
-fn is_empty[T](q: Queue[T]) -> Bool {
-  match q {
-    {front:Nil, back:Nil} => true
-    _ => false
-  }
-}
-
 /// `list_rev[T](xs: List[T])`
 ///
-/// 基于尾递归的列表反转
+/// Reverse a list with tail recursion 基于尾递归的列表反转
 fn list_rev[T](xs: List[T]) -> List[T] {
   fn go(acc, xs: List[T]) {
     match xs {
@@ -216,7 +221,7 @@ fn list_rev[T](xs: List[T]) -> List[T] {
 
 /// `norm[T](q: Queue[T])`
 ///
-/// 反转列表结构；确保列表头始终有元素
+/// Feed `back` into `front` so that `front` always have something 反转队列结构；确保列表头始终有元素
 fn norm[T](q: Queue[T]) -> Queue[T] {
   match q {
     {front:Nil, back:b} => { front:list_rev(b), back:Nil }
@@ -226,7 +231,7 @@ fn norm[T](q: Queue[T]) -> Queue[T] {
 
 /// `enqueue[T](q: Queue[T], x: T)`
 ///
-/// 向队尾添加一个元素
+/// Add an element to the end of the queue 向队尾添加一个元素
 fn enqueue[T](q: Queue[T], x: T) -> Queue[T] {
   match q {
     {front:f, back:b} => norm({ front:f, back:Cons(x, b) })
@@ -235,7 +240,7 @@ fn enqueue[T](q: Queue[T], x: T) -> Queue[T] {
 
 /// `peek[T](q: Queue[T])`
 ///
-/// 取出队列中第一个元素
+/// Remove the first element from the queue 取出队列中第一个元素
 fn peek[T](q: Queue[T]) -> Option[T] {
   match q {
     {front:Nil, back:_} => None
@@ -245,7 +250,7 @@ fn peek[T](q: Queue[T]) -> Option[T] {
 
 /// `dequeue[T](q: Queue[T])`
 ///
-/// 取出一个元素后的队列；如果已经为空，则返回本身
+/// The queue after an element is removed, returns itself if it's empty 取出一个元素后的队列；如果已经为空，则返回本身
 fn dequeue[T](q: Queue[T]) -> Queue[T] {
   match q {
     {front:Nil, back:_} => q
