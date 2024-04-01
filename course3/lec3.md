@@ -9,7 +9,7 @@ backgroundImage: url('../pics/background_moonbit.png')
 
 ## 函数, 列表与递归
 
-### Hongbo Zhang
+### 月兔公开课课程组
 
 <!--
 ```moonbit

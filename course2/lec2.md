@@ -5,7 +5,11 @@ paginate: true
 backgroundImage: url('../pics/background_moonbit.png')
 ---
 
-![bg cover](../pics/course2_front.png)
+# 现代编程思想
+
+## 月兔开发与月兔中的表达式
+
+### 月兔公开课课程组
 
 ---
 
