@@ -45,9 +45,9 @@ fn fib2(num: Int) -> Int64 {
 
 // Uncomment to see the speed difference 取消注释以查看速度差异
 test {
-  // @assertion.assert_eq(fib1(60), 1548008755920L)
-  @assertion.assert_eq(fib1_mut(60), 1548008755920L)
-  // @assertion.assert_eq(fib2(60), 1548008755920L)
+  // @assertion.assert_eq(fib1(60), 1548008755920L)?
+  @assertion.assert_eq(fib1_mut(60), 1548008755920L)?
+  // @assertion.assert_eq(fib2(60), 1548008755920L)?
 }
 
 fn get_or_else(option_int: Option[Int64], default: Int64) -> Int64 {

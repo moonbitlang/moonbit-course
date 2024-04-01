@@ -67,12 +67,12 @@ fn construct(array: Array[Option[Int]]) -> IntTree {
   aux(0)
 }
 
-fn init {
+test {
   let tree = construct([Some(0), Some(1), Some(2), Some(3), Some(4), None, None, None, None, None, Some(5)])
-  println("dfs_print: " + dfs_print(tree))
-  println("bfs_print: " + bfs_print(from_list(Cons(tree, Nil))))
-  if dfs_search(3, tree).not() { abort("") }
-  if bfs_search(3, enqueue(from_list(Nil), tree)).not() { abort("") }
+  (tree |> dfs_print |> inspect(~content="3 1 4 5 0 2 "))?
+  (List::[tree] |> from_list |> bfs_print |> inspect(~content="0 1 2 3 4 5 "))?
+  @assertion.assert_true(dfs_search(3, tree))?
+  @assertion.assert_true(bfs_search(3, enqueue(from_list(Nil), tree)))?
 }
 
 // ----- Queue -----
@@ -148,4 +148,3 @@ fn pop[T](q: Queue[T]) -> (Option[T], Queue[T]) {
     {front:Cons(x, f), back:b} => (Some(x), norm({front:f, back:b}))
   }
 }
-
