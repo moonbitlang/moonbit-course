@@ -24,7 +24,7 @@ fn fold_left[A, B](list : List[A], f : (B, A) -> B, b : B) -> B {
   }
 }
 
-/// convert list to string
+/// convert list to string 将列表转化为字符串
 fn to_string[T : Show](self : List[T]) -> String {
   fn go(ls : List[T]){
     match ls {

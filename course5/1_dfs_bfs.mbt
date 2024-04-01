@@ -14,12 +14,17 @@ fn dfs_search(target: Int, tree: IntTree) -> Bool {
 
 fn bfs_search(target: Int, queue: Queue[IntTree]) -> Bool {
   match pop(queue) {
-    (None, _) => false // 若队列为空，结束搜索
-    (Some(head), tail) => match head { // 若队列非空，对于取出的树进行操作
-      Empty => bfs_search(target, tail) // 若树为空树，则对剩余队列进行操作
+    // if the queue is empty, abort search 若队列为空，结束搜索
+    (None, _) => false 
+    // else, pop a tree and process 否则，取出一棵树并进行操作
+    (Some(head), tail) => match head { 
+      // if the tree is empty, process the rest of the queue 若树为空树，则对剩余队列进行操作
+      Empty => bfs_search(target, tail) 
+      // else check the root node 否则，检查根节点
       Node(value, left, right) => 
-        if value == target { true } else {
-          // 否则，操作根节点并将子树加入队列
+        if value == target { true } 
+        // if it does not match the target, add subtrees into the queue 如果不是搜索目标，将子树加入队列
+        else {
           bfs_search(target, enqueue(enqueue(tail, left), right))
         }
     }
@@ -34,7 +39,8 @@ fn dfs_print(tree: IntTree) -> String {
       let value_str = value.to_string()
       let left_str = dfs_print(left)
       let right_str = dfs_print(right)
-      left_str + value_str + " " + right_str // 修改顺序以获得不同输出
+      // modify the order to get different results 修改顺序以获得不同输出
+      left_str + value_str + " " + right_str 
     }
   }
 }
@@ -78,22 +84,22 @@ struct Queue[T] {
 
 /// `Queue::default[T]()`
 ///
-/// 创建空队列
+/// Create an empty queue 创建空队列
 fn Queue::default[T]() -> Queue[T] {
   { front: Nil, back: Nil }
 }
 
 /// `from_list[T](front: List[T])`
 ///
-/// 从列表创建队列
-fn from_list[T](front: List[T]) -> Queue[T] {
+/// Create queue from a list 从列表创建队列
+fn Queue::from_list[T](front: List[T]) -> Queue[T] {
   { front:front, back:Nil }
 }
 
 /// `is_empty[T](q: Queue[T])`
 ///
-/// 检查列表是否为空
-fn is_empty[T](q: Queue[T]) -> Bool {
+/// Check if a queue is empty 检查列表是否为空
+fn Queue::is_empty[T](q: Queue[T]) -> Bool {
   match q {
     {front:Nil, back:Nil} => true
     _ => false
@@ -102,7 +108,7 @@ fn is_empty[T](q: Queue[T]) -> Bool {
 
 /// `list_rev[T](xs: List[T])`
 ///
-/// 基于尾递归的列表反转
+/// Reverse a list with tail recursion 基于尾递归的列表反转
 fn list_rev[T](xs: List[T]) -> List[T] {
   fn go(acc, xs: List[T]) {
     match xs {
@@ -116,7 +122,7 @@ fn list_rev[T](xs: List[T]) -> List[T] {
 
 /// `norm[T](q: Queue[T])`
 ///
-/// 反转列表结构；确保列表头始终有元素
+/// Feed `back` into `front` so that `front` always have something 反转队列结构；确保列表头始终有元素
 fn norm[T](q: Queue[T]) -> Queue[T] {
   match q {
     {front:Nil, back:b} => { front:list_rev(b), back:Nil }
@@ -126,7 +132,7 @@ fn norm[T](q: Queue[T]) -> Queue[T] {
 
 /// `enqueue[T](q: Queue[T], x: T)`
 ///
-/// 向队尾添加一个元素
+/// Add an element to the end of the queue 向队尾添加一个元素
 fn enqueue[T](q: Queue[T], x: T) -> Queue[T] {
   match q {
     {front:f, back:b} => norm({ front:f, back:Cons(x, b) })
@@ -135,7 +141,7 @@ fn enqueue[T](q: Queue[T], x: T) -> Queue[T] {
 
 /// `pop[T](q: Queue[T])`
 ///
-/// 取出队列中第一个元素
+/// Remove the first element from the queue 取出队列中第一个元素
 fn pop[T](q: Queue[T]) -> (Option[T], Queue[T]) {
   match q {
     {front:Nil, back:_} => (None, q)

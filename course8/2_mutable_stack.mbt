@@ -1,14 +1,14 @@
 struct LinkedList[T] {
   mut head: Option[Node[T]]
   mut tail: Option[Node[T]]
-} derive(Show)
+} derive(Debug, Show)
 
 struct Node[T] {
   value: T
   mut next: Option[Node[T]]
-} derive(Show)
+} derive(Debug, Show)
 
-fn make[T]() -> LinkedList[T] {
+fn LinkedList::make[T]() -> LinkedList[T] {
   { head: None, tail: None }
 }
 
@@ -51,26 +51,25 @@ fn pop[T](self: LinkedList[T]) -> LinkedList[T] {
 }
 
 fn length[T](self: LinkedList[T]) -> Int {
-  fn aux(node: Option[Node[T]]) -> Int {
-    match node {
-      None => 0
-      Some(node) => 1 + aux(node.next)
-    }
-  }
-  aux(self.head)
-  // fn aux2(node: Option[Node[T]], cumul) -> Int {
+  // fn aux(node: Option[Node[T]]) -> Int {
   //   match node {
-  //     None => cumul
-  //     Some(node) => aux2(node.next, 1 + cumul)
+  //     None => 0
+  //     Some(node) => 1 + aux(node.next)
   //   }
   // }
-  // aux2(self.head, 0)
+  // aux(self.head)
+  fn aux2(node: Option[Node[T]], cumul) -> Int {
+    match node {
+      None => cumul
+      Some(node) => aux2(node.next, 1 + cumul)
+    }
+  }
+  aux2(self.head, 0)
 }
 
 fn init {
-  let list = make()
-  let mut i = 0
-  while i < 100000, i = i + 1 {
+  let list = LinkedList::make()
+  for i = 0; i < 100000; i = i + 1 {
     let _ = list.push(i)
   }
   println(list.length())
