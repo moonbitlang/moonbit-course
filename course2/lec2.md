@@ -43,7 +43,7 @@ backgroundImage: url('../pics/background_moonbit.png')
 # 浏览器环境
 
 - 访问 [try.moonbitlang.cn](https://try.moonbitlang.cn) ，或从[官网](https://moonbitlang.cn)点击“试用”
-- 试用环境可以快速创建文件并运行 <!-- 需提醒刷新即消失 -->
+- 试用环境可以快速创建文件并运行
 - 试用环境提供代码样例，方便熟悉月兔语法
 - 试用环境提供分享功能
 
