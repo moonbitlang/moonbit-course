@@ -151,32 +151,22 @@ fn bfs_print(queue: Queue[AVLTree]) -> String {
   }
 }
 
-// Entrance to the main program 程序入口
-fn init {
-  let tree = [0, 1, 2, 3, 4, 5, 6, 7, 8] |> stream |> fold_left(insert, AVLTree::Empty)
-  println("dfs_print: " + dfs_print(tree))
-  println("bfs_print: " + bfs_print(from_list(Cons(tree, Nil))))
+test {
+  let tree = List::[0, 1, 2, 3, 4, 5, 6, 7, 8] |> fold_left(insert, AVLTree::Empty)
+  (tree |>  dfs_print |> inspect(~content="0 1 2 3 4 5 6 7 8 "))?
+  (from_list(List::[tree]) |>  bfs_print |> inspect(~content="3 1 5 0 2 4 7 6 8 "))?
   let new_tree = remove(tree, 3)
-  println("dfs_print: " + dfs_print(new_tree))
-  println("bfs_print: " + bfs_print(enqueue(Queue::default(), new_tree)))
+  (new_tree |>  dfs_print |> inspect(~content="0 1 2 4 5 6 7 8 "))?
+  (from_list(List::[new_tree]) |>  bfs_print |> inspect(~content="2 1 5 0 4 7 6 8 "))?
   let new_tree = remove(tree, 1)
-  println("dfs_print: " + dfs_print(new_tree))
-  println("bfs_print: " + bfs_print(enqueue(Queue::default(), new_tree)))
-  if dfs_search(3, tree).not() { abort("") }
-  if bfs_search(3, enqueue(from_list(Nil), tree)).not() { abort("") }
-  println(new_tree)
+  (new_tree |>  dfs_print |> inspect(~content="0 2 3 4 5 6 7 8 "))?
+  (from_list(List::[new_tree]) |>  bfs_print |> inspect(~content="3 0 5 2 4 7 6 8 "))?
+  @assertion.assert_true(dfs_search(3, tree))?
+  @assertion.assert_true(bfs_search(3, enqueue(from_list(Nil), tree)))?
+  (new_tree |> inspect(~content="Node(3, Node(0, Empty, Node(2, Empty, Empty, 0), 1), Node(5, Node(4, Empty, Empty, 0), Node(7, Node(6, Empty, Empty, 0), Node(8, Empty, Empty, 0), 1), 2), 3)"))?
 }
 
 // ----- Utils 工具 -----
-/// construct List from Array 从列表构建数组
-fn stream[T](array: Array[T]) -> List[T] {
-  fn go(idx: Int) -> List[T] {
-    if idx == array.length() { Nil } else { Cons(array[idx], go(idx + 1)) }
-  }
-
-  go(0)
-}
-
 fn fold_left[A, B](list: List[A], f: (B, A) -> B, b: B) -> B {
   match list {
     Nil => b
@@ -185,7 +175,6 @@ fn fold_left[A, B](list: List[A], f: (B, A) -> B, b: B) -> B {
 }
 
 // ----- Queue 队列 -----
-
 struct Queue[T] {
   front:List[T]
   back:List[T]
