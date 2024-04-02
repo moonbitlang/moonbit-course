@@ -3,8 +3,8 @@ struct Map[K, V] {
   put : (K, V) -> Unit
   remove : (K) -> Unit
   size : () -> Int
-  debug_map: () -> Unit
-}
+  debug : (Buffer) -> Unit
+} derive(Show)
 
 pub fn Map::get[K, V](map : Map[K, V], key : K) -> Option[V] {
   (map.get)(key)
@@ -33,6 +33,10 @@ pub fn Map::contains[K, V](map : Map[K, V], key : K) -> Bool {
   }
 }
 
+pub fn Map::debug_write[K, V](map : Map[K, V], buffer : Buffer) -> Unit {
+  (map.debug)(buffer)
+}
+
 priv struct Entry[K, V] {
   key : K
   mut value : V
@@ -49,7 +53,7 @@ enum Status {
   Empty
   Deleted
   Occupied
-} derive(Debug)
+} derive(Eq, Debug)
 
 /// HashMap based on open addressing 哈希表：开放地址实现
 /// 
@@ -73,10 +77,11 @@ pub fn Map::hash_open_address[K : Hash + Eq + Default + Debug, V : Default + Deb
   fn find_slot(key : K) -> Int {
     let hash = key.hash()
     let mut i = hash.mod_u(map.length)
-    while map.occupied[i] === Occupied, i = (i + 1).mod_u(map.length) {
+    while map.occupied[i] == Occupied {
       if map.values[i].key == key {
         return i
       }
+      i = (i + 1).mod_u(map.length)
     }
     return i
   }
@@ -88,16 +93,17 @@ pub fn Map::hash_open_address[K : Hash + Eq + Default + Debug, V : Default + Deb
     map.occupied = Array::make(map.length, Empty)
     map.size = 0
     let mut i = 0
-    while i < length, i = i + 1 {
-      if occupied[i] === Empty {
+    while i < length {
+      if occupied[i] == Empty {
         put(values[i].key, values[i].value)
       }
+      i = i + 1
     }
   }
 
   fn get(key : K) -> Option[V] {
     let index = find_slot(key)
-    if map.occupied[index] === Occupied {
+    if map.occupied[index] == Occupied {
       Some(map.values[index].value)
     } else {
       None
@@ -106,7 +112,7 @@ pub fn Map::hash_open_address[K : Hash + Eq + Default + Debug, V : Default + Deb
 
   fn put(key : K, value : V) -> Unit {
     let index = find_slot(key)
-    if map.occupied[index] === Occupied {
+    if map.occupied[index] == Occupied {
       map.values[index].value = value
     } else {
       map.occupied[index] = Occupied
@@ -120,7 +126,7 @@ pub fn Map::hash_open_address[K : Hash + Eq + Default + Debug, V : Default + Deb
 
   fn remove(key : K) -> Unit {
     let index = find_slot(key)
-    if map.occupied[index] === Occupied {
+    if map.occupied[index] == Occupied {
       map.values[index] = default()
       map.occupied[index] = Deleted
       map.size = map.size - 1
@@ -131,25 +137,25 @@ pub fn Map::hash_open_address[K : Hash + Eq + Default + Debug, V : Default + Deb
     map.size
   }
 
-  fn debug_map() -> Unit {
-    debug(map)
+  fn debug(buffer : Buffer) -> Unit {
+    map.debug_write(buffer)
   }
 
-  { get, put, remove, size, debug_map }
+  { get, put, remove, size, debug }
 }
 
 struct Bucket[V] {
   mut val : Option[(V, Bucket[V])]
 }
 
-fn Bucket::debug_write[V: Debug](bucket: Bucket[V], buffer: Buffer) {
+fn Bucket::debug_write[V : Debug](bucket : Bucket[V], buffer : Buffer) -> Unit {
   match bucket.val {
-    Some(v, next) => {
+    Some((v, next)) => {
       v.debug_write(buffer)
       buffer.write_string(" -> ")
       next.debug_write(buffer)
     }
-    None => { buffer.write_string("End") }
+    None => buffer.write_string("End")
   }
 }
 
@@ -164,14 +170,14 @@ pub fn Map::hash_bucket[K : Hash + Eq + Debug, V : Debug]() -> Map[K, V] {
   let initial_length = 10
   let load = 0.75
   let map : HT_bucket[K, V] = {
-    values: Array::make(initial_length, { val: None }),
+    values: @array.new(initial_length, fn() { { val: None } }),
     size: 0,
     length: initial_length,
   }
   fn resize() {
     let { values, length, .. } = map
     map.length = length * 2
-    map.values = Array::make(length, { val: None })
+    map.values = @array.new(initial_length, fn() { { val: None } })
     map.size = 0
     let mut i = 0
     while i < length {
@@ -209,7 +215,6 @@ pub fn Map::hash_bucket[K : Hash + Eq + Debug, V : Debug]() -> Map[K, V] {
   fn put(key : K, value : V) -> Unit {
     let hash = key.hash()
     let mut bucket = map.values[hash.mod_u(map.length)]
-    
     while true {
       match bucket.val {
         None => {
@@ -217,18 +222,15 @@ pub fn Map::hash_bucket[K : Hash + Eq + Debug, V : Debug]() -> Map[K, V] {
           map.size = map.size + 1
           break
         }
-        Some((entry, rest)) => {
+        Some((entry, rest)) =>
           if entry.key == key {
             entry.value = value
             break
           } else {
             bucket = rest
           }
-        }
       }
     }
-    debug(bucket)
-    debug(map)
     if map.size.to_double() / map.length.to_double() >= load {
       resize()
     }
@@ -240,16 +242,14 @@ pub fn Map::hash_bucket[K : Hash + Eq + Debug, V : Debug]() -> Map[K, V] {
     while true {
       match bucket.val {
         None => break
-        Some((entry, rest)) => {
+        Some((entry, rest)) =>
           if entry.key == key {
             bucket.val = rest.val // { Some(entry, { val }) } -> { val }
             map.size = map.size - 1
             break
-          }
-          else {
+          } else {
             bucket = rest
           }
-        }
       }
     }
   }
@@ -257,40 +257,33 @@ pub fn Map::hash_bucket[K : Hash + Eq + Debug, V : Debug]() -> Map[K, V] {
   fn size() -> Int {
     map.size
   }
-  fn debug_map() -> Unit {
-    debug(map)
+
+  fn debug(buffer : Buffer) -> Unit {
+    map.debug_write(buffer)
   }
 
-  { get, put, remove, size, debug_map }
+  { get, put, remove, size, debug }
 }
 
-fn init {
+test {
   let map : Map[Int, Int] = Map::hash_bucket()
-  let start = 0
-  let end = 3
-  let mut i = start
-  while i < end {
+  for i = 0; i < 5; i = i + 1 {
     map.put(i, i)
-    i = i + 1
   }
-  debug(map.size())
-  i = start
-  while i < end {
-    // debug(map.contains(i))
-    i = i + 1
+  @assertion.assert_eq(map.size(), 5)?
+  for i = 0; i < 5; i = i + 1 {
+    @assertion.assert_true(map.contains(i))?
   }
-  while i >= start {
-    if i % 2 == 0 { map.remove(i) }
-    i = i - 1
+  for i = 0; i < 5; i = i + 2 {
+    map.remove(i)
   }
-  i = end
-  (map.debug_map)()
-  while i >= start {
-    if i % 2 != 0 {
-      debug(map.contains(i))
-      map.remove(i)
-    }
-    i = i - 1
+  inspect(
+    map,
+    ~content="{values: [End, {key: 1, value: 1} -> End, End, {key: 3, value: 3} -> End, End, End, End, End, End, End], length: 10, size: 2}",
+  )?
+  for i = 1; i < 5; i = i + 2 {
+    @assertion.assert_true(map.contains(i))?
+    map.remove(i)
   }
-  debug(map.is_empty())
+  @assertion.assert_true(map.is_empty())?
 }
