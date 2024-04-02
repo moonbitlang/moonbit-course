@@ -96,7 +96,7 @@ fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
   consume(num_bottles, 0)
 }
 
-// entry point
+// test block
 test {
   // statements
   @assertion.assert_eq(num_water_bottles(9, 3), 13)?

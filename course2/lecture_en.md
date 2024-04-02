@@ -57,7 +57,7 @@ fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
   consume(num_bottles, 0)
 }
 
-// entry point
+// test block
 test {
   // statements
   @assertion.assert_eq(num_water_bottles(9, 3), 13)?
@@ -65,7 +65,7 @@ test {
 }
 ```
 
-In the above program, a top-level function and an entry point are defined. In the top-level function, a local function is defined and invoked. The value of the local function is a conditional expression. In the true branch, two variable bindings are defined, and the local function is called; whereas in the false branch, a simple addition operation is executed. In the entry point, two assertion commands are used to judge the correctness of our program.
+In the above program, a top-level function and a test block are defined. In the top-level function, a local function is defined and invoked. The value of the local function is a conditional expression. In the true branch, two variable bindings are defined, and the local function is called; whereas in the false branch, a simple addition operation is executed. In the test block, two assertion commands are used to judge the correctness of our program.
 
 Since this program does not generate any output, how exactly is it executed?
 
