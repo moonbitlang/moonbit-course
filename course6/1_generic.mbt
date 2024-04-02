@@ -1,26 +1,20 @@
-fn init {
+test {
   let empty: Stack[Int] = Stack::empty()
-  println("empty is Empty: \(empty)")
+  inspect(empty, ~content="Empty")?
   let one = empty.push(1)
   let two = one.push(1)
   let (top, rest) = two.pop()
-  match top {
-    Some(value) => println("top should be Some(1): \(value)")
-    None => abort("error")
-  }
-  println("rest should equal to one: \(rest) == \(one)")
+  inspect(top, ~content="Some(1)")?
+  @assertion.assert_eq(rest, one)?
 
   let empty_queue: Queue[Int] = Queue::empty()
   let one_queue = empty_queue.push(1)
-  println("one_queue should contain 1 in front: \(one_queue)")
+  inspect(one_queue, ~content="{front: NonEmpty(1, Empty), back: Empty}")?
   let two_queue = one_queue.push(2)
-  println("two_queue should contain 1 in front and 2 in back: \(two_queue)")
+  inspect(two_queue, ~content="{front: NonEmpty(1, Empty), back: NonEmpty(2, Empty)}")?
   let (first, rest) = two_queue.pop()
-  match first {
-    Some(value) => println("first should be Some(1): \(value)")
-    None => abort("error")
-  }
-  println("rest should contain 2 in front: \(rest)")
+  inspect(first, ~content="Some(1)")?
+  inspect(rest, ~content="{front: NonEmpty(2, Empty), back: Empty}")?
 }
 
 enum IntStack {
