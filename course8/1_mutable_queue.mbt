@@ -46,17 +46,9 @@ fn length(self: Queue) -> Int {
   self.length
 }
 
-fn display(self: Queue) -> Unit {
-  for i = 0; i < self.length; i = i + 1 {
-    print(self.array[(self.start + i) % self.array.length()].to_string() + " ")
-  }
-  println("")
-}
-
-fn init {
+test {
   let queue = Queue::make()
 
   let _ = queue.push(1).push(5).push(10).pop().pop().pop().push(100).push(1000).push(6).push(7).push(8).push(10)
-  println(queue.length())
-  queue.display()
+  inspect(queue, ~content="{array: [100, 1000, 6, 7, 8, 10, 0, 0, 0, 0], start: 0, end: 6, length: 6}")?
 }
