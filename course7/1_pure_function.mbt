@@ -1,17 +1,31 @@
 fn square(x: Int) -> Int {x * x}
-fn init {
+test {
+  let buffer = Buffer::make(20)
+  fn println(x: String) {
+    buffer.write_string(x)
+    buffer.write_string("\n")
+  }
+
   let x = {
     println("hello moonbit")
     1 + 1
   }
   let z: Int = square(x)
+
+  @assertion.assert_eq(z, 4)?
+  buffer.expect(~content=
+    #|hello moonbit
+    #|
+  )?
 }
 
-fn init {
-  println("==============")
-}
+test {
+  let buffer = Buffer::make(20)
+  fn println(x: String) {
+    buffer.write_string(x)
+    buffer.write_string("\n")
+  }
 
-fn init {
   let z: Int = {
     println("hello moonbit")
     1 + 1
@@ -19,4 +33,11 @@ fn init {
     println("hello moonbit")
     1 + 1
   }
+  
+  @assertion.assert_eq(z, 4)?
+  buffer.expect(~content=
+    #|hello moonbit
+    #|hello moonbit
+    #|
+  )?
 }
