@@ -67,10 +67,10 @@ fn length[T](self: LinkedList[T]) -> Int {
   aux2(self.head, 0)
 }
 
-fn init {
+test {
   let list = LinkedList::make()
   for i = 0; i < 100000; i = i + 1 {
     let _ = list.push(i)
   }
-  println(list.length())
+  @assertion.assert_eq(list.length(), 100000)?
 }
