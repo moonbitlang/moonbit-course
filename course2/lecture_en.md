@@ -261,9 +261,8 @@ Expression reduction can be broken down into the following steps:
 
 Take the following code snippet as an example:
 
-```moonbit expr
-let y: Int = 10
-let value = {
+```moonbit
+let value: Int = {
   let x = 1
   let tmp = x * 2
   let another_tmp = {
@@ -273,13 +272,14 @@ let value = {
   }
   tmp + another_tmp + y
 }
+
+let y: Int = 10
 ```
 
 First, we can replace all occurrences of `x` and `y` with their values, thereby omitting their variable bindings.
 
-```moonbit expr
-// Omit the variable binding of y
-let value = {
+```moonbit no-check
+let value: Int = {
   // Omit the variable binding of x
   let tmp = 1 * 2 // Replace x
   let another_tmp = {
@@ -289,12 +289,14 @@ let value = {
   }
   tmp + another_tmp + 10 // Replace y
 }
+
+// Omit the variable binding of y
 ```
 
 Then, we can reduce the expression for two variable bindings of `tmp`, and replace the occurrences of `tmp` in the expression block of the variable binding of `another_tmp`.
 
-```moonbit expr
-let value = {
+```moonbit no-check
+let value: Int = {
   let tmp = 2 // Reduce the expression on the right-hand side
   let another_tmp = {
     let tmp = 3 // Reduce the expression on the right-hand side
@@ -307,8 +309,8 @@ let value = {
 
 After that, we can now compute the value of `another_tmp`, which is determined by the last expression in the expression block.
 
-```moonbit expr
-let value = {
+```moonbit no-check
+let value: Int = {
 
   let tmp = 2
   let another_tmp = 3 // Reduce the expression on the right-hand side
@@ -318,8 +320,8 @@ let value = {
 
 Thus, the remaining occurrences of identifiers in the expression block of `value` can also be replaced with their values.
 
-```moonbit expr
-let value = {
+```moonbit no-check
+let value: Int = {
 
   let tmp = 2
   let another_tmp = 3
@@ -329,8 +331,8 @@ let value = {
 
 Fanally, we get the value of `value`.
 
-```moonbit expr
-let value = 15
+```moonbit no-check
+let value: Int = 15
 ```
 
 #### Conditional Expression

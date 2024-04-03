@@ -367,9 +367,8 @@ Top-level definitions have a global scope, while local definitions have a local 
 - Omit the variable binding part.
 - Reduce the remaining expressions.
 
-```moonbit expr
-let y: Int = 10
-let value = {
+```moonbit
+let value: Int = {
   let x = 1
   let tmp = x * 2
   let another_tmp = {
@@ -379,6 +378,8 @@ let value = {
   }
   tmp + another_tmp + y
 }
+
+let y: Int = 10
 ```
 
 ---
@@ -390,9 +391,8 @@ let value = {
 - Omit the variable binding part.
 - Reduce the remaining expressions.
 
-```moonbit expr
-let y: Int = 10
-let value = {
+```moonbit no-check
+let value: Int = {
   let x = 1
   let tmp = 1 * 2 // Replace x
   let another_tmp = {
@@ -402,6 +402,8 @@ let value = {
   }
   tmp + another_tmp + 10 // Replace y
 }
+
+let y: Int = 10
 ```
 
 ---
@@ -413,9 +415,8 @@ let value = {
 - Omit the variable binding part.
 - Reduce the remaining expressions.
 
-```moonbit expr
-// Omit the variable binding of y
-let value = {
+```moonbit no-check
+let value: Int = {
   // Omit the variable binding of x
   let tmp = 2 // Reduce the expression on the right-hand side
   let another_tmp = {
@@ -425,6 +426,8 @@ let value = {
   }
   tmp + another_tmp + 10
 }
+
+// Omit the variable binding of y
 ```
 
 ---
@@ -436,8 +439,8 @@ let value = {
 - Omit the variable binding part.
 - Reduce the remaining expressions.
 
-```moonbit expr
-let value = {
+```moonbit no-check
+let value: Int = {
 
   let tmp = 2
   let another_tmp = {
@@ -458,8 +461,8 @@ let value = {
 - Omit the variable binding part.
 - Reduce the remaining expressions.
 
-```moonbit expr
-let value = {
+```moonbit no-check
+let value: Int = {
 
   let tmp = 2
   let another_tmp = 3 // Reduce the expression on the right-hand side
@@ -476,8 +479,8 @@ let value = {
 - Omit the variable binding part.
 - Reduce the remaining expressions.
 
-```moonbit expr
-let value = {
+```moonbit no-check
+let value: Int = {
 
   let tmp = 2
   let another_tmp = 3 // Reduce the expression on the right-hand side
@@ -494,8 +497,8 @@ let value = {
 - Omit the variable binding part.
 - Reduce the remaining expressions.
 
-```moonbit expr
-let value = 15
+```moonbit no-check
+let value: Int = 15
 ```
 
 ---
