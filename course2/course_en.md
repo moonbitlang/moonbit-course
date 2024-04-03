@@ -241,6 +241,15 @@ MoonBit has a static type system: the compiler performs type checking before run
 
 ---
 
+# Unit
+
+- A type which has only one value.
+  - `(): Unit`
+- It enables the treatment of statements as expressions.
+  - In MoonBit, all statements evaluate to `()`.
+
+---
+
 # Other Data Types
 
 - MoonBit has a rich type system.
@@ -530,8 +539,9 @@ $$\begin{align}
     \mapsto & \texttt{10}
 \end{align}$$
 
-A conditional expression must have two branches.
-- Otherwise, if the condition is false, what should be the value of the expression?
+If the true branch ends with a statement, the false branch can be omitted.
+- Implicitly, there is a hidden false branch returning `()`.
+- Therefore, the two branches still have the same type, i.e., `Unit`.
 
 ---
 

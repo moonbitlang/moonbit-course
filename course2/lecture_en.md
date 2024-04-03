@@ -181,9 +181,13 @@ We can access the data by using zero-based indexing.
 - `(2023, 10, 24).0 == 2023`
 - `(2023, 10, 24).1 == 10`
 
+#### Unit
+
+In MoonBit, the `Unit` type represents a singular value denoted as `()`. Though seemingly useless, it holds significant implications as it enables the treatment of statements as expressions: in MoonBit, all statements evaluate to `()`.
+
 #### Other Data Types
 
-MoonBit has a rich type system, which includes many other types that we have not yet discussed, such as function types, unit types, and list types. These types will be explored in detail in future modules.
+MoonBit has a rich type system, which includes many other types that we have not yet discussed, such as function types and list types. These types will be explored in detail in future modules.
 
 ### Expression Evaluation
 
@@ -363,7 +367,7 @@ $$\begin{align}
     \mapsto & \texttt{10}
 \end{align}$$
 
-A conditional expression must have two branches. Otherwise, if the condition is false, what should be the value of the expression?
+If the true branch ends with a statement, the false branch can be omitted. Implicitly, there is a hidden false branch returning `()`, and therefore the two branches still have the same type, i.e., `Unit`.
 
 ## Summary
 
