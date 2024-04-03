@@ -169,7 +169,7 @@ Subsequently, Unicode was introduced with multiple variants like UTF-8 and UTF-1
 
 MoonBit's internal character encoding scheme is UTF-16, based on which we can perform type conversion between characters and integers. For example, `Char::from_int(65)` results in `'A'`.
 
-It is important to note that each character in MoonBit corresponds strictly to a code unit of UTF-16. Therefore, `"MoonBit月兔".get(7) == 'month'` because the character `'月'` corresponds to a single code unit, while `"🌕".length() == 2` since the character `'🌕'` has two code units.
+It is important to note that each character in MoonBit corresponds strictly to a code unit of UTF-16. Therefore, `"MoonBit月兔".get(7) == '月'` because the character `'月'` corresponds to a single code unit, while `"🌕".length() == 2` since the character `'🌕'` has two code units.
 
 #### Tuples
 
