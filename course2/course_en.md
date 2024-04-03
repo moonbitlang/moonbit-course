@@ -226,7 +226,7 @@ MoonBit has a static type system: the compiler performs type checking before run
         - For example, 'A' to 'Z' corresponds to 65 to 90.
     - Unicode: Supports characters from various languages, including Chinese characters and emoji. It is compatible with ASCII and has different variants like UTF-8 and UTF-16.
         - For example, "月" and "兔" correspond to 26376 and 20820, respectively.
-    - Converting an `Int` to a `Char`: `Char.fromInt(65) == 'A'`.
+    - Converting an `Int` to a `Char`: `Char::from_int(65) == 'A'`.
 
 ---
 

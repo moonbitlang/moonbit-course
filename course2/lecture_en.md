@@ -167,7 +167,9 @@ In computer science, characters are mapped to numbers through encoding. Various 
 
 Subsequently, Unicode was introduced with multiple variants like UTF-8 and UTF-16. It has expanded upon the ASCII standard by incorporating characters from other writing systems. For example, in Unicode, the Chinese characters "月" and "兔" correspond to the numbers 26376 and 20820, respectively.
 
-MoonBit's internal character encoding scheme is Unicode, based on which we can perform type conversion between characters and integers. For example, `Char.fromInt(65)` results in `'A'`.
+MoonBit's internal character encoding scheme is UTF-16, based on which we can perform type conversion between characters and integers. For example, `Char::from_int(65)` results in `'A'`.
+
+It is important to note that each character in MoonBit corresponds strictly to a code unit of UTF-16. Therefore, `"MoonBit月兔".get(7) == 'month'` because the character `'月'` corresponds to a single code unit, while `"🌕".length() == 2` since the character `'🌕'` has two code units.
 
 #### Tuples
 
