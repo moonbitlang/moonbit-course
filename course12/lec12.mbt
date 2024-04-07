@@ -4,7 +4,7 @@ enum Symbol {
   Var(Int)
   Add(Symbol, Symbol)
   Mul(Symbol, Symbol)
-} derive(Debug)
+} derive(Debug, Show)
 
 fn Symbol::constant(d : Double) -> Symbol {
   Constant(d)
@@ -61,16 +61,14 @@ fn example() -> Symbol {
   Symbol::constant(5.0) * Symbol::var(0) * Symbol::var(0) + Symbol::var(1)
 }
 
-fn init {
+test "Symbolic differentiation 符号微分" {
   let input = [10.0, 100.0]
-  println("Symbolic differentiation 符号微分")
   let symbol : Symbol = example()
-  debug(symbol.compute(input))
-  println("Expression of df/dx 关于x的偏微分表达式树")
-  debug(symbol.differentiate(0))
-  debug(symbol.differentiate(0).compute(input))
-  debug(symbol.differentiate(1).compute(input))
-  println("======")
+  @assertion.assert_eq(symbol.compute(input), 600.0)?
+  // Expression of df/dx 关于x的偏微分表达式树
+  inspect(symbol.differentiate(0), ~content="Mul(Constant(5.0), Var(0))")?
+  @assertion.assert_eq(symbol.differentiate(0).compute(input), 50.0)?
+  @assertion.assert_eq(symbol.differentiate(1).compute(input), 1.0)?
 }
 
 // Abstraction of computation 对运算的抽象
@@ -107,7 +105,7 @@ fn relu[N : Number](x : N) -> N {
 struct Forward {
   value : Double
   derivative : Double
-} derive(Debug)
+} derive(Debug, Show)
 
 fn Forward::constant(d : Double) -> Forward {
   { value: d, derivative: 0.0 }
@@ -137,15 +135,15 @@ fn Forward::value(f : Forward) -> Double {
   f.value
 }
 
-fn init {
-  println("Compute using abstraction 利用抽象进行计算值")
-  debug(relu(10.0))
-  debug(relu(-10.0))
-  println("Forward differentiation with abstraction 利用抽象进行前向微分")
-  debug(relu(Forward::var(10.0, true)))
-  debug(relu(Forward::var(-10.0, true)))
-  Forward::var(10.0, false) * Forward::var(100.0, true) |> debug // f(x, y) = x * y, 求df/dy(10, 100)
-  println("======")
+test "Forward differentiation 前向微分" {
+  // Compute using abstraction 利用抽象进行计算值
+  @assertion.assert_eq(relu(10.0), 10.0)?
+  @assertion.assert_eq(relu(-10.0), 0.0)?
+  // Forward differentiation with abstraction 利用抽象进行前向微分
+  inspect(relu(Forward::var(10.0, true)), ~content="{value: 10.0, derivative: 1.0}")?
+  inspect(relu(Forward::var(-10.0, true)), ~content="{value: 0.0, derivative: 0.0}")?
+  // f(x, y) = x * y => df/dy(10, 100)
+  inspect(Forward::var(10.0, false) * Forward::var(100.0, true), ~content="{value: 1000.0, derivative: 10.0}")?
 }
 
 // Backward differentiation 后向微分
@@ -154,7 +152,7 @@ fn init {
 struct Backward {
   value : Double
   backward : (Double) -> Unit // update the partial derivative of the current path 更新当前路径获得的偏微分
-}
+} derive(Debug, Show)
 
 fn Backward::constant(d : Double) -> Backward {
   { value: d, backward: fn { _ => () } }
@@ -189,23 +187,21 @@ fn Backward::op_mul(b1 : Backward, b2 : Backward) -> Backward {
   }
 }
 
-fn init {
-  println("Backward differentiation 后向微分")
+test "Backward differentiation 后向微分" {
   let diff_x = Ref::{ val: 0.0 }
   let diff_y = Ref::{ val: 0.0 }
   let x = Backward::var(10.0, diff_x)
   let y = Backward::var(100.0, diff_y)
   (x * y).backward(1.0) // df / df = 1
-  debug(diff_x)
-  debug(diff_y)
-  println("======")
+  inspect(diff_x, ~content="{val: 100.0}")?
+  inspect(diff_y, ~content="{val: 10.0}")?
 }
+
 fn example_newton[N : Number](x : N) -> N {
   x * x * x + N::constant(-10.0) * x * x + x + N::constant(1.0)
 }
 
-fn init {
-  println("Newton's method 牛顿迭代法案例")
+test "Newton's method 牛顿迭代法案例" {
   fn abs(d : Double) -> Double {
     if d >= 0.0 {
       d
@@ -214,7 +210,7 @@ fn init {
     }
   }
 
-  loop Forward::var(1.0, true) { // initial value 初始值
+  (loop Forward::var(1.0, true) { // initial value 初始值
     x => {
       let { value, derivative } = example_newton(x)
       if abs(value / derivative) < 1.0e-9 {
@@ -222,6 +218,5 @@ fn init {
       }
       continue Forward::var(x.value - value / derivative, true) // continue the loop 继续循环
     }
-  }
-  |> debug
+  } |> @assertion.assert_eq(0.37851665401644224))?
 }

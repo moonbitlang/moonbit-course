@@ -158,7 +158,7 @@ fn train(param_hidden : Array[Array[Double]],
   update(param_output, diff_output, step)
 }
 
-fn init {
+fn main {
   let hidden_layer : Array[Array[Double]] = Array::make(4, Array::default())
   for i = 0; i < hidden_layer.length(); i = i + 1 {
     hidden_layer[i] = Array::make(5, 0.2)
