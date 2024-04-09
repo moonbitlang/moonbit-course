@@ -252,11 +252,11 @@ let list2: IntList = cons(2, list1)
 - In the standard library of MoonBit, the list type is defined as:
 ```moonbit
 enum List[T] {
-  Nil // an empty list
-  // or
+  Nil // an empty list, or
   Cons(T, List[T]) // an item of type T and a sublist whose items are also of type T
 }
 ```
+- Syntactic sugar: `List::[1, 2, 3] == Cons(1, Cons(2, Cons(3, Nil)))`
 
 - The definition of `List[T]` is inductive:
   - Base case: `Nil`
@@ -270,9 +270,9 @@ enum List[T] {
 
 - The following are valid lists:
     - `let int_list: List[Int] = Cons(1, Cons(2, Cons(3, Nil)))`
-    - `let string_list: List[String] = Cons("a", Cons("phrase", Nil))`
+    - `let string_list: List[String] = List::["This", "is", "a", "sentence."]`
 - The following are not valid lists:
-    - `Cons(1, Cons(true, Cons(3, Nil)))`: Items are of different types.
+    - `List::[1, true, 3]`: Items are of different types.
     - `Cons(1, 2)`: `2` itself is not a list.
     - `Cons(1, Cons(Nil, Nil))`: Items are of different types.
 
@@ -304,8 +304,8 @@ Patterns can be defined by the way data is constructed. Identifiers are defined 
 ```moonbit
 fn head_opt(list: List[Int]) -> Option[Int] {
   match list {
-    Nil              => Option::None
-    Cons(head, tail) => Option::Some(head)
+    Nil              => None
+    Cons(head, tail) => Some(head)
   }
 }
 ```
@@ -322,8 +322,8 @@ fn head_opt(list: List[Int]) -> Option[Int] {
 ```moonbit expr
 fn head_opt(list: List[Int]) -> Option[Int] {
   match list {
-    Nil              => Option::None
-    Cons(head, tail) => Option::Some(head)
+    Nil              => None
+    Cons(head, tail) => Some(head)
   }
 }
 
@@ -391,11 +391,11 @@ fn get(option_int: Option[Int64]) -> Int64 {
 - **G**NU is **N**ot **U**nix
 - **W**ine **I**s **N**ot an **E**mulator
 - Fibonacci sequence: each number is the sum of the two preceding ones.
-- A parody of the incipit of _Paul Clifford_:
+- It was a dark and stormy night, and we said to the captain, "Tell us a story!"
+  And this is the story the captain told:
   > It was a dark and stormy night, and we said to the captain, "Tell us a story!"
-    And this is the story the captain told:
-  > > It was a dark and stormy night, and we said to the captain, "Tell us a story!" And this is the story the captain told:
-  > > > It was a dark ...
+  > And this is the story the captain told:
+  > > It was a dark ...
 
 ---
 
@@ -427,9 +427,8 @@ fn odd(n: Int) -> Bool {
 Since lists are recursively defined, they can be manipulated with recursive functions and pattern matching.
 
 > A list can be either
-> - `List::Nil`: an empty list
-> or
-> - `List::Cons(head, tail)`: an item `head` and a sublist `tail`
+> - `Nil`: an empty list, or
+> - `Cons(head, tail)`: an item `head` and a sublist `tail`
 
 ```moonbit 
 fn length(list: List[Int]) -> Int {
