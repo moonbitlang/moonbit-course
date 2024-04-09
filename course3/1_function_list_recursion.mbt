@@ -5,6 +5,7 @@ let surface_r_3: Double = { let r = 3.0; pi * r * r }
 
 fn 面积(半径: Double) -> Double { pi * 半径 * 半径 }
 
+// The following two lines are equivalent 下方两行等价
 // let result: (Double, Double, Double) = (surface_r_1, surface_r_2, surface_r_3)
 let result: (Double, Double, Double) = (面积(1.0), 面积(2.0), 面积(3.0))
 
@@ -31,6 +32,7 @@ let answer: () -> Int = fn () {
 let int_list: List[Int] = Cons(1, Cons(2, Cons(3, Nil)))
 let char_list: List[Char] = Cons('一', Cons('句', Cons('话', Nil)))
 
+// The following three lines do not compile as they are not valid lists 下方三行无法通过编译，不是合法的列表
 // let not_list1: List[Int] = Cons(1, Cons(true, Cons(3, Nil)))
 // let not_list2: List[Int] = Cons(1, 2)
 // let not_list3: List[Int] = Cons(1, Cons(Nil, Nil))

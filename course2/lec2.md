@@ -5,7 +5,11 @@ paginate: true
 backgroundImage: url('../pics/background_moonbit.png')
 ---
 
-![bg cover](../pics/course2_front.png)
+# 现代编程思想
+
+## 月兔开发与月兔中的表达式
+
+### 月兔公开课课程组
 
 ---
 
@@ -39,7 +43,7 @@ backgroundImage: url('../pics/background_moonbit.png')
 # 浏览器环境
 
 - 访问 [try.moonbitlang.cn](https://try.moonbitlang.cn) ，或从[官网](https://moonbitlang.cn)点击“试用”
-- 试用环境可以快速创建文件并运行 <!-- 需提醒刷新即消失 -->
+- 试用环境可以快速创建文件并运行
 - 试用环境提供代码样例，方便熟悉月兔语法
 - 试用环境提供分享功能
 

@@ -7,13 +7,13 @@ let info: PersonalInfo = { name: "Moonbit", age: 1, }
 
 struct A { val: Int; other: Int }
 struct B { 
-  val: Int // 可省略分号
+  val: Int // Semicolon can be omitted 可省略分号
   other: Int
 }
 let x = ( { val : 1, other: 10 } : A )
 let x2 = ( { 
   val : 1,
-  other: 10, // 注意逗号
+  other: 10, // Notice the comma 注意逗号
 } : A )
 
 let old_info: PersonalInfo = { name: "Moonbit", age: 1, }
@@ -33,7 +33,9 @@ let tuple_accepted: Bool = accept_tuple((1, "Yes"))
 fn accept_a(a: A) -> Bool {
   true
 }
-// let not_accepted: Bool = accept_a(({ val : 1, other : 2 }: B)) // 不会编译
+
+// The following line does not compile 下方代码不能编译
+// let not_accepted: Bool = accept_a(({ val : 1, other : 2 }: B)) 
 let a_accepted: Bool = accept_a(({other: 2, val: 1}: A))
 
 fn head_opt(list: List[Int]) -> Option[Int] {
@@ -81,7 +83,7 @@ fn baby_name(info: PersonalInfo) -> Option[String] {
 
 fn zip(l1: List[Int], l2: List[Char]) -> List[(Int ,Char)] {
   match (l1, l2) {
-    _ => Nil // 顺序错误
+    _ => Nil // Wrong order, making the following two lines unreachable 顺序错误，使得下方两行代码无法到达
     (Cons(hd, tl), Cons(hd2, tl2)) => Cons((hd, hd2), zip(tl, tl2))
     _ => Nil
   }
@@ -92,7 +94,7 @@ enum DaysOfWeek {
 }
 
 enum Coin {
-  Head // 可省略分号
+  Head // Semicolon can be omitted 可省略分号
   Tail
 }
 
@@ -109,11 +111,17 @@ enum ComputeResult {
     DivideByZero
 }
 
-struct PlusOne[T] { t: T; unit: Unit } // T * 1 = T，与（T，Unit)、T 同构
+// T * 1 === T
+// PlusOne[T] is isomorphic to T, (T, Unit) and (Unit, T)
+// PlusOne[T] 与 T、(T, Unit)、(Unit, T)同构
+struct PlusOne[T] { t: T; unit: Unit }
 
 enum Nothing {}
 
-enum PlusZero[T] { // T + 0 = T，与 T 同构
+// T + 0 === T
+// PlusZero[T] is isomorphic to T
+// PlusZero[T] 与 T 同构
+enum PlusZero[T] { 
   CaseT(T)
   CaseZero(Nothing)
 }

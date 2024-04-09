@@ -1,9 +1,9 @@
 enum IntTree {
   Empty
   Node(Int, IntTree, IntTree)
-} derive (Show)
+} derive (Debug, Show)
 
-// 插入元素
+// Insert an element 插入元素
 fn insert(tree: IntTree, value: Int) -> IntTree {
   match tree {
     Empty => Node(value, Empty, Empty)
@@ -16,7 +16,7 @@ fn insert(tree: IntTree, value: Int) -> IntTree {
   }
 }
 
-// 删除左子树最大元素
+// Remove the largest element in the left tree 删除左子树最大元素
 fn remove_largest(tree: IntTree) -> (IntTree, Int) {
   match tree {
     Empty => abort("Impossible")
@@ -28,7 +28,7 @@ fn remove_largest(tree: IntTree) -> (IntTree, Int) {
   }
 }
 
-// 删除元素
+// Remove an element 删除元素
 fn remove(tree: IntTree, value: Int) -> IntTree {
   match tree {
     Empty => Empty
@@ -49,7 +49,7 @@ fn remove(tree: IntTree, value: Int) -> IntTree {
   }
 }
 
-// 深度优先遍历查找
+// Depth first search 深度优先遍历查找
 fn dfs_search(target: Int, tree: IntTree) -> Bool {
   match tree {
     Empty => false
@@ -59,7 +59,7 @@ fn dfs_search(target: Int, tree: IntTree) -> Bool {
   }
 }
 
-// 广度优先遍历查找
+// Breadth first search 广度优先遍历查找
 fn bfs_search(target: Int, queue: Queue[IntTree]) -> Bool {
   match peek(queue) {
     None => false
@@ -70,7 +70,7 @@ fn bfs_search(target: Int, queue: Queue[IntTree]) -> Bool {
   }
 }
 
-// 深度优先遍历并输出
+// Depth first search and print all elements 深度优先遍历并输出
 fn dfs_print(tree: IntTree) -> String {
   match tree {
     Empty => ""
@@ -78,12 +78,12 @@ fn dfs_print(tree: IntTree) -> String {
       let value_str = value.to_string()
       let left_str = dfs_print(left)
       let right_str = dfs_print(right)
-      left_str + value_str + " " + right_str // 修改顺序以获得不同输出
+      left_str + value_str + " " + right_str
     }
   }
 }
 
-// 广度优先遍历并输出
+// Breadth first search and print all elements 广度优先遍历并输出
 fn bfs_print(queue: Queue[IntTree]) -> String {
   match peek(queue) {
     None => ""
@@ -94,7 +94,7 @@ fn bfs_print(queue: Queue[IntTree]) -> String {
   }
 }
 
-// 程序入口
+// Entrance to the main program 程序入口
 fn init {
   let tree = [3, 2, 1, 0, 4, 5] |> stream |> fold_left(insert, IntTree::Empty)
   println("dfs_print: " + dfs_print(tree))
@@ -109,8 +109,8 @@ fn init {
   if bfs_search(3, enqueue(from_list(Nil), tree)).not() { abort("") }
 }
 
-// ----- Utils -----
-/// construct List from Array.
+// ----- Utils 工具 -----
+/// construct List from Array 从列表构建数组
 fn stream[T](array: Array[T]) -> List[T] {
   fn go(idx: Int) -> List[T] {
     if idx == array.length() { Nil } else { Cons(array[idx], go(idx + 1)) }
@@ -126,7 +126,7 @@ fn fold_left[A, B](list: List[A], f: (B, A) -> B, b: B) -> B {
   }
 }
 
-// ----- Queue -----
+// ----- Queue 队列 -----
 
 struct Queue[T] {
   front:List[T]
@@ -135,31 +135,21 @@ struct Queue[T] {
 
 /// `Queue::default[T]()`
 ///
-/// 创建空队列
+/// Create empty queue 创建空队列
 fn Queue::default[T]() -> Queue[T] {
   { front: Nil, back: Nil }
 }
 
 /// `from_list[T](front: List[T])`
 ///
-/// 从列表创建队列
+/// Create queue from list 从列表创建队列
 fn from_list[T](front: List[T]) -> Queue[T] {
   { front:front, back:Nil }
 }
 
-/// `is_empty[T](q: Queue[T])`
-///
-/// 检查列表是否为空
-fn is_empty[T](q: Queue[T]) -> Bool {
-  match q {
-    {front:Nil, back:Nil} => true
-    _ => false
-  }
-}
-
 /// `list_rev[T](xs: List[T])`
 ///
-/// 基于尾递归的列表反转
+/// Reverse a list with tail recursion 基于尾递归的列表反转
 fn list_rev[T](xs: List[T]) -> List[T] {
   fn go(acc, xs: List[T]) {
     match xs {
@@ -173,7 +163,7 @@ fn list_rev[T](xs: List[T]) -> List[T] {
 
 /// `norm[T](q: Queue[T])`
 ///
-/// 反转列表结构；确保列表头始终有元素
+/// Feed `back` into `front` so that `front` always have something 反转队列结构；确保列表头始终有元素
 fn norm[T](q: Queue[T]) -> Queue[T] {
   match q {
     {front:Nil, back:b} => { front:list_rev(b), back:Nil }
@@ -183,7 +173,7 @@ fn norm[T](q: Queue[T]) -> Queue[T] {
 
 /// `enqueue[T](q: Queue[T], x: T)`
 ///
-/// 向队尾添加一个元素
+/// Add an element to the end of the queue 向队尾添加一个元素
 fn enqueue[T](q: Queue[T], x: T) -> Queue[T] {
   match q {
     {front:f, back:b} => norm({ front:f, back:Cons(x, b) })
@@ -192,7 +182,7 @@ fn enqueue[T](q: Queue[T], x: T) -> Queue[T] {
 
 /// `peek[T](q: Queue[T])`
 ///
-/// 取出队列中第一个元素
+/// Remove the first element from the queue 取出队列中第一个元素
 fn peek[T](q: Queue[T]) -> Option[T] {
   match q {
     {front:Nil, back:_} => None
@@ -202,7 +192,7 @@ fn peek[T](q: Queue[T]) -> Option[T] {
 
 /// `dequeue[T](q: Queue[T])`
 ///
-/// 取出一个元素后的队列；如果已经为空，则返回本身
+/// The queue after an element is removed, returns itself if it's empty 取出一个元素后的队列；如果已经为空，则返回本身
 fn dequeue[T](q: Queue[T]) -> Queue[T] {
   match q {
     {front:Nil, back:_} => q

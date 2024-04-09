@@ -24,25 +24,21 @@ fn fold_left[A, B](list : List[A], f : (B, A) -> B, b : B) -> B {
   }
 }
 
-/// convert list to string
-fn to_string[T : Show](self : List[T]) -> String {
-  fn go(ls : List[T]){
-    match ls {
-      Nil => ""
-      Cons(x,Nil) => "\(x)"
-      Cons(x,xs) => "\(x), " + go(xs)
-    }
-  }
-  "[" + go(self) + "]"
-}
-
-enum List[T] {
-  Nil
-  Cons(T, List[T])
-}
-
-fn init {
-  println(fold_left(Cons("1", Cons("2", Cons("3", Nil))), fn (b: String, a) { "(\(b) + \(a))" }, "0"))
-  println(fold_right(Cons("1", Cons("2", Cons("3", Nil))), fn (a: String, b: String) { "(\(a) + \(b))" }, "0"))
-  println(map(Cons(0, Cons(1, Cons(2, Cons(3, Nil)))), fn (i) { i * 10 }))
+test {
+  @assertion.assert_eq(
+    fold_left(List::["1", "2", "3"], fn(b : String, a) { "(\(b) + \(a))" }, "0"),
+    "(((0 + 1) + 2) + 3)",
+  )?
+  @assertion.assert_eq(
+    fold_right(
+      List::["1", "2", "3"],
+      fn(a : String, b : String) { "(\(a) + \(b))" },
+      "0",
+    ),
+    "(1 + (2 + (3 + 0)))",
+  )?
+  @assertion.assert_eq(
+    map(List::[0, 1, 2, 3, 4], fn(i) { i * 10 }),
+    List::[0, 10, 20, 30, 40],
+  )?
 }

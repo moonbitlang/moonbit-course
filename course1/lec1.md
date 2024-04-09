@@ -9,7 +9,11 @@ style: |
     }
 ---
 
-![bg cover](../pics/course1_front.png)
+# 现代编程思想
+
+## 课程介绍 & 程序设计
+
+### 月兔公开课课程组
 
 ---
 
@@ -21,13 +25,13 @@ style: |
 
 # 什么是**现代编程思想课**
 
-- 这是一门**程序设计**课 <!-- 可以引用宏波老师课程宣传的话 -->
+- 这是一门**程序设计**课
     - 课程受众：所有编程爱好者
 - 实用技巧
     - 编写较大型程序（～10,000行）
     - 独立分析解决问题
     - 测试驱动开发与设计
-- 概念基础 <!-- test-driven development, interface specification, modular decomposition, and multiple programming idioms -->
+- 概念基础
     - 常见数据结构与算法
     - 多种编程范式
     - 关注模块化和组合性
@@ -36,7 +40,7 @@ style: |
 
 # 课程工具
 - MoonBit月兔
-    - 现代静态类型**多范式**编程语言 <!-- Functional programming and so on -->
+    - 现代静态类型**多范式**编程语言
     - 语法轻量，易上手
     - 浏览器开发环境、云原生开发环境或本地集成开发环境
 
@@ -59,7 +63,7 @@ $$
 \end{array}
 $$
 
-- 所有课程资料均在互联网上公开 <!-- video slides exercises -->
+- 所有课程资料均在互联网上公开
 - 课程论坛：[taolun.moonbitlang.cn](https://taolun.moonbitlang.cn)
 
 
@@ -106,7 +110,7 @@ $$
 
 > 给你两个整数 `num_bottles` 和 `num_exchange` ，返回你**最多**可以喝到多少瓶水。
 
-```moonbit
+```moonbit no-check
 fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
     abort("To be done")
 }
@@ -117,15 +121,9 @@ fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
 # 步骤三：写测试案例
 
 ```moonbit
-fn init {
-    assert(num_water_bottles(9, 3) == 13) // 9 + 3 + 1 = 13
-    assert(num_water_bottles(15, 4) == 19)
-}
-
-fn assert(test: Bool) {
-  if test.not() {
-    abort("Test failed")
-  }
+test {
+  @assertion.assert_eq(num_water_bottles(9, 3), 13)? // 9 + 3 + 1 = 13
+  @assertion.assert_eq(num_water_bottles(15, 4), 19)?
 }
 ```
 
@@ -155,7 +153,6 @@ fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
 ---
 
 # [运行起来！](https://try.moonbitlang.cn/#bc2238e7)
-<!-- Switch to moonbit IDE -->
 
 ---
 
