@@ -18,19 +18,6 @@ style: |
 <!--
 ```moonbit
 let pi = 3.1415
-
-fn put(map: @map.Map[Int, Int64], num: Int, result: Int64) -> @map.Map[Int, Int64] {
-  map.insert(num, result)
-}
-
-fn get(map: @map.Map[Int, Int64], num: Int) -> Option[Int64] {
-  map.lookup(num)
-}
-
-fn make() -> @map.Map[Int, Int64] {
-  @map.empty()
-}
-
 ```
 -->
 
@@ -116,13 +103,13 @@ fn add_char(ch: Char, str: String) -> String {
 let moonbit: String = add_char(Char::from_int(109), "oonbit")
 ```
 
-$$\begin{align}
+$$\begin{aligned}
   & \texttt{add\_char(Char::from\_int(109), "oonbit")} \\
   \mapsto & \texttt{add\_char('m', "oonbit")} & \text{because \texttt{Char::from\_int(109)} $\mapsto$ \texttt{'m'}} \\
   \mapsto & \texttt{'m'.to\_string() + "oonbit"} & \text{replace the occurrences of the parameters} \\
   \mapsto & \texttt{"m" + "oonbit"} & \text{because \texttt{m.to\_string()} $\mapsto$ \texttt{"m"}} \\
   \mapsto & \texttt{"moonbit"} & \text{because \texttt{"m" + "oonbit"} $\mapsto$ \texttt{"moonbit"}}
-\end{align}$$
+\end{aligned}$$
 
 ---
 
@@ -207,7 +194,7 @@ let x: Int = answer() // 42
 - Sometimes, we have data with the following characteristics:
     - The data is ordered.
     - The data can be duplicated.
-    - The quantity of data is uncertain.
+    - The data can vary in length.
 - For example:
     - Words in a sentence: [ `"Words"` `"in"` `"a"` `"sentence"` ]
     - DNA sequence: [`G` `A` `T` `T` `A` `C` `A`]
@@ -401,7 +388,7 @@ fn get(option_int: Option[Int64]) -> Int64 {
 
 # Recursions
 
-- Recursion is the process of breaking down a problem into smaller subproblems that are similar to the original problem but of a **smaller scale**.
+- Recursion is the process of breaking down a problem into smaller subproblems that are similar to the original problem but of a **reduced scale**.
   - A recursion should have one or more **base cases**.
   - In the definition of a function, it directly or indirectly calls itself.
 
@@ -413,10 +400,10 @@ fn fib(n: Int) -> Int {
 
 ```moonbit
 fn even(n: Int) -> Bool {
-  n != 1 && (n == 0 || odd(n - 1))
+  n == 0 || odd(n - 1)
 }
 fn odd(n: Int) -> Bool {
-  n != 0 && (n == 1 || even(n - 1))
+  n == 1 || even(n - 1)
 }
 ```
 
@@ -582,7 +569,7 @@ A large number of duplicated subproblems was observed.
 
 # Dynamic Programming
 
-- Decompose the problem into smaller subproblems that are similar to the original problem but of a smaller scale.
+- Decompose the problem into smaller subproblems that are similar to the original problem but of a reduced scale.
 - Applicable to problems that have:
   - **Duplicated subproblems**: Dynamic programming solves each subproblem once and caches the result, avoiding redundant computations.
   - **Optimal substructure**: The global solution can be built from subproblems.
@@ -592,7 +579,7 @@ A large number of duplicated subproblems was observed.
 
 ---
 
-# Dynamic Programming: Fibonacci Sequence
+# Solving Fibonacci Sequence with DP
 
 - Dynamic programming is applicable to this problem.
   - Duplicated subproblems: Both `fib(n + 1)` and `fib(n + 2)` require `fib(n)`.
@@ -607,13 +594,14 @@ A large number of duplicated subproblems was observed.
 - We need a data structure whose average access efficiency is independent of the data size, and it should have the following interfaces:
 
 ```moonbit no-check
-fn empty() -> IntMap                                     // Create
-fn insert(map: IntMap, num: Int, value: Int64) -> IntMap // Store
-fn lookup(map: IntMap, num: Int) -> Option[Int64]        // Retrieve
+fn empty() -> IntMap                                      // Create
+fn insert(self: IntMap, key: Int, value: Int64) -> IntMap // Store
+fn lookup(self: IntMap, key: Int) -> Option[Int64]        // Retrieve
 ```
 
 - There are many siutable data structures, e.g., `@map.Map[Int, Int64]`.
-  - Its implementation is not our main focus, and it can be repleced with `@vec.Vector[Option[Int64]]`.
+  - Its implementation is not our main focus.
+  - It can be repleced with other suitable data structures.
 
 ---
 
@@ -626,16 +614,16 @@ fn lookup(map: IntMap, num: Int) -> Option[Int64]        // Retrieve
 ```moonbit expr
 fn fib1(num: Int) -> Int64 {
   fn aux(num: Int, map: @map.Map[Int, Int64]) -> (Int64, @map.Map[Int, Int64]) {
-    match get(map, num) {
+    match map.lookup(num) {
       Some(result) => (result, map)
       None => {
         let (result_1, map_1) = aux(num - 1, map)
         let (result_2, map_2) = aux(num - 2, map_1)
-        (result_1 + result_2, put(map_2, num, result_1 + result_2))
+        (result_1 + result_2, map_2.insert(num, result_1 + result_2))
       }
     }
   }
-  let map = put(put(make(), 1, 1L), 2, 1L)
+  let map = @map.empty().insert(1, 1L).insert(2, 1L)
   aux(num, map).0
 }
 ```
@@ -650,15 +638,15 @@ To simplify the code, MoonBit supports mutable variables.
 ```moonbit expr
 fn fib1_mut(num: Int) -> Int64 {
   // Declare a mutable variable with let mut
-  let mut map = put(put(make(), 1, 1L), 2, 1L)
+  let mut map = @map.empty().insert(1, 1L).insert(2, 1L)
   fn aux(num: Int) -> Int64 {
-    match get(map, num) {
+    match map.lookup(num) {
       Some(result) => result
       None => {
         let result_1 = aux(num - 1)
         let result_2 = aux(num - 2)
         // Update the binding with <variable> = <expression>
-        map = put(map, num, result_1 + result_2) 
+        map = map.insert(num, result_1 + result_2) 
         result_1 + result_2
       }
     }
@@ -676,12 +664,12 @@ Starting from the first one, calculate and store the subsequent items sequential
 ```moonbit expr
 fn fib2(num: Int) -> Int64 {
   fn aux(n: Int, map: @map.Map[Int, Int64]) -> Int64 {
-    let result = get_or_else(get(map, n - 1), 1L) + 
-      get_or_else(get(map, n - 2), 1L)
-    if n == num { result } 
-    else { aux(n + 1, put(map, n, result)) }
+    let result = get_or_else(map.lookup(n - 1), 1L) + 
+      get_or_else(map.lookup(n - 2), 1L)
+    if n == num { result }
+    else { aux(n + 1, map.insert(n, result)) }
   }
-  let map = put(put(make(), 0, 0L), 1, 1L)
+  let map = @map.empty().insert(0, 0L).insert(1, 1L)
   aux(1, map)
 }
 ```
@@ -715,9 +703,9 @@ fn fib2(num : Int) -> Int64 {
    - Data structure: lists and pattern matching on lists
    - Algorithm: recursions and dynamic programming
 - Extended reading:
-   - _Software Foundations, Volume 1: Logical Foundations_
+   - _**Software Foundations, Volume 1: Logical Foundations**_
      Basics, Induction & Lists
-   - _Programming Language Foundations in Agda_
+   - _**Programming Language Foundations in Agda**_
      Naturals, Induction & Relations
-   - _Introduction to Algorithms_
-     Chapter 15 (3e) / Chapter 14 (4e): Dynamic Programming
+   - _**Introduction to Algorithms**_
+     Chapter 15 (3e) / Chapter 14 (4e) - Dynamic Programming
