@@ -584,11 +584,5 @@ To learn more about dynamic programming, please refer to:
 - _**Introduction to Algorithms** (3e)_: Chapter 15 - Dynamic Programming
 
 Reference code:
-- Functions, lists & recursions:
-  - <https://try.moonbitlang.com/#e4fa5493>
-- Fibonacci sequence (top-down):
-  - <https://try.moonbitlang.com/#6dfd2852>
-  - <https://try.moonbitlang.com/#65113dcb>
-- Fibonacci sequence (bottom-up):
-  - <https://try.moonbitlang.com/#62319080>
-  - <https://try.moonbitlang.com/#b3948997>
+- [Functions, Lists & Recursions](https://try.moonbitlang.com/examples/course/lec3/function_list_recursion.mbt)
+- [Dynamic Programming](https://try.moonbitlang.com/examples/course/lec3/dynamic_programming.mbt)
