@@ -6,7 +6,7 @@ backgroundImage: url('../pics/background_moonbit.png')
 headingDivider: 1
 ---
 
-# Modern Programming Concepts
+# Modern Programming Ideology
 
 ## Queues: Implementing with Mutable Data Structures
 
