@@ -18,6 +18,19 @@ style: |
 <!--
 ```moonbit
 let pi = 3.1415
+
+fn put(map: @map.Map[Int, Int64], num: Int, result: Int64) -> @map.Map[Int, Int64] {
+  map.insert(num, result)
+}
+
+fn get(map: @map.Map[Int, Int64], num: Int) -> Option[Int64] {
+  map.lookup(num)
+}
+
+fn make() -> @map.Map[Int, Int64] {
+  @map.empty()
+}
+
 ```
 -->
 
@@ -594,9 +607,9 @@ A large number of duplicated subproblems was observed.
 - We need a data structure whose average access efficiency is independent of the data size, and it should have the following interfaces:
 
 ```moonbit no-check
-fn empty() -> IntMap                                      // Create
-fn insert(self: IntMap, key: Int, value: Int64) -> IntMap // Store
-fn lookup(self: IntMap, key: Int) -> Option[Int64]        // Retrieve
+fn make() -> IntMap                                   // Create
+fn put(map: IntMap, num: Int, value: Int64) -> IntMap // Store
+fn get(map: IntMap, num: Int) -> Option[Int64]        // Retrieve
 ```
 
 - There are many siutable data structures, e.g., `@map.Map[Int, Int64]`.
@@ -614,16 +627,16 @@ fn lookup(self: IntMap, key: Int) -> Option[Int64]        // Retrieve
 ```moonbit expr
 fn fib1(num: Int) -> Int64 {
   fn aux(num: Int, map: @map.Map[Int, Int64]) -> (Int64, @map.Map[Int, Int64]) {
-    match map.lookup(num) {
+    match get(map, num) {
       Some(result) => (result, map)
       None => {
         let (result_1, map_1) = aux(num - 1, map)
         let (result_2, map_2) = aux(num - 2, map_1)
-        (result_1 + result_2, map_2.insert(num, result_1 + result_2))
+        (result_1 + result_2, put(map_2, num, result_1 + result_2))
       }
     }
   }
-  let map = @map.empty().insert(1, 1L).insert(2, 1L)
+  let map = put(put(make(), 1, 1L), 2, 1L)
   aux(num, map).0
 }
 ```
@@ -638,15 +651,15 @@ To simplify the code, MoonBit supports mutable variables.
 ```moonbit expr
 fn fib1_mut(num: Int) -> Int64 {
   // Declare a mutable variable with let mut
-  let mut map = @map.empty().insert(1, 1L).insert(2, 1L)
+  let mut map = put(put(make(), 1, 1L), 2, 1L)
   fn aux(num: Int) -> Int64 {
-    match map.lookup(num) {
+    match get(map, num) {
       Some(result) => result
       None => {
         let result_1 = aux(num - 1)
         let result_2 = aux(num - 2)
         // Update the binding with <variable> = <expression>
-        map = map.insert(num, result_1 + result_2) 
+        map = put(map, num, result_1 + result_2) 
         result_1 + result_2
       }
     }
@@ -664,12 +677,12 @@ Starting from the first one, calculate and store the subsequent items sequential
 ```moonbit expr
 fn fib2(num: Int) -> Int64 {
   fn aux(n: Int, map: @map.Map[Int, Int64]) -> Int64 {
-    let result = get_or_else(map.lookup(n - 1), 1L) + 
-      get_or_else(map.lookup(n - 2), 1L)
-    if n == num { result }
-    else { aux(n + 1, map.insert(n, result)) }
+    let result = get_or_else(get(map, n - 1), 1L) + 
+      get_or_else(get(map, n - 2), 1L)
+    if n == num { result } 
+    else { aux(n + 1, put(map, n, result)) }
   }
-  let map = @map.empty().insert(0, 0L).insert(1, 1L)
+  let map = put(put(make(), 0, 0L), 1, 1L)
   aux(1, map)
 }
 ```
