@@ -197,7 +197,7 @@ fn remove_largest(tree: IntTree) -> (IntTree, Int) {
 ```moonbit no-check
 fn remove(tree: IntTree, value: Int) -> IntTree {
     match tree { ...
-    Node(root, left, right)  => if root == value {
+      Node(root, left, right)  => if root == value {
         let (newLeft, newRoot) => remove_largest(left)
         Node(newRoot, newLeft, right)
     } else ... }
