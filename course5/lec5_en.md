@@ -39,6 +39,8 @@ headingDivider: 1
   - No node can be its own descendant: the tree cannot have cycles
   - An edge in a tree refers to a pair of nodes (u, v), where u is v's parent or v is u's parent
 
+# Logical Structure of Trees
+
 ![](../pics/abstract-tree.drawio.png)
 
 # Logical Structure of Trees
@@ -49,7 +51,7 @@ headingDivider: 1
 
 # Logical Structure of Trees
 
-- In computers, the root node of a tree is on top, and child nodes are below their parent nodes
+- The root of a tree is on top, and children are below their parents
 - Related terminology:
   - **Depth** of a node: the length of the path (number of edges) from the root node down to that node
     - The root node's depth is 0
@@ -150,7 +152,7 @@ fn dfs_search(target: Int, tree: IntTree) -> Bool {
 - The implementation of the algorithm relies on a First-In-First-Out data structure: queue
   - For the trees currently in the queue, we dequeue a tree, operate on its root node, then add all of its non-empty subtrees from left to right to the end of the queue, until the queue is empty
   
-![](../pics/bfs.drawio.png)
+![height:8em](../pics/bfs.drawio.png)
 
 # Data Structure: Queues
 
@@ -274,10 +276,11 @@ match tree { ...
 
 - Binary search trees can become unbalanced, with some nodes at deeper levels, which causes poor performance:
   - The worst-case number of searches is the height of the tree + 1; the height of a binary tree of size $n$ can be as high as $n - 1$.
-![](../pics/worst-bst.drawio.png)
-- To avoid this, we use balanced trees where the height difference between any node's subtrees is minimal:
+  
+![height:7em](../pics/worst-bst.drawio.png)
+- To avoid this, we use balanced trees where the height difference is minimal:
   - The height of a balanced tree is approximately $\texttt{log}_2{n}$.
-  - Various implementations of binary balanced trees include AVL Trees, 2-3 Trees, Red-Black Trees, etc.
+  - Various binary balanced trees include AVL Trees, 2-3 Trees, Red-Black Trees, etc.
 
 # Binary Balanced Tree: AVL Tree
 
