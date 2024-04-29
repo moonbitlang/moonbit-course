@@ -173,6 +173,87 @@ fn enqueue[T](q: Queue[T], x: T) -> Queue[T] // add element to the tail
 fn pop[T](q: Queue[T]) -> (Option[T], Queue[T]) 
 ```
 
+<!-- Implementation of Queue
+
+```moonbit
+struct Queue[T] {
+  front:List[T]
+  back:List[T]
+}
+
+/// `Queue::default[T]()`
+///
+/// Create an empty queue 创建空队列
+fn Queue::default[T]() -> Queue[T] {
+  { front: Nil, back: Nil }
+}
+
+fn empty[T]() -> Queue[T] {
+  Queue::default()
+}
+
+/// `from_list[T](front: List[T])`
+///
+/// Create queue from a list 从列表创建队列
+fn Queue::from_list[T](front: List[T]) -> Queue[T] {
+  { front:front, back:Nil }
+}
+
+/// `is_empty[T](q: Queue[T])`
+///
+/// Check if a queue is empty 检查列表是否为空
+fn Queue::is_empty[T](q: Queue[T]) -> Bool {
+  match q {
+    {front:Nil, back:Nil} => true
+    _ => false
+  }
+}
+
+/// `list_rev[T](xs: List[T])`
+///
+/// Reverse a list with tail recursion 基于尾递归的列表反转
+fn list_rev[T](xs: List[T]) -> List[T] {
+  fn go(acc, xs: List[T]) {
+    match xs {
+      Nil => acc
+      Cons(x, rest) => go((Cons(x, acc) : List[T]), rest)
+    }
+  }
+
+  go(Nil, xs)
+}
+
+/// `norm[T](q: Queue[T])`
+///
+/// Feed `back` into `front` so that `front` always have something 反转队列结构；确保列表头始终有元素
+fn norm[T](q: Queue[T]) -> Queue[T] {
+  match q {
+    {front:Nil, back:b} => { front:list_rev(b), back:Nil }
+    q => q
+  }
+}
+
+/// `enqueue[T](q: Queue[T], x: T)`
+///
+/// Add an element to the end of the queue 向队尾添加一个元素
+fn enqueue[T](q: Queue[T], x: T) -> Queue[T] {
+  match q {
+    {front:f, back:b} => norm({ front:f, back:Cons(x, b) })
+  }
+}
+
+/// `pop[T](q: Queue[T])`
+///
+/// Remove the first element from the queue 取出队列中第一个元素
+fn pop[T](q: Queue[T]) -> (Option[T], Queue[T]) {
+  match q {
+    {front:Nil, back:_} => (None, q)
+    {front:Cons(x, f), back:b} => (Some(x), norm({front:f, back:b}))
+  }
+}
+```
+-->
+
 - For example
   
 ```moonbit no-check
@@ -186,7 +267,7 @@ assert(tail == enqueue(empty(), 2))
 
 - To find a specific value in a tree's nodes
   
-```moonbit no-check
+```moonbit 
 fn bfs_search(target: Int, queue: Queue[IntTree]) -> Bool {
   match pop(queue) {
     (None, _) => false // If the queue is empty, end the search
