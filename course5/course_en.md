@@ -16,13 +16,13 @@ In data structures, a tree is a finite collection of nodes that have a hierarchi
 
 If a tree is not empty, it should have exactly one root node, which has only child nodes and no parent nodes. All nodes except the root node should have exact one parent node. Nodes without child nodes, which are the outermost layer of nodes, are called leaf nodes, akin to the leaves of a tree. Additionally, no node can be its own descendant, meaning cycles cannot exist within the tree.
 
-![](../pics/abstract-tree.drawio.png)
+![](../pics/abstract-tree-en.drawio.png)
 
 In a tree, an edge refers to a pair of nodes (u, v), where either u is the parent node of v or v is the parent node of u; simply put, these two nodes should have a parent-child relationship. We use arrows in diagrams to indicate parent-child relationships, with the arrow pointing from an ancestor to its descendant.
 
 The example below is not a tree. 
 
-![](../pics/not-a-tree.drawio.png)
+![](../pics/not-a-tree-en.drawio.png)
 
 Each red mark violates the requirements of a tree. In the upper right, there's another root node without a parent node, implying two root nodes in a tree, which is not allowed. At the bottom, the left leaf node has an extra arrow pointing to the root node, implying it's the parent node of the root, violating the structure requirements. And the right leaf node has two parent nodes, which also doesn't comply with the requirements.
 
@@ -65,7 +65,7 @@ enum IntTree {
 
 The first algorithm we will discuss is binary tree traversal (or search). Tree traversal refers to the process of visiting all nodes of a tree in a certain order without repetition. Typically, there are two methods of traversal: depth-first and breadth-first. Depth-first traversal always visits one subtree before the other. During the traversal of a subtree, it recursively visits one of its subtrees. Thus, it always reaches the deepest nodes first before returning. For example, 
 
-![](../pics/traversal.drawio.png) 
+![](../pics/traversal-en.drawio.png) 
 
 in the diagram, we first visit the left subtree, then the left subtree again, leading to the visit of 3. Subsequently, we continuously visit the right subtree, resulting in the visit of 5. Finally, we visit the right subtree of the entire tree, which is 2. On the other hand, breadth-first traversal starts from the root node and proceeds layer by layer, visiting nodes at a certain depth before moving deeper. For the same tree, breadth-first traversal will visit the root node first, followed by subtrees 1 and 2, then 3 and 4, and finally the deepest node 5.
 
@@ -93,11 +93,11 @@ Here, we supplement the content not mentioned in the second lesson, the short-ci
 
 Now let's continue with breadth-first traversal. 
 
-![](../pics/bfs.drawio.png)
+![](../pics/bfs-en.drawio.png)
 
 As mentioned earlier, breadth-first traversal involves visiting each subtree layer by layer. In this case, to be able to record all the trees we are going to visit, we need a brand-new data structure: the queue.
 
-![](../pics/queue.drawio.png)
+![](../pics/queue-en.drawio.png)
 
 A queue is a first-in-first-out (FIFO) data structure. Each time, we dequeue a tree from the queue and check whether its node value is the one we're searching for. If not, we enqueue its non-empty subtrees from left to right and continue the computation until the queue is empty.
 
@@ -149,7 +149,7 @@ So far, we've concluded our introduction to tree traversal. However, we may noti
 
 Previously, we mentioned that searching for elements in a binary tree might require traversing the entire tree. For example, in the diagram below, we attempt to find the element 8 in the tree. 
 
-![](../pics/bst.drawio.png)
+![](../pics/bst-en.drawio.png)
 
 For the left binary tree, we have to search the entire tree, ultimately concluding that 8 is not in the tree.
 
@@ -179,7 +179,7 @@ Here we can see the complete insertion code. In line 3, if the original tree is 
 
 Next, we discuss the delete operation. 
 
-![](../pics/bst-deletion.drawio.png)
+![](../pics/bst-deletion-en.drawio.png)
 
 Similarly, we do it with structural recursion. If the tree is empty, it's straightforward because we don't need to do anything. If the tree is non-empty, we need to compare it with the current value and determine whether the current value needs to be deleted. If it needs to be deleted, we delete it. We'll discuss how to delete it later; if it's not the value we want to delete, we still need to compare it and find the subtree where the value might exist, then create an updated tree after deletion. The most crucial part of this process is how to delete the root node of a tree. If the tree has no subtrees or only one subtree, it's straightforward because we just need to replace it with an empty tree or the only subtree. The trickier part is when there are two subtrees. In this case, we need to find a new value to be the root node, and this value needs to be greater than all values in the left subtree and less than all values in the right subtree. There are two values that satisfy this condition: the maximum value in the left subtree and the minimum value in the right subtree. Here, we use the maximum value in the left subtree as an example. Let's take another look at the schematic diagram. If there are no subtrees, we simply replace it with an empty tree; if there's one subtree, we replace it with the subtree. If there are two subtrees, we need to set the maximum value in the left subtree as the value of the new root node and delete this value from the left subtree. The good news is that this value has at most one subtree, so the operation is relatively simple.
 
@@ -210,7 +210,7 @@ Here, we demonstrate part of the deletion of a binary search tree. We define a h
 
 Finally, we delve into the balanced binary trees. When explaining binary search trees, we mentioned that the worst-case number of searches in a binary search tree depends on the height of the tree. Insertion and deletion on a binary search tree may cause the tree to become unbalanced, meaning that one subtree's height is significantly greater than the other's. For example, if we insert elements from 1 to 5 in sequence, we'll get a tree as shown in the lower left diagram. 
 
-![](../pics/worst-bst.drawio.png)
+![](../pics/worst-bst-en.drawio.png)
 
 We can see that for the entire tree, the height of the left subtree is -1 because it's an empty tree, while the height of the right subtree is 3. In this case, the worst-case number of searches equals the number of elements in the tree, which is 5. However, if the tree is more balanced, meaning the heights of the two subtrees are similar, as shown in the right diagram, the maximum depth of a node is at most 2, which is approximately $log_2n$ times, where n is the number of elements in the tree. As you may recall from the curve of the logarithmic function, when the number of elements in the tree is large, there can be a significant difference in the worst-case search time between the two scenarios. Therefore, we hope to avoid this worst-case scenario to ensure that we always have good query performance. To achieve this, we can introduce a class of data structures called balanced binary trees, where the heights of any node's left and right subtrees are approximately equal. Common types of balanced binary trees include AVL trees, 2-3 trees, or red-black trees. Here, we'll discuss AVL trees, which are relatively simple.
 

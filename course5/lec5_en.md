@@ -41,13 +41,13 @@ headingDivider: 1
 
 # Logical Structure of Trees
 
-![](../pics/abstract-tree.drawio.png)
+![](../pics/abstract-tree-en.drawio.png)
 
 # Logical Structure of Trees
 
 - This is not a tree
   
-![](../pics/not-a-tree.drawio.png)
+![](../pics/not-a-tree-en.drawio.png)
 
 # Logical Structure of Trees
 
@@ -106,7 +106,7 @@ enum IntTree {
 - Depth-first traversal: Always visits one subtree before visiting another
 - Breadth-first traversal: Starting from the root node, visits nodes of the same depth layer by layer
   
-![](../pics/traversal.drawio.png)
+![](../pics/traversal-en.drawio.png)
 
 # Traversal of Binary Trees
 
@@ -118,7 +118,7 @@ enum IntTree {
   - `[3, 5, 4, 1, 2, 0]`
 - Breadth-first traversal: `[0, 1, 2, 3, 4, 5]`
   
-![height:6em](../pics/traversal.drawio.png)
+![height:6em](../pics/traversal-en.drawio.png)
 
 # Depth-First Search: Using Search as an Example
 
@@ -152,7 +152,7 @@ fn dfs_search(target: Int, tree: IntTree) -> Bool {
 - The implementation of the algorithm relies on a First-In-First-Out data structure: queue
   - For the trees currently in the queue, we dequeue a tree, operate on its root node, then add all of its non-empty subtrees from left to right to the end of the queue, until the queue is empty
   
-![height:8em](../pics/bfs.drawio.png)
+![height:8em](../pics/bfs-en.drawio.png)
 
 # Data Structure: Queues
 
@@ -160,7 +160,7 @@ fn dfs_search(target: Int, tree: IntTree) -> Bool {
 - The insertion and removal of data follow the First-In-First-Out (FIFO) principle
   - Data is inserted at the back of the queue and removed from the front
   
-![](../pics/queue.drawio.png)
+![](../pics/queue-en.drawio.png)
 
 # Data Structure: Queues
 
@@ -210,7 +210,7 @@ fn bfs_search(target: Int, queue: Queue[IntTree]) -> Bool {
   - The worst-case number of searches is the height of the tree + 1, not the total number of elements.
 - Insertions and deletions in a binary search tree have to maintain the order.
   
-![](../pics/bst.drawio.png)
+![](../pics/bst-en.drawio.png)
 
 # Binary Search Tree Insertion
 
@@ -249,7 +249,7 @@ fn insert(tree: IntTree, value: Int) -> IntTree {
   - If there are two subtrees, replace the root node with the maximum value in the left subtree, while also deleting that maximum value in the left subtree (or alternatively, operate on the minimum value of the right subtree).
 
 # Binary Search Tree Deletion
-![](../pics/bst-deletion.drawio.png)
+![](../pics/bst-deletion-en.drawio.png)
 
 # Binary Search Tree Deletion
 
@@ -277,7 +277,7 @@ match tree { ...
 - Binary search trees can become unbalanced, with some nodes at deeper levels, which causes poor performance:
   - The worst-case number of searches is the height of the tree + 1; the height of a binary tree of size $n$ can be as high as $n - 1$.
   
-![height:7em](../pics/worst-bst.drawio.png)
+![height:7em](../pics/worst-bst-en.drawio.png)
 - To avoid this, we use balanced trees where the height difference is minimal:
   - The height of a balanced tree is approximately $\texttt{log}_2{n}$.
   - Various binary balanced trees include AVL Trees, 2-3 Trees, Red-Black Trees, etc.
