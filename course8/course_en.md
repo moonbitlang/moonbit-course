@@ -2,7 +2,7 @@
 
 ## Overview
 
-In modern programming concepts, a queue is an important data structure that follows the First-In-First-Out (FIFO) principle. This course will show you how to use mutable data structures to implement queues, focusing on two implementation methods: circular queues and singly linked lists, and exploring the concepts of tail call and tail recursion.
+In modern programming, a queue is an important data structure that follows the First-In-First-Out (FIFO) principle. This course will show you how to use mutable data structures to implement queues, focusing on two implementation methods: circular queues and singly linked lists, and exploring the concepts of tail call and tail recursion.
 
 ## Basic Operations of Queues
 
@@ -60,8 +60,9 @@ fn push(self: Queue, t: Int) -> Queue {
   if self.length == self.array.length() {
     let new_array: Array[Int] = Array::make(self.array.length() * 2, 0)
     let mut i = 0
-    while i < self.array.length(), i = i + 1 {
+    while i < self.array.length() {
       new_array[i] = self.array[(self.start + i) % self.array.length()]
+      i = i + 1
     }
     self.start = 0
     self.end = self.array.length()
@@ -161,9 +162,12 @@ fn length[T](self : LinkedList[T]) -> Int {
 
 When the linked list is too long, the recursive calculation of the length can cause a stack overflow. To solve this problem, we can use tail call optimization.
 
+
+![overflow](overflow.png)
+
 ### Tail Calls and Tail Recursion
 
-A tail call is when the last operation of a function is a function call, and tail recursion is when the last operation is a recursive call to the function itself. Using tail calls can prevent stack overflow problems.
+A tail call is when the last operation of a function is a function call, and tail recursion is when the last operation is a recursive call to the function itself. Using tail calls can prevent stack overflow problems. Cause when a function reaches tail call, then the resources hold by the function had already been released, so the resource will not be keep until the next function calling, so even there is a infinity function calling chain, the program will not be crashed.
 
 The optimized function for calculating the length of the linked list:
 
