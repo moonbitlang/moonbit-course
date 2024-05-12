@@ -6,7 +6,7 @@ backgroundImage: url('../pics/background_moonbit.png')
 headingDivider: 1
 ---
 
-# Modern Programming Ideology
+# Programming with MoonBit: A Modern Approach
 
 ## HashMap and Closure
 

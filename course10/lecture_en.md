@@ -1,4 +1,8 @@
-# Modern Programming Ideology: HashMap and Closure
+# Programming with MoonBit: A Modern Approach
+
+## HashMap and Closure
+
+### MoonBit Open Course Team
 
 ## Review
 
