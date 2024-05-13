@@ -12,12 +12,10 @@ headingDivider: 1
 
 ### MoonBit Open Course Team
 
-# Review
-
 # Parser
 
 - Case Study Objectives
-  - Parse arithmetic expressions involving natural numbers：`"(1 + 5) * 7 / 2"`
+  - Parse arithmetic expressions involving natural numbers：`"(1+ 5) * 7 / 2"`
   - Convert into a list of tokens:
     `LParen Value(1) Plus Value(5) Multiply Value(7) Divide Value(2)`
   - Convert into an abstract syntax tree (AST):
@@ -33,8 +31,9 @@ headingDivider: 1
 - Chopping the input into tokens
   - Input: String/Byte stream
   - Output: Token stream
-  - Example:`"12 + 678"` -> `[ Value(12), Plus, Value(678) ]`
+  - Example:`"12 +678"` -> `[ Value(12), Plus, Value(678) ]`
 - Typically done by applications of finite state machines
+  
   - Usually defined in a DSL and then automatically generate the program
 - Lexical rules of arithmetic expressions
   ```abnf
