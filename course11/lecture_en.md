@@ -1,8 +1,4 @@
-# Programming with MoonBit: A Modern Approach
-
-## Case Study: Parser
-
-### MoonBit Open Course Team
+# Case Study: Parser
 
 Now with the basic understanding of the MoonBit programming language, we can explore more complex programs and present some interesting cases. In this lecture, we'll present a parser.
 

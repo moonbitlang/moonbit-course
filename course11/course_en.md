@@ -27,13 +27,10 @@ headingDivider: 1
   - We'll use **parser combinators** for illustration in this lecture
 
 # Lexical Analysis
-
 - Chopping the input into tokens
-  - Input: String/Byte stream
-  - Output: Token stream
+  - Input is string/byte stream; and output is token stream
   - Example:`"12 +678"` -> `[ Value(12), Plus, Value(678) ]`
 - Typically done by applications of finite state machines
-  
   - Usually defined in a DSL and then automatically generates the program
 - Lexical rules of arithmetic expressions
   ```abnf
@@ -96,7 +93,7 @@ headingDivider: 1
   fn pchar(predicate : (Char) -> Bool) -> Lexer[Char] {
     Lexer(fn(input) {
       if input.length() > 0 && predicate(input[0]) {
-        Some(input[0], input.to_bytes().sub_string(1, input.length() - 1))
+        Some((input[0], input.to_bytes().sub_string(1, input.length() - 1)))
       } else {
         None
   } }) }
@@ -116,7 +113,7 @@ headingDivider: 1
 
 - Token Definition:
   - numbers; left & right parentheses; addition, subtraction, multiplication, and division.
-```moonbit
+```moonbit no-check
 enum Token {
   Value(Int)
   LParen; RParen; Plus; Minus; Multiply; Divide
@@ -141,13 +138,11 @@ fn map[I, O](self : Lexer[I], f : (I) -> O) -> Lexer[O] {
   Lexer(fn(input) {
     // Non-empty value v is in Some(v), empty value None is directly returned 
     let (value, rest) = self.parse(input)?
-    Some(f(value), rest)
+    Some((f(value), rest))
 }) }
 ```
-
-- Parse the operators and parentheses, and map them to the corresponding enum values.
-
-```moonbit
+- Parse the operators and parentheses, and map them to corresponding enum values.
+```moonbit expr
 let symbol: Lexer[Token] = pchar(fn{  
     '+' | '-' | '*' | '/' | '(' | ')' => true
     _ => false
@@ -166,7 +161,7 @@ fn and[V1, V2](self : Lexer[V1], parser2 : Lexer[V2]) -> Lexer[(V1, V2)] {
   Lexer(fn(input) {
     let (value, rest) = self.parse(input)?
     let (value2, rest2) = parser2.parse(rest)?
-    Some((value, value2), rest2)
+    Some(((value, value2), rest2))
 }) }
 ```
 
@@ -184,6 +179,15 @@ fn or[Value](self : Lexer[Value], parser2 : Lexer[Value]) -> Lexer[Value] {
 
 - Repeatedly parse `a` zero or more times until it fails.
 ```moonbit
+fn reverse_list[X](list : List[X]) -> List[X] {
+  fn go(acc, xs : List[X]) {
+    match xs {
+      Nil => acc
+      Cons(x, rest) => go((Cons(x, acc) : List[X]), rest)
+    } }
+  go(Nil, list)
+}
+
 fn many[Value](self: Lexer[Value]) -> Lexer[List[Value]] {
   Lexer(fn(input) {
       let mut rest = input
@@ -191,11 +195,11 @@ fn many[Value](self: Lexer[Value]) -> Lexer[List[Value]] {
       while true {
         match self.parse(rest) {
           None => break
-          Some(value, new_rest) => {
+          Some((value, new_rest)) => {
             rest = new_rest
             cumul = Cons(value, cumul) // Parsing succeeds, add the content
       } } }
-      Some(reverse_list(cumul), rest) // ⚠️List is a stack, reverse it for the correct order
+      Some((reverse_list(cumul), rest)) // ⚠️List is a stack, reverse it for the correct order
 }) }
 ```
 
