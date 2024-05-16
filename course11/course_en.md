@@ -24,7 +24,7 @@ headingDivider: 1
 - Syntax Analysis/Parsing
   - Analyze the input text and determine its syntactic structure
   - Typically includes **lexical analysis** and **syntax analysis**
-  - We'll use **parser combinator** for illustration in this lecture
+  - We'll use **parser combinators** for illustration in this lecture
 
 # Lexical Analysis
 
@@ -34,7 +34,7 @@ headingDivider: 1
   - Example:`"12 +678"` -> `[ Value(12), Plus, Value(678) ]`
 - Typically done by applications of finite state machines
   
-  - Usually defined in a DSL and then automatically generate the program
+  - Usually defined in a DSL and then automatically generates the program
 - Lexical rules of arithmetic expressions
   ```abnf
   Number     = %x30 / (%x31-39) *(%x30-39)
@@ -53,11 +53,11 @@ headingDivider: 1
   Number = %x30 / (%x31-39) *(%x30-39)
   Plus   = "+"
   ```
-- Each line corresponds to a pattern matching rule:
-  - `"xxx"`: Pattern match a string of  content `xxx`
-  - `a b`: Pattern match `a`, if it succeeds, continue to pattern match `b`
-  - `a / b`: Pattern match `a`, if it fails, continue to pattern match `b`
-  - `*a`: Pattern match `a ` zero or more times
+- Each line corresponds to a pattern-matching rule:
+  - `"xxx"`: Pattern matches a string of content `xxx`
+  - `a b`: Pattern matches `a`, if it succeeds, continue to pattern match `b`
+  - `a / b`: Pattern matches `a`, if it fails, move on to pattern match `b`
+  - `*a`: Pattern matches `a ` zero or more times
   - `%x30`: UTF-encoded character represented by value 30 in hexadecimal (`"0"`) 
 
 # Lexical Analysis
@@ -145,7 +145,7 @@ fn map[I, O](self : Lexer[I], f : (I) -> O) -> Lexer[O] {
 }) }
 ```
 
-- Parse the operators, parentheses, and map them to the corresponding enum values.
+- Parse the operators and parentheses, and map them to the corresponding enum values.
 
 ```moonbit
 let symbol: Lexer[Token] = pchar(fn{  
@@ -225,12 +225,12 @@ let value: Lexer[Token] =
 # Lexical Analysis
 
 - Analyze the input stream
-  - There may exist spaces between tokens
+  - There may exist whitespaces between tokens
 
   ```moonbit
   let tokens: Lexer[List[Token]] = 
     number.or(symbol).and(whitespace.many())
-      .map(fn { (symbols, _) => symbols }) // Ignore spaces
+      .map(fn { (symbols, _) => symbols }) // Ignore whitespaces
       .many() 
 
   fn init {
@@ -244,7 +244,7 @@ let value: Lexer[Token] =
 
 # Syntax Analysis
 
-- Analyze the token stream and determine if it's syntactically  valid.
+- Analyze the token stream and determine if it's syntactically valid.
   - Input: Token Stream
   - Output: Abstract Syntax Tree
   ```abnf
@@ -263,7 +263,7 @@ let value: Lexer[Token] =
   expression =/ expression "+" expression / expression "-" expression 
   expression =/ expression "*" expression / expression "/" expression
   ```
-- Problems:  Operator precedence and associativity.
+- Problems: Operator precedence and associativity.
   - Precedence: $\texttt{a} + \texttt{b} \times \texttt{c} \rightarrow \texttt{a} + (\texttt{b} \times \texttt{c})$
   - Associativity: $\texttt{a} + \texttt{b} + \texttt{c} \rightarrow (\texttt{a} + \texttt{b}) + \texttt{c}$
   - The current grammar is ambiguous!
@@ -278,7 +278,7 @@ let value: Lexer[Token] =
 
 - Note that besides simple combinations, there's also left recursion.
   - Left recursion will cause our parser to enter a loop.
-  - The parser will try  to match the rule to the left side of the operator without making progress.
+  - The parser will try to match the rule to the left side of the operator without making progress.
   - Further: Bottom-up parsers can handle left-recursive productions.
 
 # Syntax Analysis
@@ -318,7 +318,7 @@ let value: Lexer[Token] =
 # Recursive Definition
 
 - Deferring the definition
-  - Define utilizing reference `Ref[Parser[V]]`: `struct Ref[V] { mut val : V }`
+  - Define using reference `Ref[Parser[V]]`: `struct Ref[V] { mut val : V }`
   - Update the content in the reference after defining other parsers.
 
   ```moonbit
@@ -328,7 +328,7 @@ let value: Lexer[Token] =
     })
   }
   ```
-  - `ref.val` is retrieved when being used, and is updated by then.
+  - `ref.val` is retrieved when being used and is updated by then.
 
 # Recursive Definition
 
@@ -339,7 +339,7 @@ let value: Lexer[Token] =
     let expression_ref : Ref[Parser[Expression]] = { val : Parser(fn{ _ => None }) }
 
     // atomic = Value / "(" expression ")"
-    let atomic =  // Utilize the reference for definition
+    let atomic =  // Use the reference for the definition
       (lparen.and(ref(expression_ref)).and(rparen).map(fn { ((_, expr), _) => expr}))
         .or(number)
 
@@ -394,7 +394,7 @@ let value: Lexer[Token] =
     op_div(Self, Self) -> Self
   }
   ```
-  - Different implementations of the interface means to interpret the behavior from different perspectives.
+  - Different implementations of the interface mean to interpret the behavior from different perspectives.
 
 # Beyond the Syntax Tree: Tagless Final
 - We define the parser using the abstraction of the behavior. 
@@ -444,7 +444,7 @@ let value: Lexer[Token] =
   - the concept and implementation of Tagless Final
 - Recommended Readings:
   - Shunting Yard Algorithm
-  - Stanford CS143 Lectures 1-8, or
+  - Lectures 1-8 of Stanford CS143, or
   - The first five chapters of *Compilers: Principles, Techniques, and Tools*, or
   - The first three chapters of *Modern Compiler Implementation*
 - Recommended Exercise:
