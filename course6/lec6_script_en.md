@@ -91,7 +91,7 @@ We have already introduced the syntax, and we have more examples.
 
 ```moonbit
 struct Pair[A, B]{ first: A; second: B }
-fn identity[A](value: A) { value }
+fn identity[A](value: A) -> A { value }
 ```
 
 For example, we can define a pair of data, or a tuple. The pair has two type parameters because we might have two elements of two different types. The stored values `first` and `second` are respectively of these two types. As another example, we define a function `identity` that can operate on any type and always return the input value. 
@@ -144,7 +144,7 @@ After that, our repeatedly additions are only the quick addition of new elements
 
 You can see that one rotation supports multiple removal operations, therefore the overall cost is much less than rebuilding the list every time.
 
-```moonbit 
+```moonbit no-check
 struct Queue[T] {
   front: Stack[T]
   back: Stack[T]
@@ -174,7 +174,13 @@ fn normalize[T](self: Queue[T]) -> Queue[T] {
 
 // Helper function: reverse the stack
 fn reverse[T](self: Stack[T]) -> Stack[T] { 
- // Implementation omitted
+  let mut result: Stack[T] = Empty
+  let mut current: Stack[T] = self
+  while let (Some(top), rest) = pop(current) {
+    result = result.push(top)
+    current = rest
+  }
+  // Implementation omitted
 }
 ```
 
@@ -269,7 +275,7 @@ For example, the function type from integer to integer, would be `(Int) -> Int`.
 
 Here are a few more common applications of higher-order functions. Higher-order functions are functions that accept functions. `fold_right`, which we just saw, is a common example. Below, we draw its expression tree. 
 
-```moonbit
+```moonbit no-check
 fn fold_right[A, B](list: List[A], f: (A, B) -> B, b: B) -> B {
   match list {
     Nil => b
@@ -311,7 +317,7 @@ let names: List[String] = infos.map(fn (info) { info.name })
 
 For example, if we have some people's information and we only need their names, then we can use the mapping function `map`, which accepts `f` as a parameter, to map each element in the list one by one, finally obtaining a new list where the type of elements has become `B`. This function's implementation is very simple. What we need is also structural recursion. The last application is as shown in line 8. Maybe you feel like you've seen this `map` structure before: structural recursion, a default value for the empty case, and a binary operation processing the current value combined with the recursive result when not empty. Indeed, `map` can be entirely implemented using `fold_right`, where the default value is an empty list, and the binary operation is the `Cons` constructor. 
 
-```moonbit expr
+```moonbit 
 fn map[A, B](list: List[A], f: (A) -> B) -> List[B] {
   fold_right(list, fn (value, cumulator) { Cons(f(value), cumulator) }, Nil)
 }

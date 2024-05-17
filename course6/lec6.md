@@ -106,7 +106,7 @@ fn pop[T](self: Stack[T]) -> (Option[T], Stack[T]) {
 - 我们用`[<类型1>, <类型2>, ...]`来定义泛型的类型参数
   - `enum Stack[T]{ Empty; NonEmpty(T, Stack[T]) }`
   - `struct Pair[A, B]{ first: A; second: B }`
-  - `fn identity[A](value: A) { value }`
+  - `fn identity[A](value: A) -> A { value }`
   - `Stack`与`Pair`可以看做从类型上的函数：类型构造器
 - 类型参数多数时候会根据参数被自动推导
 ![](../pics/polymorphism-type.png)

@@ -106,7 +106,7 @@ fn pop[T](self: Stack[T]) -> (Option[T], Stack[T]) {
 - We define the type parameters of generics with `[<type1>, <type2>, ...]`
   - `enum Stack[T]{ Empty; NonEmpty(T, Stack[T]) }`
   - `struct Pair[A, B]{ first: A; second: B }`
-  - `fn identity[A](value: A) { value }`
+  - `fn identity[A](value: A) -> A { value }`
   - `Stack` and `Pair` can be regarded as type constructors
 - Type parameters are often inferred based on arguments
 ![](../pics/polymorphism-type.png)
@@ -127,7 +127,7 @@ fn pop[T](q: Queue[T]) -> (Option[T], Queue[T])
 # Generic Data Structure: Queue
 
 - We use two stacks to simulate a queue
-```moonbit
+```moonbit 
 struct Queue[T] {
   front: Stack[T] // For removing elements
   back: Stack[T] // For storing elements
@@ -143,7 +143,7 @@ struct Queue[T] {
 # Generic Data Structures: Queue
 
 - We use two stacks to simulate a queue
-```moonbit
+```moonbit no-check
 struct Queue[T] {
   front: Stack[T] // For removing elements
   back: Stack[T] // For storing elements
@@ -159,7 +159,7 @@ struct Queue[T] {
 # Generic Data Structure: Queue
 
 - We use two stacks to simulate a queue
-```moonbit
+```moonbit no-check
 struct Queue[T] {
   front: Stack[T] // For removing elements
   back: Stack[T] // For storing elements
@@ -174,7 +174,7 @@ struct Queue[T] {
 
 # Generic Data Type: Queue
 
-```moonbit 
+```moonbit no-check
 struct Queue[T] {
   front: Stack[T]
   back: Stack[T]
@@ -231,7 +231,7 @@ fn length[T](list: List[T]) -> Int {
 
 - We notice that they have considerable similarities
 
-```moonbit
+```moonbit no-check
 fn func[A, B](list: List[A]) -> B {
   match list {
     Nil => b // b : B
@@ -298,7 +298,7 @@ $\mapsto$ `3 + 1` $\mapsto$ `4`
 # Applying Higher-Order Functions: List Folding
 
 - We have already seen one possibility for list folding
-```moonbit
+```moonbit no-check
 fn fold_right[A, B](list: List[A], f: (A, B) -> B, b: B) -> B {
   match list {
     Nil => b
@@ -342,7 +342,7 @@ let names: List[String] = infos.map(fn (info) { info.name })
 # Applying Higher-Order Functions: List Mapping
 
 - In fact, we can also implement the `map` function using `fold_right`
-```moonbit expr
+```moonbit 
 fn map[A, B](list: List[A], f: (A) -> B) -> List[B] {
   fold_right(list, fn (value, cumulator) { Cons(f(value), cumulator) }, Nil)
 }
