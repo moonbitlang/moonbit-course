@@ -206,8 +206,13 @@ fn many[Value](self: Lexer[Value]) -> Lexer[List[Value]] {
 # Lexical Analysis
 
 - Analyze integers
-
 ```moonbit
+fn fold_left_list[A, B](list : List[A], f : (B, A) -> B, b : B) -> B {
+  match list {
+    Nil => b
+    Cons(hd, tl) => fold_left_list(tl, f, f(b, hd))
+} }
+
 // Convert characters to integers via encoding
 let zero: Lexer[Int] = 
   pchar(fn{ ch => ch == '0' }).map(fn{ _ => 0 })
@@ -337,7 +342,7 @@ let value: Lexer[Token] =
 # Recursive Definition
 
 - Deferring the definition
-  ```moonbit
+  ```moonbit no-check
   fn parser() -> Parser[Expression] {
     // First define an empty reference
     let expression_ref : Ref[Parser[Expression]] = { val : Parser(fn{ _ => None }) }
@@ -356,8 +361,7 @@ let value: Lexer[Token] =
     expression_ref.val = combine.and(plus.or(minus).and(combine).many()).map(fn {
       ...
     })
-
-    expression_ref.val
+    ref(expression_ref)
   }
   ```
 
@@ -366,7 +370,7 @@ let value: Lexer[Token] =
 - Recursive function
   - Essentially, a parser is a function.
   - Wrap the mutually recursive functions into a struct after defining them.
-  ```moonbit
+  ```moonbit no-check
   fn recursive_parser() -> Parser[Expression] {
     // Define mutually recursive functions
     // atomic = Value / "(" expression ")"
@@ -402,7 +406,7 @@ let value: Lexer[Token] =
 
 # Beyond the Syntax Tree: Tagless Final
 - We define the parser using the abstraction of the behavior. 
-  ```moonbit
+  ```moonbit no-check
   fn recursive_parser[E : Expr]() -> Parser[E] {
     let number : Parser[E] = ptoken(fn { Value(_) => true; _ => false})
       .map(fn { Value(i) => E::number(i) }) // Use the abstract behavior
@@ -415,7 +419,6 @@ let value: Lexer[Token] =
 
     Parser(expression)
   }
-
   // Put things together
   fn parse_string[E : Expr](str: String) -> Option[(E, String, List[Token])] {
     let (token_list, rest_string) = tokens.parse(str)?
@@ -426,7 +429,7 @@ let value: Lexer[Token] =
 
 # Beyond the Syntax Tree: Tagless Final
 - We can provide different implementations for different interpretations:
-  ```moonbit
+  ```moonbit no-check
   enum Expression { ... } derive(Debug) // Implementation of syntax tree
   type BoxedInt Int derive(Debug) // Implementation of integer
   // Other interface implementation methods omitted
