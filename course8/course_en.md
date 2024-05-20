@@ -35,7 +35,7 @@ println(a) // Output: [1, 2, 0, 0, 0]
 
 ### Simple Implementation of Circular Queues
 
-```moonbit no-check
+```moonbit
 struct Queue {
   mut array: Array[Int]
   mut start: Int
@@ -55,8 +55,8 @@ fn push(self: Queue, t: Int) -> Queue {
 
 When the number of elements exceeds the length of the array, an expansion operation is required:
 
-```moonbit no-check
-fn push(self: Queue, t: Int) -> Queue {
+```moonbit
+fn _push(self: Queue, t: Int) -> Queue {
   if self.length == self.array.length() {
     let new_array: Array[Int] = Array::make(self.array.length() * 2, 0)
     let mut i = 0
@@ -74,7 +74,7 @@ fn push(self: Queue, t: Int) -> Queue {
 
 ### Removing Elements
 
-```moonbit no-check
+```moonbit
 fn pop(self: Queue) -> Queue {
   self.array[self.start] = 0
   self.start = (self.start + 1) % self.array.length()
@@ -85,7 +85,7 @@ fn pop(self: Queue) -> Queue {
 
 ### Maintaining the Length of the Queue
 
-```moonbit no-check
+```moonbit
 fn length(self: Queue) -> Int {
   self.length
 }
@@ -94,6 +94,12 @@ fn length(self: Queue) -> Int {
 ### Generic Version of Circular Queues
 
 ```moonbit no-check
+struct Queue[T] {
+  mut array: Array[T]
+  mut start: Int
+  mut end: Int // end points to the empty position at the end of the queue
+  mut length: Int
+}
 fn make[T]() -> Queue[T] {
   {
     array: Array::make(5, T::default()), // Initialize the array with the default value of the type
@@ -125,7 +131,6 @@ struct LinkedList[T] {
 `Node[T]` is a generic struct that represents a node in a linked list. It has two fields: `val` and `next`. The `val` field is used to store the value of the node, and its type is `T`, which can be any valid data type. The `next` field represents the reference to the next node in the linked list. It is an optional field that can either hold a reference to the next node or be empty (`None`), indicating the end of the linked list.
 
 `LinkedList[T]` is a generic struct that represents a linked list. It has two mutable fields: `head` and `tail`. The `head` field represents the reference to the first node (head) of the linked list and is initially set to `None` when the linked list is empty. The `tail` field represents the reference to the last node (tail) of the linked list and is also initially set to `None`. The presence of the `tail` field allows for efficient appending of new nodes to the end of the linked list.
-
 
 ### Adding Elements
 
@@ -166,7 +171,6 @@ fn length[T](self : LinkedList[T]) -> Int {
 ### Stack Overflow Problem
 
 When the linked list is too long, the recursive calculation of the length can cause a stack overflow. To solve this problem, we can use tail call optimization.
-
 
 ![overflow](overflow.png)
 
