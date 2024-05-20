@@ -445,7 +445,17 @@ let value : Lexer[Token] = zero.or(
 
 # Summary
 
-- In this section, we presented a parser by introducing:
+- Recap: we presented a parser by introducing
+  - the concept of lexical analysis
+  - the concept of syntax analysis
+  - the definition and implementation of parser combinators
+  - the concept and implementation of Tagless Final
+- Recommended Readings
+- Recommended Exercise
+
+# Summary
+
+- Recap
   - the concept of lexical analysis
   - the concept of syntax analysis
   - the definition and implementation of parser combinators
