@@ -31,6 +31,7 @@ headingDivider: 1
   - Input is string/byte stream; and output is token stream
   - Example:`"12 +678"` -> `[ Value(12), Plus, Value(678) ]`
 - Typically done by applications of finite state machines
+  
   - Usually defined in a DSL and then automatically generates the program
 - Lexical rules of arithmetic expressions
   ```abnf
@@ -93,10 +94,10 @@ headingDivider: 1
   fn pchar(predicate : (Char) -> Bool) -> Lexer[Char] {
     Lexer(fn(input) {
       if input.length() > 0 && predicate(input[0]) {
-        Some((input[0], input.to_bytes().sub_string(1, input.length() - 1)))
+        Some((input[0], input.to_bytes().sub_string(2, input.length() * 2 - 2)))
       } else {
         None
-  } }) }
+  } },) }
   ```
 - For example:
   ```moonbit
@@ -136,10 +137,10 @@ let whitespace : Lexer[Char] = pchar(fn{ ch => ch == ' ' })
 ```moonbit
 fn map[I, O](self : Lexer[I], f : (I) -> O) -> Lexer[O] {
   Lexer(fn(input) {
-    // Non-empty value v is in Some(v), empty value None is directly returned 
+    // Non-empty value v is in Some(v), empty value None is directly returned
     let (value, rest) = self.parse(input)?
     Some((f(value), rest))
-}) }
+},) }
 ```
 - Parse the operators and parentheses, and map them to corresponding enum values.
 ```moonbit expr
@@ -162,17 +163,17 @@ fn and[V1, V2](self : Lexer[V1], parser2 : Lexer[V2]) -> Lexer[(V1, V2)] {
     let (value, rest) = self.parse(input)?
     let (value2, rest2) = parser2.parse(rest)?
     Some(((value, value2), rest2))
-}) }
+},) }
 ```
 
 - Parse `a`, and if it fails, parse `b`. 
 ```moonbit
 fn or[Value](self : Lexer[Value], parser2 : Lexer[Value]) -> Lexer[Value] {
-  Lexer(fn (input) {
+  Lexer(fn(input) {
     match self.parse(input) {
       None => parser2.parse(input)
       Some(_) as result => result
-} }) }
+} },) }
 ```
 
 # Parser Combinator
@@ -188,19 +189,19 @@ fn reverse_list[X](list : List[X]) -> List[X] {
   go(Nil, list)
 }
 
-fn many[Value](self: Lexer[Value]) -> Lexer[List[Value]] {
+fn many[Value](self : Lexer[Value]) -> Lexer[List[Value]] {
   Lexer(fn(input) {
-      let mut rest = input
-      let mut cumul = List::Nil
-      while true {
-        match self.parse(rest) {
-          None => break
-          Some((value, new_rest)) => {
-            rest = new_rest
-            cumul = Cons(value, cumul) // Parsing succeeds, add the content
-      } } }
-      Some((reverse_list(cumul), rest)) // ⚠️List is a stack, reverse it for the correct order
-}) }
+    let mut rest = input
+    let mut cumul = List::Nil
+    while true {
+      match self.parse(rest) {
+        None => break
+        Some((value, new_rest)) => {
+          rest = new_rest
+          cumul = Cons(value, cumul) // Parsing succeeds, add the content
+    } } }
+    Some((reverse_list(cumul), rest)) // ⚠️List is a stack, reverse it for the correct order
+},) }
 ```
 
 # Lexical Analysis
@@ -215,14 +216,15 @@ fn fold_left_list[A, B](list : List[A], f : (B, A) -> B, b : B) -> B {
 
 // Convert characters to integers via encoding
 let zero: Lexer[Int] = 
-  pchar(fn{ ch => ch == '0' }).map(fn{ _ => 0 })
+  pchar(fn { ch => ch == '0' }).map(fn { _ => 0 })
 let one_to_nine: Lexer[Int] = 
-  pchar(fn{ ch => ch.to_int() >= 0x31 && ch.to_int() <= 0x39 }).map(fn { ch => ch.to_int() - 0x30 })
+  pchar(fn { ch => ch.to_int() >= 0x31 && ch.to_int() <= 0x39 },).map(fn { ch => ch.to_int() - 0x30 })
 let zero_to_nine: Lexer[Int] = 
-  pchar(fn{ ch => ch.to_int() >= 0x30 && ch.to_int() <= 0x39 }).map(fn { ch => ch.to_int() - 0x30 })
+  pchar(fn { ch => ch.to_int() >= 0x30 && ch.to_int() <= 0x39 },).map(fn { ch => ch.to_int() - 0x30 })
 
 // number = %x30 / (%x31-39) *(%x30-39)
 let value: Lexer[Token] = 
+
   zero.or(
     one_to_nine.and(zero_to_nine.many()) // (Int, List[Int])
       .map(fn{ // 1 2 3 -> 1 * 100 + 2 * 10 + 3
@@ -237,10 +239,10 @@ let value: Lexer[Token] =
   - There may exist whitespaces between tokens
 
   ```moonbit
-  let tokens: Lexer[List[Token]] = 
-    number.or(symbol).and(whitespace.many())
-      .map(fn { (symbols, _) => symbols }) // Ignore whitespaces
-      .many() 
+  let tokens : Lexer[List[Token]] = 
+    value.or(symbol).and(whitespace.many())
+      .map(fn { (symbols, _) => symbols },) // Ignore whitespaces
+      .many()
 
   fn init {
     debug(tokens.parse("-10123-+-523 103    ( 5) )  "))
