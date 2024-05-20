@@ -456,10 +456,6 @@ let value : Lexer[Token] = zero.or(
 # Summary
 
 - Recap
-  - the concept of lexical analysis
-  - the concept of syntax analysis
-  - the definition and implementation of parser combinators
-  - the concept and implementation of Tagless Final
 - Recommended Readings:
   - Shunting Yard Algorithm
   - Lectures 1-8 of Stanford CS143, or
