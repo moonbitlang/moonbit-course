@@ -123,11 +123,13 @@ enum Token {
 
 - Parse operators, parentheses, whitespace, etc.
 
-```moonbit
+```moonbit expr
 let symbol: Lexer[Char] = pchar(fn{  
   '+' | '-' | '*' | '/' | '(' | ')' => true
   _ => false
 })
+```
+```moonbit 
 let whitespace : Lexer[Char] = pchar(fn{ ch => ch == ' ' })
 ```
 
@@ -143,7 +145,7 @@ fn map[I, O](self : Lexer[I], f : (I) -> O) -> Lexer[O] {
 },) }
 ```
 - Parse the operators and parentheses, and map them to corresponding enum values.
-```moonbit expr
+```moonbit
 let symbol: Lexer[Token] = pchar(fn{  
     '+' | '-' | '*' | '/' | '(' | ')' => true
     _ => false
@@ -222,15 +224,12 @@ let one_to_nine: Lexer[Int] =
 let zero_to_nine: Lexer[Int] = 
   pchar(fn { ch => ch.to_int() >= 0x30 && ch.to_int() <= 0x39 },).map(fn { ch => ch.to_int() - 0x30 })
 
-// number = %x30 / (%x31-39) *(%x30-39)
-let value: Lexer[Token] = 
-
-  zero.or(
-    one_to_nine.and(zero_to_nine.many()) // (Int, List[Int])
-      .map(fn{ // 1 2 3 -> 1 * 100 + 2 * 10 + 3
-        (i, ls) => fold_left_list(ls, fn {i, j => i * 10 + j }, i)
-      })
-  ).map(Token::Value)
+// number = %x30 / (%x31-39) *(%x30-39)  
+let value : Lexer[Token] = zero.or(
+  one_to_nine.and(zero_to_nine.many()).map( // (Int, List[Int])
+    fn { (i, ls) => fold_left_list(ls, fn { i, j => i * 10 + j }, i) },
+  ),
+).map(Token::Value)
 ```
 
 # Lexical Analysis
