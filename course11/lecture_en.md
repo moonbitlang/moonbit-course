@@ -35,6 +35,17 @@ enum Token {
 } derive(Debug)
 ```
 
+```moonbit expr
+let symbol: Lexer[Char] = pchar(fn{  
+  '+' | '-' | '*' | '/' | '(' | ')' => true
+  _ => false
+})
+```
+
+```moonbit 
+let whitespace : Lexer[Char] = pchar(fn{ ch => ch == ' ' })
+```
+
 ### Parser Combinator
 
 We then proceed to build a combinable parser. The parser is a function that takes a string as input and outputs a nullable `Option`. An empty value indicates the pattern matching failed, and a non-empty value contains both the result and the remaining string. Ideally, when parsing fails, we should provide error messages like why and where it failed, but this is omitted for simplicity. Feel free to implement it using `Result[A, B]`. We also provide a `parse` method for convenience.
