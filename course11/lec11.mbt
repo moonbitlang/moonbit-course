@@ -8,7 +8,7 @@ fn pchar(predicate : (Char) -> Bool) -> Lexer[Char] {
   Lexer(
     fn(input) {
       if input.length() > 0 && predicate(input[0]) {
-        Some((input[0], input.to_bytes().sub_string(2, input.length() * 2 - 2)))
+        Some((input[0], input.substring(start=1)))
       } else {
         None
       }

@@ -4,6 +4,8 @@ Now with the basic understanding of the MoonBit programming language, we can exp
 
 There are various types of languages in the world, including programming languages and other symbolic languages. Let's take the four basic arithmetic operations as an example. For a string like `"(1+ 5) * 7 / 2"`, the first step is to split it into a list of tokens. For instance, we can tokenize it into a left parenthesis, integer 1, plus sign, integer 5, right parenthesis, multiplication sign, integer 7, division sign, and integer 2. Although there is no space between integer 1, the parenthesis, and the plus sign, they should be separated into three tokens to follow the lexical rules. This step is known as lexical analysis.
 
+Now with a stream of tokens, we will convert it into an abstract syntax tree (AST) based on syntax/grammar. For example, the sum of integers 1 and 5 should come first, then this sum should be multiplied by 7, and finally, this product should be divided by 2, instead of producing the sum of 1 plus the product of 5 and 7, as this does not follow the syntax rules. This step is known as syntax analysis.
+
 Lastly, we calculate the final result according to the semantics. For example, semantically, `1 + 5` means to find the sum of integers 1 and 5.
 
 Syntax analysis/parsing is an important field of computer science because all programming languages will need parsing to analyze and run source code, and thus there exist many mature tools. In this lecture, we will present parser combinators to handle both lexical and syntax analysis. If interested, you may also refer to the recommended readings at the end to dive deeper. All code will be available on the course website. Let's start!
@@ -35,20 +37,9 @@ enum Token {
 } derive(Debug)
 ```
 
-```moonbit expr
-let symbol: Lexer[Char] = pchar(fn{  
-  '+' | '-' | '*' | '/' | '(' | ')' => true
-  _ => false
-})
-```
-
-```moonbit 
-let whitespace : Lexer[Char] = pchar(fn{ ch => ch == ' ' })
-```
-
 ### Parser Combinator
 
-We then proceed to build a combinable parser. The parser is a function that takes a string as input and outputs a nullable `Option`. An empty value indicates the pattern matching failed, and a non-empty value contains both the result and the remaining string. Ideally, when parsing fails, we should provide error messages like why and where it failed, but this is omitted for simplicity. Feel free to implement it using `Result[A, B]`. We also provide a `parse` method for convenience.
+We then proceed to build a combinable parser. The parser is a function that takes a string as input and outputs a nullable value `Option[T]`.  When `Option[T]` is an empty value, it indicates the pattern matching failed, while a non-empty value contains a result and the remaining string. Ideally, when parsing fails, we should provide error messages like why and where it failed, but this is omitted for simplicity. Feel free to implement it using `Result[A, B]`. We also provide a `parse` method for convenience.
 
 ```moonbit
 // V represents the value obtained after parsing succeeds
@@ -66,21 +57,33 @@ We first define the simplest parser, which just matches a single character. To c
 fn pchar(predicate : (Char) -> Bool) -> Lexer[Char] {
   Lexer(fn(input) {
     if input.length() > 0 && predicate(input[0]) {
-      Some((input[0], input.to_bytes().sub_string(2, input.length() * 2 - 2)))
+      Some((input[0], input.substring(start=1)))
     } else {
       None
 } },) }
-
-fn init {
-  debug(pchar(fn{ ch => ch == 'a' }).parse("asdf")) // Some(('a', "sdf"))
-  debug(pchar(fn{ 
-    'a' => true
-     _  => false
-  }).parse("sdf")) // None
+```
+```moonbit no-check
+fn test {
+    inspect(pchar(fn{ ch => ch == 'a' }).parse("asdf"), contet="")?
+    inspect(pchar(fn{ 
+      'a' => true
+       _  => false
+    }).parse("sdf"), content="None")?
 }
 ```
 
 With this simple parser, we can already handle most tokens, including parentheses, arithmetic operators, and whitespaces. Here, we also define them using anonymous functions and directly try pattern matching all possibilities. It returns `true` if the character is something we want to match; otherwise, it returns `false`. It's the same for whitespaces. However, simply parsing the input into characters isn't enough since we want to obtain more specific enum values, so we'll need to define a mapping function.
+
+```moonbit expr
+let symbol: Lexer[Char] = pchar(fn{  
+  '+' | '-' | '*' | '/' | '(' | ')' => true
+  _ => false
+})
+```
+
+```moonbit 
+let whitespace : Lexer[Char] = pchar(fn{ ch => ch == ' ' })
+```
 
 The `map` function can convert the result upon successful parsing. Its parameters include the parser itself and a transformation function. At the end of line 3, we use the question mark operator `?`. If parsing succeeds and the value is non-empty, the operator allows us to directly access the tuple containing the value and remaining string; otherwise, it returns the empty value in advance. After obtaining the value, we apply the transformation function. Utilizing this, we can map the characters corresponding to arithmetic operators and parentheses into their corresponding enum values.
 
@@ -123,39 +126,20 @@ fn or[Value](self : Lexer[Value], parser2 : Lexer[Value]) -> Lexer[Value] {
 For matching zero or more occurrences, we use a loop as shown in lines 5 to 10. We try parsing the remaining input in line 6. If it fails, we exit the loop; otherwise, we add the parsed content to the list and update the remaining input. Ultimately, the parsing always succeeds, so we put the result into `Some`. Note that we're storing values in a list, and a list is a stack, so it needs to be reversed to obtain the correct order.
 
 ```moonbit
-fn reverse_list[X](list : List[X]) -> List[X] {
-  fn go(acc, xs : List[X]) {
-    match xs {
-      Nil => acc
-      Cons(x, rest) => go((Cons(x, acc) : List[X]), rest)
-    } }
-  go(Nil, list)
-}
-
 fn many[Value](self : Lexer[Value]) -> Lexer[List[Value]] {
   Lexer(fn(input) {
-    let mut rest = input
-    let mut cumul = List::Nil
-    while true {
-      match self.parse(rest) {
-        None => break
-        Some((value, new_rest)) => {
-          rest = new_rest
-          cumul = Cons(value, cumul) // Parsing succeeds, add the content
-    } } }
-    Some((reverse_list(cumul), rest)) // ⚠️List is a stack, reverse it for the correct order
+   loop input, List::Nil {
+      rest, cumul => match self.parse(rest) {
+        None => Some((cumul.reverse(), rest))
+        Some((value, rest)) => continue rest, Cons(value, cumul)
+      }
+    }
 },) }
 ```
 
 Lastly, we can build a lexical analyzer for integers. An integer is either zero or starts with a non-zero digit followed by any number of digits. We'll first build three helper parsers. The first parser matches the character `0` and maps it to the number zero. The next two parsers match `1-9` and `0-9`, respectively. Here, we use the ranges of UTF encoding to determine, and since numbers in UTF are ordered from 0 to 9, we calculate the difference between a character's encoding and the encoding of `0` to obtain the corresponding number. Finally, we follow the syntax rules to construct the parser using our combinators. As shown in lines 11 and 12, we mirror the rules exactly. However, a non-zero digit and any number of digits just form a tuple of a digit and a list of digits, so we need one more mapping step. We use `fold_left` to fold it into an integer. Since digits near the head of the list are left digits to the left, multiplying the digit by 10 and adding a right digit forms the final integer, which we then map to an enum.
 
 ```moonbit
-fn fold_left_list[A, B](list : List[A], f : (B, A) -> B, b : B) -> B {
-  match list {
-    Nil => b
-    Cons(hd, tl) => fold_left_list(tl, f, f(b, hd))
-} }
-
 // Convert characters to integers via encoding
 let zero: Lexer[Int] = 
   pchar(fn { ch => ch == '0' }).map(fn { _ => 0 })
@@ -167,7 +151,7 @@ let zero_to_nine: Lexer[Int] =
 // number = %x30 / (%x31-39) *(%x30-39)  
 let value : Lexer[Token] = zero.or(
   one_to_nine.and(zero_to_nine.many()).map( // (Int, List[Int])
-    fn { (i, ls) => fold_left_list(ls, fn { i, j => i * 10 + j }, i) },
+    fn { (i, ls) => ls.fold_left(fn { i, j => i * 10 + j }, init=i) },
   ),
 ).map(Token::Value)
 ```
@@ -179,11 +163,12 @@ let tokens : Lexer[List[Token]] =
   value.or(symbol).and(whitespace.many())
     .map(fn { (symbols, _) => symbols },) // Ignore whitespaces
     .many()
-
-fn init {
-  debug(tokens.parse("-10123-+-523 103    ( 5) )  "))
-}
 ```
+  ```moonbit no-check
+  fn test{
+    inspect(tokens.parse("-10123+-+523 103    ( 5) )  "), content="Some((List::[Minus, Value(10123), Plus, Minus, Plus, Value(523), Value(103), LParen, Value(5), RParen, RParen], \"\"))")?
+  }
+  ```
 
 ## Syntax Analysis
 
@@ -197,7 +182,7 @@ expression =/ expression "*" expression / expression "/" expression
 
 ![](../pics/ast-example.drawio.svg)
 
-However, our syntax rules have some issues since it doesn't differentiate the precedence levels. For instance, `a + b * c` should be interpreted as `a` plus the product of `b` and `c`, but according to the current syntax rules, the sum of `a` and `b` multiplied by `c` is also valid, which introduces ambiguity. It also doesn't show associativity. Arithmetic operators should be left-associative, meaning `a + b + c` should be interpreted as `a` plus `b`, then adding `c`. However, the current syntax also allows adding `a` to the sum of `b` and `c`. So, we need to adjust the syntax rules.
+However, our syntax rules have some issues since it doesn't differentiate the precedence levels. For instance, `a + b * c` should be interpreted as `a` plus the product of `b` and `c`, but according to the current syntax rules, the sum of `a` and `b` multiplied by `c` is also valid, which introduces ambiguity. It also doesn't show associativity. Arithmetic operators should be left-associative, meaning `a + b + c` should be interpreted as `a` plus `b`, then adding `c`. However, the current syntax also allows adding `a` to the sum of `b` and `c`. So, we need to adjust the syntax rules for layering.
 
 The modified syntax rules are split into three parts. The first one is `atomic`, which is either an integer or an expression within parentheses. The second one is `atomic`, or `combine` multiplied or divided by `atomic`. The third one is `combine`, or `expression` plus or minus `combine`. The purpose of splitting into three rules is to differentiate operator precedence, while the left recursion in a single rule is to reflect left associativity. However, our parser can't handle left recursion. When trying to pattern match the left-recursive rule, it will first try to match the same rule on the side of the operator, which leads to recursion and prevents making progress. Still, this is just a limitation of our parser. Bottom-up parsers can handle left recursion, please refer to the recommended readings if you are interested.
 
@@ -208,6 +193,21 @@ expression = combine / expression "+" combine / expression "-" combine
 ```
 
 Our modified syntax rules eliminate recursion but require additional processing for mapping. In short, we define the abstract syntax tree, and an expression can be an integer or a result of arithmetic operation expressions as mentioned before.
+
+```abnf
+atomic     = Value / "(" expression ")"
+combine    = atomic  *( ("*" / "/") atomic)
+expression = combine *( ("+" / "-") combine)
+```
+```moonbit
+enum Expression {
+  Number(Int)
+  Plus(Expression, Expression)
+  Minus(Expression, Expression)
+  Multiply(Expression, Expression)
+  Divide(Expression, Expression)
+}
+```
 
 ### Syntax Parsing
 
@@ -324,10 +324,16 @@ type BoxedInt Int derive(Debug) // Implementation of integer
 fn BoxedInt::number(i: Int) -> BoxedInt { BoxedInt(i) }
 fn Expression::number(i: Int) -> Expression { Number(i) }
 // Parse
-debug((parse_string_tagless_final("1 + 1 * (307 + 7) + 5 - (3 - 2)") 
-  : Option[(Expression, String, List[Token])])) // Get the syntax tree
-debug((parse_string_tagless_final("1 + 1 * (307 + 7) + 5 - (3 - 2)") 
-  : Option[(BoxedInt, String, List[Token])])) // Get the calculation result
+fn test {
+  inspect((parse_string_tagless_final("1 + 1 * (307 + 7) + 5 - 3 - 2") :
+    Option[(Expression, String, List[Token])]), ~content=
+    #|Some((Minus(Minus(Plus(Plus(Number(1), Multiply(Number(1), Plus(Number(307), Number(7)))), Number(5)), Number(3)), Number(2)), "", List::[]))
+  )? // Get the syntax tree
+  inspect((parse_string_tagless_final("1 + 1 * (307 + 7) + 5 - 3 - 2") :
+    Option[(BoxedInt, String, List[Token])]), ~content=
+    #|Some((BoxedInt(315), "", List::[]))
+  )? // Get the calculation result
+  }
 ```
 
 ## Summary

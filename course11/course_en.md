@@ -94,19 +94,19 @@ headingDivider: 1
   fn pchar(predicate : (Char) -> Bool) -> Lexer[Char] {
     Lexer(fn(input) {
       if input.length() > 0 && predicate(input[0]) {
-        Some((input[0], input.to_bytes().sub_string(2, input.length() * 2 - 2)))
+        Some((input[0], input.substring(start=1)))
       } else {
         None
   } },) }
   ```
 - For example:
-  ```moonbit
-  fn init {
-    debug(pchar(fn{ ch => ch == 'a' }).parse("asdf")) // Some(('a', "sdf"))
-    debug(pchar(fn{ 
+  ```moonbit no-check
+  fn test {
+    inspect(pchar(fn{ ch => ch == 'a' }).parse("asdf"), contet="")?
+    inspect(pchar(fn{ 
       'a' => true
        _  => false
-    }).parse("sdf")) // None
+    }).parse("sdf"), content="None")?
   }
   ```
 
@@ -182,27 +182,14 @@ fn or[Value](self : Lexer[Value], parser2 : Lexer[Value]) -> Lexer[Value] {
 
 - Repeatedly parse `a` zero or more times until it fails.
 ```moonbit
-fn reverse_list[X](list : List[X]) -> List[X] {
-  fn go(acc, xs : List[X]) {
-    match xs {
-      Nil => acc
-      Cons(x, rest) => go((Cons(x, acc) : List[X]), rest)
-    } }
-  go(Nil, list)
-}
-
 fn many[Value](self : Lexer[Value]) -> Lexer[List[Value]] {
   Lexer(fn(input) {
-    let mut rest = input
-    let mut cumul = List::Nil
-    while true {
-      match self.parse(rest) {
-        None => break
-        Some((value, new_rest)) => {
-          rest = new_rest
-          cumul = Cons(value, cumul) // Parsing succeeds, add the content
-    } } }
-    Some((reverse_list(cumul), rest)) // ⚠️List is a stack, reverse it for the correct order
+   loop input, List::Nil {
+      rest, cumul => match self.parse(rest) {
+        None => Some((cumul.reverse(), rest))
+        Some((value, rest)) => continue rest, Cons(value, cumul)
+      }
+    }
 },) }
 ```
 
@@ -210,12 +197,6 @@ fn many[Value](self : Lexer[Value]) -> Lexer[List[Value]] {
 
 - Analyze integers
 ```moonbit
-fn fold_left_list[A, B](list : List[A], f : (B, A) -> B, b : B) -> B {
-  match list {
-    Nil => b
-    Cons(hd, tl) => fold_left_list(tl, f, f(b, hd))
-} }
-
 // Convert characters to integers via encoding
 let zero: Lexer[Int] = 
   pchar(fn { ch => ch == '0' }).map(fn { _ => 0 })
@@ -227,7 +208,7 @@ let zero_to_nine: Lexer[Int] =
 // number = %x30 / (%x31-39) *(%x30-39)  
 let value : Lexer[Token] = zero.or(
   one_to_nine.and(zero_to_nine.many()).map( // (Int, List[Int])
-    fn { (i, ls) => fold_left_list(ls, fn { i, j => i * 10 + j }, i) },
+    fn { (i, ls) => ls.fold_left(fn { i, j => i * 10 + j }, init=i) },
   ),
 ).map(Token::Value)
 ```
@@ -242,9 +223,10 @@ let value : Lexer[Token] = zero.or(
     value.or(symbol).and(whitespace.many())
       .map(fn { (symbols, _) => symbols },) // Ignore whitespaces
       .many()
-
-  fn init {
-    debug(tokens.parse("-10123-+-523 103    ( 5) )  "))
+  ```
+  ```moonbit no-check
+  fn test{
+    inspect(tokens.parse("-10123+-+523 103    ( 5) )  "), ~content="Some((List::[Minus, Value(10123), Plus, Minus, Plus, Value(523), Value(103), LParen, Value(5), RParen, RParen], \"\"))")?
   }
   ```
 
@@ -437,10 +419,16 @@ let value : Lexer[Token] = zero.or(
   fn BoxedInt::number(i: Int) -> BoxedInt { BoxedInt(i) }
   fn Expression::number(i: Int) -> Expression { Number(i) }
   // Parse
-  debug((parse_string_tagless_final("1 + 1 * (307 + 7) + 5 - (3 - 2)") 
-    : Option[(Expression, String, List[Token])])) // Get the syntax tree
-  debug((parse_string_tagless_final("1 + 1 * (307 + 7) + 5 - (3 - 2)") 
-    : Option[(BoxedInt, String, List[Token])])) // Get the calculation result
+  fn test {
+    inspect((parse_string_tagless_final("1 + 1 * (307 + 7) + 5 - 3 - 2") :
+      Option[(Expression, String, List[Token])]), ~content=
+      #|Some((Minus(Minus(Plus(Plus(Number(1), Multiply(Number(1), Plus(Number(307), Number(7)))), Number(5)), Number(3)), Number(2)), "", List::[]))
+    )? // Get the syntax tree
+    inspect((parse_string_tagless_final("1 + 1 * (307 + 7) + 5 - 3 - 2") :
+      Option[(BoxedInt, String, List[Token])]), ~content=
+      #|Some((BoxedInt(315), "", List::[]))
+    )? // Get the calculation result
+  }
   ```
 
 # Summary
