@@ -6,7 +6,7 @@ In development, we often encounter similar data structures and similar operation
 
 Programming languages provide us with various means of abstraction, such as functions, generics, higher-order functions, interfaces, etc. This chapter will introduce generics and higher-order functions, and the next chapter will discuss interfaces.
 
-# Generic Functions and Generic Data
+## Generic Functions and Generic Data
 
 Let's first look at the stack data structure to understand why and how we use generics.
 
@@ -43,7 +43,7 @@ fn pop(self: IntStack) -> (Option[Int], IntStack) {
 }
 ```
 
-In the code snippet, we see that we set the first argument as `IntStack`, and the variable name is `self`, allowing us to chain function calls. This means we can write `empty.push.pop` instead of `pop(push(empty))`. The deeper meaning of this syntax will be explained in the next chapter.
+In the code snippet, we see that we set the first argument as `IntStack`, and the variable name is `self`, allowing us to chain function calls. This means we can write `IntStack::empty().push(2).pop()` instead of `pop(push(2, IntStack::empty()))`. The deeper meaning of this syntax will be explained in the next chapter.
 
 Returning to our code, we defined a recursive data structure based on stack operations: a stack may be empty or may consist of an element and a stack. Creating a stack is to build an empty one. Adding an element builds a non-empty stack with the top element being the one we want to add, while the stack underneath remains as it was. Removing from the stack requires pattern matching, where if the stack is empty, there are no values to retrieve; if the stack is not empty, the top element can be taken.
 
@@ -67,7 +67,7 @@ fn pop(self: StringStack) -> (Option[String], StringStack) {
 ```
 
 Indeed, the stack of strings looks exactly like the stack of integers, except for some differences in type definitions. But if we want to add more data types, should we redefine a stack data structure for each type? Clearly, this is unacceptable.
-
+### Generics
 Therefore, MoonBit provides an important language feature: generics. Generics are about taking types as parameters, allowing us to define more abstract and reusable data structures and functions. For example, with our stack, we can add a type parameter `T` after the name to indicate the actual data type stored. 
 
 ```moonbit
@@ -86,7 +86,8 @@ fn pop[T](self: Stack[T]) -> (Option[T], Stack[T]) {
 ```
 
 Similarly, the functions defined later also have a `T` as a type parameter, representing the data type stored in the stack we operate on and the type of data we want to add. We only need to replace the identifier with a parameter, replacing `T` with a specific type, to obtain the actual data structures and functions. For example, if `T` is replaced with `Int`, then we obtain the previously defined `IntStack`.
-
+### Examples
+#### Generic Pair
 We have already introduced the syntax, and we have more examples. 
 
 ```moonbit
@@ -101,7 +102,7 @@ For example, we can define a pair of data, or a tuple. The pair has two type par
 ![](../pics/polymorphism-type.png)
 
 For example, in the screenshot here, the type of `empty` is initially unknown. But after `push(1)`, we understand that it is used to hold integers, thus we can infer that the type parameters for `push` and `empty` should be integer `Int`.
-
+#### Generic Functional Queue
 Now let's look at another generic data structure: the queue. We have already used the queue in the breadth-first sorting in the last lesson. Recall, a queue is a First-In-First-Out data structure, just like we queue up in everyday life. Here we define the following operations, where the queue is called `Queue`, and it has a type parameter. 
 
 ```moonbit no-check
@@ -184,7 +185,7 @@ fn reverse[T](self: Stack[T]) -> Stack[T] {
 }
 ```
 
-Here is the code for the queue. You can see that we extensively apply generics, so our queue can contain any type, including queues containing other elements. The functions here are the specific implementations of the algorithm we just explained. In function `push`, you we called the stack's `push` function through `back.push`. We will explain this specifically in the next lesson.
+Here is the code for the queue. You can see that we extensively apply generics, so our queue can contain any type, including queues containing other elements. The functions here are the specific implementations of the algorithm we just explained. In function `push`, you we called the stack's `push` function through `back.push()`. We will explain this specifically in the next lesson.
 
 # Higher-Order Functions
 
@@ -199,7 +200,7 @@ fn sum(list: List[Int]) -> Int {
 }
 ```
 
-Consider some operations on lists. For instance, to sum an integer list, we use structural recursion with the following code: if empty, the sum is 0; if not empty, the sum is the current value plus the sum of the remaining list elements.
+Consider some operations on lists. For instance, to sum an integer list, we use structural recursion with the following code: if empty, the sum is 0; otherwise, the sum is the current value plus the sum of the remaining list elements.
 
 ```moonbit
 fn length[T](list: List[T]) -> Int {
@@ -210,10 +211,10 @@ fn length[T](list: List[T]) -> Int {
 }
 ```
 
-Similarly, to find the length of a list of any data type, using structural recursion, we write: if empty, the length is 0; if not empty, the length is 1 plus the length of the remaining list.
+Similarly, to find the length of a list of any data type, using structural recursion, we write: if empty, the length is 0; otherwise, the length is 1 plus the length of the remaining list.
 
 Notice that these two structures have considerable similarities: both are structural recursions with a default value when empty, and when not empty, they both involve processing the current value and combining it with the recursive result of the remaining list. In the summing case, the default value is 0, and the binary operation is additio; in the length case, the default value is also 0, and the binary operation is to replace the current value with 1 and then add it to the remaining result. How can we reuse this structure? We can write it as a function, passing the default value and the binary operation as parameters.
-
+### First-class Function in MoonBit
 This brings us to the point that in MoonBit, functions are first-class citizens. This means that functions can be passed as parameters and can also be stored as results. For instance, the structure we just described can be defined as the function shown below, where `f` is passed as a parameter and used in line four for calculation.
 
 ```moonbit
@@ -272,7 +273,7 @@ We've previously mentioned function types, which go from the accepted parameters
 - `((Int) -> Int) -> Int` A function that accepts a function from integers to integers and returns an integer
 
 For example, the function type from integer to integer, would be `(Int) -> Int`. The second line shows an example from integer to function. Notice that the function’s parameter also needs to be enclosed in parentheses. The function type is actually equivalent to enclosing the entire following function type in parentheses, as seen in the third line. If it's from function to integer, as we mentioned earlier, the accepted parameter needs to be enclosed in parentheses, so it should look like the fourth line, not the second.
-
+### Example: Fold Functions
 Here are a few more common applications of higher-order functions. Higher-order functions are functions that accept functions. `fold_right`, which we just saw, is a common example. Below, we draw its expression tree. 
 
 ```moonbit no-check
@@ -300,7 +301,7 @@ fn fold_left[A, B](list: List[A], f: (B, A) -> B, b: B) -> B {
 ![](../pics/fold_left.drawio.png)
 
 Here, we only need to swap the order, first processing the current element with the previous accumulated result, then incorporating the processed result into the subsequent processing, as shown in the fourth line. This function folds from left to right.
-
+### Example: Map Function
 Another common application of higher-order functions is to map each element of a function. 
 
 ```moonbit no-check
