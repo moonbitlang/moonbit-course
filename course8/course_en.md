@@ -2,7 +2,7 @@
 
 ## Overview
 
-In modern programming, a queue is an important data structure that follows the First-In-First-Out (FIFO) principle. This course will show you how to use mutable data structures to implement queues, focusing on two implementation methods: circular queues and singly linked lists, and exploring the concepts of tail call and tail recursion.
+Queues are a fundamental concept in computer science, following the First-In-First-Out (FIFO) principle, meaning the first element added to the queue will be the first one to be removed. The course will explore two primary methods of implementing queues: circular queues and singly linked lists. Additionally, it will delve into tail call and tail recursion concepts, which are essential for optimizing recursive functions.
 
 ## Basic Operations of Queues
 
@@ -85,6 +85,8 @@ fn pop(self: Queue) -> Queue {
 
 ### Maintaining the Length of the Queue
 
+The `length` function simply returns the current `length` of the queue.
+
 ```moonbit
 fn length(self: Queue) -> Int {
   self.length
@@ -92,6 +94,8 @@ fn length(self: Queue) -> Int {
 ```
 
 ### Generic Version of Circular Queues
+
+A generic version of the `Queue` is also provided, allowing it to store any type of data, not just integers.
 
 ```moonbit no-check
 struct Queue[T] {
@@ -112,9 +116,11 @@ fn make[T]() -> Queue[T] {
 
 ## Implementation of Singly Linked Lists
 
-A singly linked list consists of a series of nodes, each containing data and a reference to the next node.
+Singly linked lists are composed of nodes, where each node contains data and a reference (or pointer) to the next node in the sequence.
 
 ### Definition of Nodes and Linked Lists
+
+The `Node` struct contains a value and a mutable reference to the next node:
 
 ```moonbit
 struct Node[T] {
@@ -153,7 +159,7 @@ fn push[T](self: LinkedList[T], value: T) -> LinkedList[T] {
 
 ### Calculating the Length of the Linked List
 
-A simple recursive function is used to calculate the length of the linked list:
+Initially, a simple recursive function is used to calculate the length of the linked list. However, this can lead to a stack overflow if the list is too long.
 
 ```moonbit
 fn length[T](self : LinkedList[T]) -> Int {
@@ -170,7 +176,7 @@ fn length[T](self : LinkedList[T]) -> Int {
 
 ### Stack Overflow Problem
 
-When the linked list is too long, the recursive calculation of the length can cause a stack overflow. To solve this problem, we can use tail call optimization.
+To address the stack overflow issue, the concept of tail calls and tail recursion is introduced. A tail call is a function call that is the last operation in a function, and tail recursion is a specific case where the function calls itself as the last operation.
 
 ![overflow](overflow.png)
 
@@ -178,7 +184,7 @@ When the linked list is too long, the recursive calculation of the length can ca
 
 A tail call is when the last operation of a function is a function call, and tail recursion is when the last operation is a recursive call to the function itself. Using tail calls can prevent stack overflow problems. Cause when a function reaches tail call, then the resources hold by the function had already been released, so the resource will not be keep until the next function calling, so even there is a infinity function calling chain, the program will not be crashed.
 
-The optimized function for calculating the length of the linked list:
+The optimized `length_` function uses tail recursion to calculate the length of the linked list without risking a stack overflow:
 
 ```moonbit
 fn length_[T](self: LinkedList[T]) -> Int {
@@ -192,6 +198,8 @@ fn length_[T](self: LinkedList[T]) -> Int {
 }
 ```
 
+This function uses an accumulator (`cumul`) to keep track of the length as it traverses the list.
+
 ## Summary
 
-This course introduced how to define queues using mutable data structures, including the implementation of circular queues and singly linked lists. We also learned about tail calls and tail recursion, and how to optimize with tail calls to avoid stack overflow problems. With this knowledge, we can more effectively manage and manipulate data, improving the performance and stability of our programs.
+The course concludes by summarizing the methods taught for implementing queues using mutable data structures, such as circular queues and singly linked lists. It also highlights the importance of understanding and utilizing tail calls and tail recursion to optimize recursive functions and prevent stack overflow, ultimately leading to more efficient and stable program performance.
