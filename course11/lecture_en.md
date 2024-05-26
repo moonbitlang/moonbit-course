@@ -61,14 +61,13 @@ fn pchar(predicate : (Char) -> Bool) -> Lexer[Char] {
     } else {
       None
 } },) }
-```
-```moonbit no-check
-fn test {
-    inspect(pchar(fn{ ch => ch == 'a' }).parse("asdf"), contet="")?
-    inspect(pchar(fn{ 
-      'a' => true
-       _  => false
-    }).parse("sdf"), content="None")?
+
+test {
+  inspect(pchar(fn { ch => ch == 'a' }).parse("asdf"), content="Some((a, sdf))")?
+  inspect(pchar(fn {
+    'a' => true
+    _ => false
+  },).parse("sdf"),content="None",)?
 }
 ```
 
@@ -163,12 +162,11 @@ let tokens : Lexer[List[Token]] =
   value.or(symbol).and(whitespace.many())
     .map(fn { (symbols, _) => symbols },) // Ignore whitespaces
     .many()
+
+test{
+  inspect(tokens.parse("-10123+-+523 103    ( 5) )  "), content="Some((List::[Minus, Value(10123), Plus, Minus, Plus, Value(523), Value(103), LParen, Value(5), RParen, RParen], ))")?
+}
 ```
-  ```moonbit no-check
-  fn test{
-    inspect(tokens.parse("-10123+-+523 103    ( 5) )  "), content="Some((List::[Minus, Value(10123), Plus, Minus, Plus, Value(523), Value(103), LParen, Value(5), RParen, RParen], \"\"))")?
-  }
-  ```
 
 ## Syntax Analysis
 
@@ -324,7 +322,7 @@ type BoxedInt Int derive(Debug) // Implementation of integer
 fn BoxedInt::number(i: Int) -> BoxedInt { BoxedInt(i) }
 fn Expression::number(i: Int) -> Expression { Number(i) }
 // Parse
-fn test {
+test {
   inspect((parse_string_tagless_final("1 + 1 * (307 + 7) + 5 - 3 - 2") :
     Option[(Expression, String, List[Token])]), ~content=
     #|Some((Minus(Minus(Plus(Plus(Number(1), Multiply(Number(1), Plus(Number(307), Number(7)))), Number(5)), Number(3)), Number(2)), "", List::[]))
