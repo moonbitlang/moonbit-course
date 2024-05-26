@@ -146,14 +146,19 @@ fn map[I, O](self : Lexer[I], f : (I) -> O) -> Lexer[O] {
 ```
 - Parse the operators and parentheses, and map them to corresponding enum values.
 ```moonbit
-let symbol: Lexer[Token] = pchar(fn{  
+let symbol : Lexer[Token] = pchar(
+  fn {
     '+' | '-' | '*' | '/' | '(' | ')' => true
     _ => false
-}).map(fn{
-    '+' => Plus;     '-' => Minus
-    '*' => Multiply; '/' => Divide
-    '(' => LParen;   ')' => RParen
-})
+  },).map(
+  fn {
+    '+' => Token::Plus
+    '-' => Token::Minus
+    '*' => Token::Multiply
+    '/' => Token::Divide
+    '(' => Token::LParen
+    ')' => Token::RParen
+  },)
 ```
 
 # Parser Combinator

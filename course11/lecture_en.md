@@ -94,14 +94,19 @@ fn map[I, O](self : Lexer[I], f : (I) -> O) -> Lexer[O] {
     Some((f(value), rest))
 },) }
 
-let symbol: Lexer[Token] = pchar(fn{  
+let symbol : Lexer[Token] = pchar(
+  fn {
     '+' | '-' | '*' | '/' | '(' | ')' => true
     _ => false
-}).map(fn{
-    '+' => Plus;     '-' => Minus
-    '*' => Multiply; '/' => Divide
-    '(' => LParen;   ')' => RParen
-})
+  },).map(
+  fn {
+    '+' => Token::Plus
+    '-' => Token::Minus
+    '*' => Token::Multiply
+    '/' => Token::Divide
+    '(' => Token::LParen
+    ')' => Token::RParen
+},)
 ```
 
 Let's look at other combinators. We've seen other pattern matching rules like matching `a` followed by `b`, `a` or `b`, zero or more occurrences of `a`, etc. Each combinator is simple to implement, and let's do it one by one. For matching `a` and then `b`, we first use `self` for parsing, as shown in line 3. After obtaining the value and the remaining string with the question mark operator `?`, we use another parser to parse the remaining string, as shown in line 4. The two outputs are returned as a tuple. Then, for matching `a` or `b`, we will pattern match the result of parsing using `self`. If empty, we use the result of another parser; otherwise, we return the current result.
