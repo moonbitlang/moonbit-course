@@ -329,11 +329,11 @@ fn Expression::number(i: Int) -> Expression { Number(i) }
 // Parse
 test {
   inspect((parse_string_tagless_final("1 + 1 * (307 + 7) + 5 - 3 - 2") :
-    Option[(Expression, String, List[Token])]), ~content=
+    Option[(Expression, String, List[Token])]), content=
     #|Some((Minus(Minus(Plus(Plus(Number(1), Multiply(Number(1), Plus(Number(307), Number(7)))), Number(5)), Number(3)), Number(2)), "", List::[]))
   )? // Get the syntax tree
   inspect((parse_string_tagless_final("1 + 1 * (307 + 7) + 5 - 3 - 2") :
-    Option[(BoxedInt, String, List[Token])]), ~content=
+    Option[(BoxedInt, String, List[Token])]), content=
     #|Some((BoxedInt(315), "", List::[]))
   )? // Get the calculation result
   }
