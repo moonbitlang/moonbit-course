@@ -29,7 +29,7 @@ headingDivider: 1
 # 堆栈
 
 - 我们定义以下操作，以存储整数的堆栈`IntStack`为例
-```moonbit
+```moonbit no-check
 empty: () -> IntStack // 创建新的堆栈
 push : (Int, IntStack) -> IntStack // 将新的元素加入栈顶
 pop: IntStack -> (Option[Int], IntStack) // 从堆栈取出元素
@@ -106,7 +106,7 @@ fn pop[T](self: Stack[T]) -> (Option[T], Stack[T]) {
 - 我们用`[<类型1>, <类型2>, ...]`来定义泛型的类型参数
   - `enum Stack[T]{ Empty; NonEmpty(T, Stack[T]) }`
   - `struct Pair[A, B]{ first: A; second: B }`
-  - `fn identity[A](value: A) { value }`
+  - `fn identity[A](value: A) -> A { value }`
   - `Stack`与`Pair`可以看做从类型上的函数：类型构造器
 - 类型参数多数时候会根据参数被自动推导
 ![](../pics/polymorphism-type.png)
@@ -114,7 +114,7 @@ fn pop[T](self: Stack[T]) -> (Option[T], Stack[T]) {
 # 泛型数据结构：队列
 
 - 我们定义如下的操作：
-```moonbit
+```moonbit no-check
 fn empty[T]() -> Queue[T] // 创建空队列
 fn push[T](q: Queue[T], x: T) -> Queue[T] // 向队尾添加元素
 // 尝试取出一个元素，并返回剩余队列；若为空则为本身
@@ -127,7 +127,7 @@ fn pop[T](q: Queue[T]) -> (Option[T], Queue[T])
 # 泛型数据结构：队列
 
 - 我们用两个堆栈模拟队列
-```moonbit
+```moonbit 
 struct Queue[T] {
   front: Stack[T] // 负责取出操作
   back: Stack[T] // 负责存储操作
@@ -143,7 +143,7 @@ struct Queue[T] {
 # 泛型数据结构：队列
 
 - 我们用两个堆栈模拟队列
-```moonbit
+```moonbit no-check
 struct Queue[T] {
   front: Stack[T] // 负责取出操作
   back: Stack[T] // 负责存储操作
@@ -159,7 +159,7 @@ struct Queue[T] {
 # 泛型数据结构：队列
 
 - 我们用两个堆栈模拟队列
-```moonbit
+```moonbit no-check
 struct Queue[T] {
   front: Stack[T] // 负责取出操作
   back: Stack[T] // 负责存储操作
@@ -174,7 +174,7 @@ struct Queue[T] {
 
 # 泛型数据类型：队列
 
-```moonbit
+```moonbit no-check
 struct Queue[T] {
   front: Stack[T]
   back: Stack[T]
@@ -227,7 +227,7 @@ fn length[T](list: List[T]) -> Int {
 
 - 我们发现它们有共通点
 
-```moonbit
+```moonbit no-check
 fn func[A, B](list: List[A]) -> B {
   match list {
     Nil => b // b : B
@@ -294,7 +294,7 @@ $\mapsto$ `3 + 1` $\mapsto$ `4`
 # 高阶函数的应用：列表折叠
 
 - 我们刚才已经看到了列表折叠的一种可能性
-```moonbit
+```moonbit no-check
 fn fold_right[A, B](list: List[A], f: (A, B) -> B, b: B) -> B {
   match list {
     Nil => b
@@ -324,7 +324,7 @@ fn fold_left[A, B](list: List[A], f: (B, A) -> B, b: B) -> B {
 - 一个常见的操作是对列表中的每一个元素进行映射
   - 例如，从个人信息列表中获得姓名列表
   - `struct PersonalInfo { name: String; age: Int }`
-```moonbit
+```moonbit no-check
 fn map[A, B](self: List[A], f: (A) -> B) -> List[B] {
   match list {
     Nil => Nil
@@ -348,7 +348,7 @@ fn map[A, B](list: List[A], f: (A) -> B) -> List[B] {
 
 # 二叉搜索树
 - 我们定义一个更一般的二叉搜索树，允许存放任意类型的数据
-```moonbit
+```moonbit no-check
 // 我们利用泛型定义数据结构
 enum Tree[T] {
   Empty
