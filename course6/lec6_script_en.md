@@ -123,7 +123,7 @@ As shown here, to add an element at the end, i.e., to replace `Nil` with `Cons(3
 
 To solve this problem, we use two stacks to simulate a queue. 
 
-```moonbit
+```moonbit no-check
 struct Queue[T] {
   front: Stack[T] // For removing elements
   back: Stack[T] // For storing elements
@@ -144,7 +144,7 @@ After that, our repeatedly additions are only the quick addition of new elements
 
 You can see that one rotation supports multiple removal operations, therefore the overall cost is much less than rebuilding the list every time.
 
-```moonbit no-check
+```moonbit 
 struct Queue[T] {
   front: Stack[T]
   back: Stack[T]
@@ -174,13 +174,13 @@ fn normalize[T](self: Queue[T]) -> Queue[T] {
 
 // Helper function: reverse the stack
 fn reverse[T](self: Stack[T]) -> Stack[T] { 
-  let mut result: Stack[T] = Empty
-  let mut current: Stack[T] = self
-  while let (Some(top), rest) = pop(current) {
-    result = result.push(top)
-    current = rest
+  fn go(acc, xs: Stack[T]) {
+    match xs {
+      Empty => acc
+      NonEmpty(top, rest) => go((NonEmpty(top, acc) : Stack[T]), rest)
+    }
   }
-  // Implementation omitted
+  go(Empty, self)
 }
 ```
 
