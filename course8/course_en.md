@@ -140,6 +140,13 @@ struct LinkedList[T] {
 
 ### Adding Elements
 
+![](../pics/linked_list.drawio.svg)
+
+![](../pics/linked_list_2.drawio.svg)
+
+- When we add elements, we determine whether the linked list is not empty
+  - if not, add it to the end of the queue and maintain the linked list relationship
+
 ```moonbit
 fn push[T](self: LinkedList[T], value: T) -> LinkedList[T] {
   let node = { val: value, next: None }
@@ -176,11 +183,17 @@ fn length[T](self : LinkedList[T]) -> Int {
 
 ### Stack Overflow Problem
 
+![alt text](stackoverflow.jpg)
+
 To address the stack overflow issue, the concept of tail calls and tail recursion is introduced. A tail call is a function call that is the last operation in a function, and tail recursion is a specific case where the function calls itself as the last operation.
+
+The following code is a recursion but not a tail recursion function, so it will get into infinity loops and its memory occupation will getting larger during the time. Finally our program will crash because of memory limit excedeed.
 
 ![overflow](overflow.png)
 
 ### Tail Calls and Tail Recursion
+
+![alt text](tailrecur.jpg)
 
 A tail call is when the last operation of a function is a function call, and tail recursion is when the last operation is a recursive call to the function itself. Using tail calls can prevent stack overflow problems. Cause when a function reaches tail call, then the resources hold by the function had already been released, so the resource will not be keep until the next function calling, so even there is a infinity function calling chain, the program will not be crashed.
 
@@ -194,6 +207,7 @@ fn length_[T](self: LinkedList[T]) -> Int {
       Some(node) => aux2(node.next, 1 + cumul)
     }
   }
+  // tail recursive
   aux2(self.head, 0)
 }
 ```
