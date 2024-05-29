@@ -56,7 +56,7 @@ headingDivider: 1
 - Differentiation is applied in the field of machine learning
 	- Finding local extrema using gradient descent
 	- Solving functions using Newton's method：$x^3 - 10 x^2 + x + 1 = 0$
-- Let's look at some simple combination of functions
+- Let's look at the following simple combination of functions
 	- Example: $f(x_0, x_1) = 5{x_0}^2 + {x_1}$
 		- $f(10, 100) = 600$
 		- $\frac{\partial f}{\partial x_0}(10, 100) = 100$
@@ -65,7 +65,7 @@ headingDivider: 1
 # Differentiation
 
 - Ways to differentiate a function:
-	- Manual differentiation: pure natural calculator
+	- Manual differentiation: purely natural calculator
 		
 		- Drawback: easy to make mistakes with complex expressions
 	- Numerical differentiation: $\frac{ \texttt{f}(x + \delta x) - \texttt{f}(x) }{ \delta x }$
@@ -110,13 +110,13 @@ headingDivider: 1
 	fn Symbol::op_add(f1 : Symbol, f2 : Symbol) -> Symbol { Add(f1, f2) }
 fn Symbol::op_mul(f1 : Symbol, f2 : Symbol) -> Symbol { Mul(f1, f2) }
 	
-	// 计算函数值
+	// Compute function values
 	fn Symbol::compute(f : Symbol, input : Array[Double]) -> Double { ... }
 	```
 
 # Symbolic Differentiation
 
-- We compute the (partial) derivatives of functions using derivative rules
+- We compute the (partial) derivatives of functions using the derivative rules
 	- $\frac{\partial f}{\partial x_i} = 0$ if $f$ is a constant function
 	- $\frac{\partial x_i}{\partial x_i} = 1, \frac{\partial x_j}{\partial x_i} = 0, i \neq j$
 	- $\frac{\partial (f + g)}{\partial x_i} = \frac{\partial f}{\partial x_i} + \frac{\partial g}{\partial x_i}$
@@ -135,7 +135,7 @@ fn Symbol::op_mul(f1 : Symbol, f2 : Symbol) -> Symbol { Mul(f1, f2) }
 
 # Symbolic Differentiation
 
-- Using symbolic differentiation, we first build an abstract syntax tree, then convert it to the corresponding differential, and finally perform the computation
+- Using symbolic differentiation, we first build an abstract syntax tree, then convert it to the corresponding partial derivative, and finally perform the computation
 	
 	```moonbit
 	fn example() -> Symbol {
@@ -193,17 +193,17 @@ fn Symbol::op_mul(f1 : Symbol, f2 : Symbol) -> Symbol { Mul(f1, f2) }
 
 # Automatic Differentiation
 
-- Define the operations we want to implement through interfaces
+- Define the operations we want to implement through an interface
   ```moonbit
 	trait Number  {
 	  constant(Double) -> Self
 	  op_add(Self, Self) -> Self
 	  op_mul(Self, Self) -> Self
-	  value(Self) -> Double // Get current computation value
+	  value(Self) -> Double // Get the value of the current computation
 	}
 	```
 
-- Use the native control flow of the language to dynamically generate calculation graphs
+- Use the native control flow of the language to dynamically generate computation graphs
   ```moonbit
 	fn max[N : Number](x : N, y : N) -> N {
 	  if x.value() > y.value() { x } else { y }
@@ -296,8 +296,8 @@ fn Symbol::op_mul(f1 : Symbol, f2 : Symbol) -> Symbol { Mul(f1, f2) }
 		- Decomposition: $f = g h, g(x_0, x_1) = {x_0} ^ 2, h(x_0, x_1) = x_1$
 		- Differentiation: $\frac{\partial f}{\partial g} = h = x_1, \frac{\partial g}{\partial x_0} = 2x_0, \frac{\partial f}{\partial h} = g = {x_0}^2, \frac{\partial h}{\partial x_0} = 0$
 		- Combination: $\frac{\partial f}{\partial x_0} = \frac{\partial f}{\partial g} \frac{\partial g}{\partial x_0} + \frac{\partial f}{\partial h} \frac{\partial h}{\partial x_0} = x_1 \times 2x_0 + {x_0}^2 \times 0 = 2 x_0 x_1$
-- Starting from $\frac{\partial f}{\partial f}$, compute the partial derivatives of intermediate variables$\frac{\partial f}{\partial g_i}$, until reaching the derivatives of input parameters$\frac{\partial g_i}{\partial x_i}$
-  - Allows for the simultaneously calculating the partial derivative of each input, and is suitable for cases where there are more output parameters than input parameters
+- Starting from $\frac{\partial f}{\partial f}$, calculate the partial derivatives of intermediate variables$\frac{\partial f}{\partial g_i}$, until reaching the derivatives of input parameters$\frac{\partial g_i}{\partial x_i}$
+  - Allows for the simultaneously calculating the partial derivative of each input, and is suitable for cases where there are more input parameters than output parameters
 
 # Backward Differentiation
 
@@ -364,7 +364,7 @@ fn init {
 
 # Summary
 
-- In this lecture, we introduces the concept of automatic differentiation
+- In this lecture, we introduce the concept of automatic differentiation
 	- presenting symbolic differentiation 
 	- presenting forward and backward differentiation
 - Recommended Readings
