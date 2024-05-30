@@ -19,8 +19,14 @@ fn Symbol::op_add(f1 : Symbol, f2 : Symbol) -> Symbol {
   // With simplification 以下为化简实现
   match (f1, f2) {
     (Constant(0.0), a) => a
-    (Constant(a), Constant(b)) => Constant(a * b)
+    (Constant(a), Constant(b)) => Constant(a + b)
     (a, Constant(_) as const) => const + a
+    (Mul(n, Var(x1)), Mul(m, Var(x2))) =>
+      if x1 == x2 {
+        Mul(m + n, Var(x1))
+      } else {
+        Add(f1, f2)
+      }
     _ => Add(f1, f2)
   }
 }
@@ -67,7 +73,7 @@ test "Symbolic differentiation 符号微分" {
   @assertion.assert_eq(symbol.compute(input), 600.0)?
   // Expression of df/dx 关于x的偏微分表达式树
   inspect(symbol.differentiate(0), ~content="Mul(Constant(5.0), Var(0))")?
-  @assertion.assert_eq(symbol.differentiate(0).compute(input), 50.0)?
+  @assertion.assert_eq(symbol.differentiate(0).compute(input), 100.0)?
   @assertion.assert_eq(symbol.differentiate(1).compute(input), 1.0)?
 }
 

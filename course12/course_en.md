@@ -1,5 +1,5 @@
 ---
-marp: true
+marp: false
 math: mathjax
 paginate: true
 backgroundImage: url('../pics/background_moonbit.png')
@@ -145,8 +145,9 @@ headingDivider: 1
 	  let symbol : Symbol = example() // Abstract syntax tree of the function
 	  @assertion.assert_eq(symbol.compute(input), 600.0)?
 	  // Expression of df/dx
-	  inspect(symbol.differentiate(0), content="Add(Add(Mul(Mul(Constant(5.0), Var(0)), Constant(1.0)), Mul(Add(Mul(Constant(5.0), Constant(1.0)), Mul(Constant(0.0), Var(0))), Var(0))), Constant(0.0))")?
-	  @assertion.assert_eq(symbol.differentiate(0).compute(input), 50.0)?
+	  inspect(symbol.differentiate(0), 
+	  content="Add(Add(Mul(Mul(Constant(5.0), Var(0)), Constant(1.0)), Mul(Add(Mul(Constant(5.0), Constant(1.0)), Mul(Constant(0.0), Var(0))), Var(0))), Constant(0.0))")?
+	  @assertion.assert_eq(symbol.differentiate(0).compute(input), 100.0)?
 	}
 	```
 - Here, `diff_0` is:
@@ -163,10 +164,16 @@ headingDivider: 1
 	```moonbit
 	fn Symbol::op_add_simplified(f1 : Symbol, f2 : Symbol) -> Symbol {
 	  match (f1, f2) {
-	    (Constant(0.0), a) => a // 0 + a = a
-	    (Constant(a), Constant(b)) => Constant(a * b)
-	    (a, Constant(_) as const) => const + a
-	    _ => Add(f1, f2)
+	    (Constant(0.0), a) => a
+        (Constant(a), Constant(b)) => Constant(a + b)
+        (a, Constant(_) as const) => const + a
+        (Mul(n, Var(x1)), Mul(m, Var(x2))) =>
+          if x1 == x2 {
+            Mul(m + n, Var(x1))
+          } else {
+            Add(f1, f2)
+          }
+        _ => Add(f1, f2)
     } }
   ```
 
