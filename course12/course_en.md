@@ -1,5 +1,5 @@
 ---
-marp: false
+marp: true
 math: mathjax
 paginate: true
 backgroundImage: url('../pics/background_moonbit.png')
@@ -65,8 +65,10 @@ headingDivider: 1
 # Differentiation
 - Ways to differentiate a function:
 	- Manual differentiation: purely natural calculator
+		
 		- Drawback: easy to make mistakes with complex expressions
 	- Numerical differentiation: $\frac{ \texttt{f}(x + \delta x) - \texttt{f}(x) }{ \delta x }$
+		
 		- Drawback: computers cannot accurately represent decimals, and the larger the absolute value, the less accurate it is
 	- Symbolic differentiation: `Mul(Const(2), Var(1)) -> Const(2)`
 		- Drawback: calculations can be complex; possible redundant calculations; hard to directly use native control flow
@@ -189,7 +191,7 @@ headingDivider: 1
 	    (a, Constant(_) as const) => const * a
 	    _ => Mul(f1, f2)
     } }
-    ```
+  ```
 - Simplification result
     ```moonbit
     let diff_0_simplified : Symbol = Mul(Constant(5.0), Var(0))
