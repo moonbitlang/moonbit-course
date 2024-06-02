@@ -21,7 +21,8 @@ struct Queue[T] {
 ```
 -->
 
-# Modern Programming Ideology
+# Programming with MoonBit: A Modern Approach
+
 
 ## Traits
 
@@ -68,7 +69,7 @@ Such functions are called the **methods** of `T`.
 
 # Traits
 
-Traits declare a list of operations to be supplied if a type wants to implement it.
+A trait declares a list of methods to be supplied if a type wants to implement it.
 
 ```moonbit
 trait Compare {
@@ -86,7 +87,7 @@ trait Default {
 
 ---
 
-# Traits
+# Bounded Generics
 
 - In generic functions, we use traits as bounds to specify what methods a type supports.
   - `<type>: <trait>` requires `<type>` to be bound by `<trait>`;
@@ -101,12 +102,12 @@ fn make[T: Default]() -> Queue[T] { // `T` should support the `default` method.
 }
 ```
 
-- With traits, we can timely detect errors caused by calling missing methods.
+- With bounds, we can timely detect errors caused by calling missing methods.
 ![height:150px](../pics/no_method.png)
 
 ---
 
-# Traits
+# Bounded Generics
 
 ```moonbit
 fn insert[T : Compare](tree : Tree[T], value : T) -> Tree[T] {
@@ -127,8 +128,9 @@ fn insert[T : Compare](tree : Tree[T], value : T) -> Tree[T] {
 
 ---
 
-# Definition of Methods
+# Implementation of Traits
 
+- To implement a trait, we only need to define the corresponding methods.
 - Methods can be defined using the syntax `fn <type>::<method>(...) -> ...`.
 
 ```moonbit
@@ -157,7 +159,7 @@ fn BoxedInt::plus_one(b: BoxedInt) -> BoxedInt {
   { value : b.value + 1 }
 }
 fn plus_two(self: BoxedInt) -> BoxedInt {
-  // `<type>::` can be omitted when the parameter name is `self`.
+  // `<type>::` can be omitted when the first parameter is named `self`.
   { value : self.value + 2}
 }
 
@@ -170,7 +172,7 @@ fn init {
 
 ---
 
-# Automatically Derive Builtin Traits
+# Automatic Derivation of Builtin Traits
 
 - Some simple builtin traits can be automatically derived by adding `derive(<traits>)` after the type definition.
 
@@ -185,7 +187,7 @@ struct BoxedInt { value : Int } derive(Default, Eq, Compare, Debug)
 # Using Traits to Implement a Map
 
 - A map is a collection of key-value pairs.
-  - Each **key** corresponds to a **value**.
+  - Each **key** is associated with a **value**.
   - Example: `{ 0 -> "a", 5 -> "Hello", 7 -> "a"}`.
 
 ```moonbit no-check
