@@ -159,10 +159,10 @@ Now, let's take a look at automatic differentiation. We first define the operati
 
 ```moonbit
 trait Number  {
-constant(Double) -> Self
-op_add(Self, Self) -> Self
-op_mul(Self, Self) -> Self
-value(Self) -> Double // Get the value of the current computation
+  constant(Double) -> Self
+  op_add(Self, Self) -> Self
+  op_mul(Self, Self) -> Self
+  value(Self) -> Double // Get the value of the current computation
 }
 ```
 
