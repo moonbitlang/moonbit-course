@@ -128,7 +128,7 @@ fn insert[T : Compare](tree : Tree[T], value : T) -> Tree[T] {
 
 ---
 
-# Implementation of Traits
+# Implicit Implementation of Traits
 
 - To implement a trait, we only need to define the corresponding methods.
 - Methods can be defined using the syntax `fn <type>::<method>(...) -> ...`.
@@ -150,6 +150,41 @@ fn init {
 
 ---
 
+# Explicit Implementation of Traits
+
+```moonbit no-check
+// Provide a default implementation for method `method` of trait `Trait`
+impl Trait with method(...) { ... }
+
+// Implement method method of trait `Trait` for type `Type`
+impl Trait for Type with method(...) { ... }
+
+// With type parameters
+impl[X] Trait for Array[X] with method(...) { ... }
+```
+
+The syntax allows explicit specification of the implementing type, providing richer and clearer signature information.
+
+---
+
+# Explicit Implementation of Traits
+
+The compiler can automatically infer the method's parameter and return types, eliminating the need for manual annotations.
+
+```moonbit
+trait MyTrait {
+  f(Self) -> Option[Int]
+}
+
+// No need to annotate `self` and the return type
+impl MyTrait for Int with f(self) {
+  // Compiler can automatically infer that the return type is `Option[Int]`
+  Some(self)
+}
+```
+
+---
+
 # Method Chaining
 
 - In addition to `<type>::<method>(<expr>, ...)`, we can as well call the method using `<expr>.<method>(...)`, given `<expr>` is of type `<type>`.
@@ -158,8 +193,8 @@ fn init {
 fn BoxedInt::plus_one(b: BoxedInt) -> BoxedInt {
   { value : b.value + 1 }
 }
+// `<type>::` can be omitted when the first parameter is named `self`.
 fn plus_two(self: BoxedInt) -> BoxedInt {
-  // `<type>::` can be omitted when the first parameter is named `self`.
   { value : self.value + 2}
 }
 
@@ -241,19 +276,15 @@ fn put[Key, Value](map: Map[Key, Value], key: Key, value: Value) -> Map[Key, Val
 - Store key-value pairs using a list of pairs.
 ```moonbit
 fn get[Key: Eq, Value](map : Map[Key, Value], key : Key) -> Option[Value] {
-  fn aux(list : List[(Key, Value)]) -> Option[Value] {
-    match list {
-      Nil => None
-      Cons((k, v), tl) => if k == key {
-        // `Key` is bound by `Eq`, so we can call `==` directly.
-        Some(v)
-      } else {
-        aux(tl)
-      }
+  loop map.0 {
+    Nil => None
+    Cons((k, v), tl) => if k == key {
+      // `Key` is bound by `Eq`, so we can call `==` directly.
+      Some(v)
+    } else {
+      continue tl
     }
   }
-
-  aux(map.0) // Use `.0` to get the value.
 }
 ```
 
@@ -306,5 +337,6 @@ fn init {
 
 - In this chapter, we learned how to
   - Define traits and use them to bound type parameters
-  - Implement methods and custom operators
+  - Implement traits implicitly or explicitly
+  - Implement custom operators
   - Implement a simple map using traits in MoonBit

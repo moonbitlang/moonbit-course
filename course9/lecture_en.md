@@ -102,6 +102,8 @@ fn insert[T : Compare](tree : Tree[T], value : T) -> Tree[T] {
 
 ## Implementation of Traits
 
+### Implicit Implementation
+
 Since the trait system of MoonBit is structured, to implement a trait, all we need to do is to define the corresponding methods using the syntax `fn <type>::<method>(...) -> ...`.
 
 In the following example, we define the `default` method for the `BoxedInt` type.
@@ -120,6 +122,35 @@ By defining the `default` method, the `Default` trait is now implemented. Theref
 ```moonbit no-check
 fn init {
   let array: Queue[BoxedInt] = make()
+}
+```
+
+### Explicit Implementation
+
+Alternatively, we can implement a trait explicitly with the following syntax:
+
+```moonbit no-check
+// Provide a default implementation for method `method` of trait `Trait`
+impl Trait with method(...) { ... }
+
+// Implement method method of trait `Trait` for type `Type`
+impl Trait for Type with method(...) { ... }
+
+// With type parameters
+impl[X] Trait for Array[X] with method(...) { ... }
+```
+
+Compared to the previous syntax `fn Trait::method(...)`, the new syntax allows explicit specification of the implementing type, providing richer and clearer signature information. Since the type is specified, the compiler can automatically infer the method's parameter and return types, eliminating the need for manual annotations:
+
+```moonbit
+trait MyTrait {
+  f(Self) -> Option[Int]
+}
+
+// No need to annotate `self` and the return type
+impl MyTrait for Int with f(self) {
+  // Compiler can automatically infer that the return type is `Option[Int]`
+  Some(self)
 }
 ```
 
@@ -265,5 +296,6 @@ In the previous example, the assignment statement is essentially an expression, 
 
 In this chapter, we learned how to
 - Define traits and use them to bound type parameters
-- Implement methods and custom operators
+- Implement traits implicitly or explicitly
+- Implement custom operators
 - Implement a simple map using traits in MoonBit
