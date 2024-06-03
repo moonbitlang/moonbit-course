@@ -22,7 +22,7 @@ In Chapter 8, while studying mutable data structures, we discussed the need for 
 
 ```moonbit no-check
 fn make[T]() -> Queue[T] {
-{ array: Array::make(5, T::default()), start: 0, end: 0, length: 0 }
+  { array: Array::make(5, T::default()), start: 0, end: 0, length: 0 }
 }
 ```
 
