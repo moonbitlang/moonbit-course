@@ -28,7 +28,7 @@ This way, we can gradually approach zero and get an approximate solution. We wil
 
 ![height:600px](../pics/geogebra-export%20(8).png)
 
-Today, we will look at the following simple combination of functions, involving only addition and multiplication. For example, when calculating 5 times `x0` squared plus ` x1`, if `x0` is 10 and `x1` is 100, we need to calculate the value of the function, 600, the partial derivative with respect to `x0`, 100, and the partial derivative with respect to `x1`, 1.
+Today, we will look at the following simple combination of functions, involving only addition and multiplication. For example, when calculating 5 times $x_0$ squared plus $x_1$, if $x_0$ is 10 and $x_1$ is 100, we need to calculate the value of the function, 600, the partial derivative with respect to $x0$, 100, and the partial derivative with respect to $x_1$, 1.
 
 *Example:* $f(x_0, x_1) = 5{x_0}^2 + {x_1}$
 
@@ -38,7 +38,7 @@ Today, we will look at the following simple combination of functions, involving 
 
 # Differentiation
 
-There are several ways to differentiate a function. The first method is manual differentiation where we use a piece of paper and a pen as a natural calculator. The drawback is that it's easy to make mistakes with complex expressions and we can't just manually calculate 24 hours a day. The second method is numerical differentiation: $\frac{ \texttt{f}(x + \delta x) - \texttt{f}(x) }{ \delta x }$, where we add a small value (approaching zero) to the point we want to differentiate, calculate the difference, and divide it by the small value. The issue here is that computers cannot accurately represent decimals, and the larger the absolute value, the less accurate it is. Also, we cannot fully solve infinite series. The third method is symbolic differentiation, where we convert the function into an expression tree and then operate on the tree to get the derivative. Take `Mul(Const(2), Var(1)) -> Const(2)` for example: here the differentiation result of constant 2 multiplied by x will be constant 2. The problem with symbolic differentiation is that the calculation results may not be simplified enough, and there may be redundant calculations. In addition, it's hard to directly use native control flow like conditionals and loops. If we want to define a function to find the larger value, we have to define an operator instead of simply comparing the current values. 
+There are several ways to differentiate a function. The first method is manual differentiation where we use a piece of paper and a pen as a natural calculator. The drawback is that it's easy to make mistakes with complex expressions and we can't just manually calculate 24 hours a day. The second method is numerical differentiation: $\frac{ \texttt{f}(x + \delta x) - \texttt{f}(x) }{ \delta x }$, where we add a small value (approaching zero) to the point we want to differentiate, calculate the difference, and divide it by the small value. The issue here is that computers cannot accurately represent decimals, and the larger the absolute value, the less accurate it is. Also, we cannot fully solve infinite series. The third method is symbolic differentiation, where we convert the function into an expression tree and then operate on the tree to get the derivative. Take $Mul(Const(2), Var(1)) \to Const(2)$ for example: here the differentiation result of constant 2 multiplied by x will be constant 2. The problem with symbolic differentiation is that the calculation results may not be simplified enough, and there may be redundant calculations. In addition, it's hard to directly use native control flow like conditionals and loops. If we want to define a function to find the larger value, we have to define an operator instead of simply comparing the current values. 
 
 ```moonbit no-check
 // Need to define additional native operators for the same effect
@@ -78,7 +78,7 @@ fn Symbol::compute(self : Symbol, input : Array[Double]) -> Double {
 }
 ```
 
-Let's review the derivative rules. If a function is constant, its derivative is 0. If a variable is partially differentiated with respect to itself, the derivative is 1; otherwise, it's 0. The derivative of the sum of two functions is the sum of their derivatives, while the derivative of the product of two functions is the sum of the derivative of each function multiplied by the other function. For example, the derivative of `f * g​` is the derivative of `f` multiplied by `g` plus the derivative of `g` multiplied by `f`. Using these rules, we differentiate our symbols through pattern matching. Since it's partial differentiation, our parameter also includes an index to indicate which variable we are differentiating with respect to.
+Let's review the derivative rules for any constant function, any variable partially differentiated with respect to itself, the sum of two function and the product of two functions. For example, the derivative of $f * g$ is the derivative of $f$ multiplied by $g$ plus the derivative of $g$ multiplied by $f$. Using these rules, we differentiate our symbols through pattern matching. Since it's partial differentiation, our parameter also includes an index to indicate which variable we are differentiating with respect to.
 
 - $\frac{\partial f}{\partial x_i} = 0$ if $f$ is a constant function
 - $\frac{\partial x_i}{\partial x_i} = 1, \frac{\partial x_j}{\partial x_i} = 0, i \neq j$
@@ -166,7 +166,7 @@ trait Number  {
 }
 ```
 
-With this interface, we can use the native control flow of the language for computation and dynamically generate computation graphs. In the following example, we can choose an expression to compute based on the current value of `y`, and when we differentiate, we differentiate the corresponding expression.
+With this interface, we can use the native control flow of the language for computation and dynamically generate computation graphs. In the following example, we can choose an expression to compute based on the current value of $y$, and when we differentiate, we differentiate the corresponding expression.
 
 ```moonbit
 fn max[N : Number](x : N, y : N) -> N {
@@ -180,7 +180,7 @@ max(x, N::constant(0.0))
 
 ### Forward Differentiation
 
-We will start with forward differentiation. It is relatively straightforward that it directly uses the derivative rules to simultaneously calculate `f(a)` and `f'(a)`. The reason for calculating both of them instead of just the derivative is simple: when differentiating the product of two functions, we need to know the current values of both functions for computation, so we need to compute both the value and the derivative at the same time. Mathematically, this corresponds to the concept of `dual number` in linear algebra. You are encouraged to dive deeper into it if you find it interesting. Let's construct a struct containing dual numbers, with one field being the value of the current node and the other being the derivative of the current node. It is very simple to construct from constants: the value is the constant, and the derivative is zero. It is also very straightforward to get the current value where we just access the corresponding variable. Here we add a helper function. For a variable, besides its value, we also need to determine if it is the variable to differentiate, and if so, its derivative is 1, otherwise, it is 0, as previously explained.
+We will start with forward differentiation. It is relatively straightforward that it directly uses the derivative rules to simultaneously calculate $f(a)$ and $f'(a)$. The reason for calculating both of them instead of just the derivative is simple: when differentiating the product of two functions, we need to know the current values of both functions for computation, so we need to compute both the value and the derivative at the same time. Mathematically, this corresponds to the concept of `dual number` in linear algebra. You are encouraged to dive deeper into it if you find it interesting. Let's construct a struct containing dual numbers, with one field being the value of the current node and the other being the derivative of the current node. It is very simple to construct from constants: the value is the constant, and the derivative is zero. It is also very straightforward to get the current value where we just access the corresponding variable. Here we add a helper function. For a variable, besides its value, we also need to determine if it is the variable to differentiate, and if so, its derivative is 1, otherwise, it is 0, as previously explained.
 
 ```moonbit
 struct Forward {
@@ -197,7 +197,7 @@ fn Forward::var(d : Double, diff : Bool) -> Forward {
 }
 ```
 
-Next, let's define methods for addition and multiplication, using the derivative rules to directly calculate derivatives. For example, the value of the sum of two functions `f` and `g` is the sum of their values, and the derivative is the sum of their derivatives, as shown in line 4. For the product of two functions `f` and `g`, the value is the product of their values, and the derivative is as introduced before: `f * g' + g * f'`. In this way, we directly calculate the derivatives without creating any intermediate data structures.
+Next, let's define methods for addition and multiplication, using the derivative rules to directly calculate derivatives. For example, the value of the sum of two functions $f$ and $g$ is the sum of their values, and the derivative is the sum of their derivatives, as shown in line 4. For the product of two functions $f$ and $g$, the value is the product of their values, and the derivative is as introduced before: $f * g' + g * f'$. In this way, we directly calculate the derivatives without creating any intermediate data structures.
 
 ```moonbit
 fn Forward::op_add(f : Forward, g : Forward) -> Forward { {
@@ -225,12 +225,12 @@ inspect(Forward::var(10.0, false) * Forward::var(100.0, true), ~content="{value:
 
 ### Backward Differentiation
 
-Backward differentiation utilizes the chain rule for calculation. Suppose we have a function `w` of `x, y, z`, etc., and `x, y, z`, etc. are functions of `t`. Then the partial derivative of `w` with respect to `t` is the partial derivative of `w` with respect to `x` times the partial derivative of `x` with respect to `t`, plus the partial derivative of `w` with respect to `y` times the partial derivative of `y` with respect to `t`, plus the partial derivative of `w` with respect to `z` times the partial derivative of `z` with respect to `t`, and so on. 
+Backward differentiation utilizes the chain rule for calculation. Suppose we have a function $w$ of $x, y, z$, etc., and $x, y, z$, etc. are functions of $t$. Then the partial derivative of $w$ with respect to $t$ is the partial derivative of $w$ with respect to $x$ times the partial derivative of $x$ with respect to $t$, plus the partial derivative of $w$ with respect to $y$ times the partial derivative of $y$ with respect to $t$, plus the partial derivative of $w$ with respect to $z$ times the partial derivative of $z$ with respect to $t$, and so on. 
 
 - Given $w = f(x, y, z, \cdots), x = x(t), y = y(t), z = z(t), \cdots$  
   $\frac{\partial w}{\partial t} = \frac{\partial w}{\partial x} \frac{\partial x}{\partial t} + \frac{\partial w}{\partial y} \frac{\partial y}{\partial t} + \frac{\partial w}{\partial z} \frac{\partial z}{\partial t} + \cdots$
 
-For example, for `f(x0, x1) = x0 ^ 2` times `x1`, we can consider `f` as a function of `g` and `h`, where `g` and `h` are `x0 ^ 2` and `x1` respectively. We differentiate each component: the partial derivative of `f` with respect to `g` is `h`;  the partial derivative of `f` with respect to `h` is `g`;  the partial derivative of `g` with respect to `x0` is `2x0`, and the partial derivative of `h` with respect to `x0` is 0. Lastly, we combine them using the chain rule to get the result `2x0x1`. Backward differentiation is the process where we start with the partial derivative of `f` with respect to `f`, followed by calculating the partial derivatives of `f` with respect to the intermediate functions and their partial derivatives with respect to the intermediate functions, until we reach the partial derivatives with respect to the input parameters. This way, by tracing backward and creating the computation graph of `f` in reverse order, we can compute the derivative of each input node. This is suitable for cases where there are more input parameters than output parameters.
+For example, for $f(x0, x1) = x0 ^ 2 \times x1$, we can consider $f$ as a function of $g$ and $h$, where $g$ and $h$ are $x0 ^ 2$ and $x1$ respectively. We differentiate each component: the partial derivative of $f$ with respect to $g$ is $h$;  the partial derivative of $f$ with respect to $h$ is $g$;  the partial derivative of $g$ with respect to $x_0$ is $2x_0$, and the partial derivative of $h$ with respect to $x_0$ is 0. Lastly, we combine them using the chain rule to get the result $2x_0x_1$. Backward differentiation is the process where we start with the partial derivative of $f$ with respect to $f$, followed by calculating the partial derivatives of $f$ with respect to the intermediate functions and their partial derivatives with respect to the intermediate functions, until we reach the partial derivatives with respect to the input parameters. This way, by tracing backward and creating the computation graph of $f$ in reverse order, we can compute the derivative of each input node. This is suitable for cases where there are more input parameters than output parameters.
 
 - Example: $f(x_0, x_1) = {x_0} ^ 2 x_1$
   - Decomposition: $f = g h, g(x_0, x_1) = {x_0} ^ 2, h(x_0, x_1) = x_1$
@@ -259,7 +259,7 @@ fn Backward::backward(b : Backward, d : Double) -> Unit { (b.backward)(d) }
 fn Backward::value(backward : Backward) -> Double { backward.value }
 ```
 
-Next, let's look at addition and multiplication. Suppose the functions `g` and `h` are involved in computation, the current function is `f`, and the final result is `y`, with `x` as a parameter. We've previously mentioned the partial derivatives of `f` with respect to `g` and `h` and will omit them here. For the accumulated partial derivative of `y` with respect to `x`, the partial derivative through the path of `f` and `g` is the partial derivative of `y` with respect to `f` times the partial derivative of `f` with respect to `g` times the partial derivative of `g` with respect to `x`. Here, the partial derivative of `y` with respect to `f` corresponds to the parameter `diff` in the `backward` function. So we can see in line 4 that the parameter we pass to `g` is `diff * 1.0`, which corresponds to the partial derivative of `y` with respect to `f` times the partial derivative of `f` with respect to `g`. We'll pass a similar parameter to `h`. In line 11, according to the derivative rules, the parameter passed to `g` is `diff` times the current value of `h`, and the parameter passed to `h` is `diff` times the current value of `g`.
+Next, let's look at addition and multiplication. Suppose the functions $g$ and $h$ are involved in computation, the current function is $f$, and the final result is $y$, with $x$ as a parameter. We've previously mentioned the partial derivatives of $f$ with respect to $g$ and $h$ and will omit them here. For the accumulated partial derivative of $y$ with respect to $x$, the partial derivative through the path of $f$ and $g$ is the partial derivative of $y$ with respect to $f$ times the partial derivative of $f$ with respect to $g$ times the partial derivative of $g$ with respect to $x$. Here, the partial derivative of $y$ with respect to $f$ corresponds to the parameter $diff$ in the `backward` function. So we can see in line 4 that the parameter we pass to $g$ is $diff \times 1.0$, which corresponds to the partial derivative of $y$ with respect to $f$ times the partial derivative of $f$ with respect to $g$. We'll pass a similar parameter to $h$. In line 11, according to the derivative rules, the parameter passed to $g$ is `diff` times the current value of $h$, and the parameter passed to $h$ is `diff` times the current value of $g$.
 
 ```moonbit
 fn Backward::op_add(g : Backward, h : Backward) -> Backward {
@@ -277,7 +277,7 @@ fn Backward::op_mul(g : Backward, h : Backward) -> Backward {
 }
 ```
 
-Lastly, we'll see how to use it. Let's construct two `Ref`s to store the derivatives of `x` and `y`. We'll use two accumulators to create two input nodes with input values of 10 and 100 respectively. After that, we use the previous example to conduct calculations, and after the forward computation is completed, we call the backward function. The parameter `1.0` corresponds to the derivative of `f` with respect to `f`. At this point, the values in both `Ref`s are updated, and we can obtain the derivatives of all input parameters simultaneously.
+Lastly, we'll see how to use it. Let's construct two `Ref`s to store the derivatives of $x$ and $y$. We'll use two accumulators to create two input nodes with input values of 10 and 100 respectively. After that, we use the previous example to conduct calculations, and after the forward computation is completed, we call the backward function. The parameter `1.0` corresponds to the derivative of $f$ with respect to $f$. At this point, the values in both `Ref`s are updated, and we can obtain the derivatives of all input parameters simultaneously.
 
 ```moonbit
 test "Backward differentiation" {
@@ -303,7 +303,7 @@ Then, we'll use Newton's method to find the value. Since there is only one param
   }
   ```
 
-Let's define `x` as the iteration variable with an initial value of 1.0. Since `x` is the variable with respect to which we are differentiating, we'll set the second parameter to be true. Next, we'll define an infinite loop. In line 5, we compute the value and derivative of the function corresponding to `x`. In line 6, if the value divided by the derivative (i.e., the step size we want to approximate) is small enough, it indicates that we are very close to zero, and we terminate the loop. In line 7, if the condition is not met, we update the value of `x` to be the previous value minus the value divided by the derivative and then continue the loop. In this way, we can eventually get an approximate solution.
+Let's define $x$ as the iteration variable with an initial value of 1.0. Since $x$ is the variable with respect to which we are differentiating, we'll set the second parameter to be true. Next, we'll define an infinite loop. In line 5, we compute the value and derivative of the function corresponding to $x$. In line 6, if the value divided by the derivative (i.e., the step size we want to approximate) is small enough, it indicates that we are very close to zero, and we terminate the loop. In line 7, if the condition is not met, we update the value of $x$ to be the previous value minus the value divided by the derivative and then continue the loop. In this way, we can eventually get an approximate solution.
 
 - Iterate through the loop
 
