@@ -133,8 +133,8 @@ In this way, when we need to call such functions sequentially, we can avoid mult
 fn BoxedInt::plus_one(b: BoxedInt) -> BoxedInt {
   { value : b.value + 1 }
 }
-fn plus_two(self: BoxedInt) -> BoxedInt {
-  // `<type>::` can be omitted when the first parameter is named `self`.
+// `<type>::` can be omitted when the first parameter is named `self`.
+fn plus_two(self: BoxedInt) -> BoxedInt {  
   { value : self.value + 2}
 }
 
