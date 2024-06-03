@@ -222,7 +222,7 @@ fn get[Key: Eq, Value](map : Map[Key, Value], key : Key) -> Option[Value] {
 }
 ```
 
-In the above implementation, we define an auxiliary function called `aux` to traverse the list and use the `==` operator to determine whether the current key matches the one we are looking for. It can be shown that when there are multiple identical keys, we will always retrieve the latest value associated with that key.
+In the above implementation, we loop through the list and use the `==` operator to determine whether the current key matches the one we are looking for. It can be shown that when there are multiple identical keys, we will always retrieve the latest value associated with that key.
 
 ## Custom Operators
 
