@@ -303,7 +303,7 @@ Then, we'll use Newton's method to find the value. Since there is only one param
   }
   ```
 
-To test Newton's method:  
+To approximate zeros with Newton's method:  
 
 - First, define $x$ as the iteration variable with an initial value of 1.0. Since $x$ is the variable with respect to which we are differentiating, we'll set the second parameter to be true.
 - Second, define an infinite loop.
