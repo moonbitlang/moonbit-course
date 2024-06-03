@@ -78,7 +78,7 @@ fn Symbol::compute(self : Symbol, input : Array[Double]) -> Double {
 }
 ```
 
-Let's review the derivative rules for any constant function, any variable partially differentiated with respect to itself, the sum of two function and the product of two functions. For example, the derivative of $f * g$ is the derivative of $f$ multiplied by $g$ plus the derivative of $g$ multiplied by $f$. Using these rules, we differentiate our symbols through pattern matching. Since it's partial differentiation, our parameter also includes an index to indicate which variable we are differentiating with respect to.
+Let's review the derivative rules for any constant function, any variable partially differentiated with respect to itself, the sum of two functions and the product of two functions. For example, the derivative of $f * g$ is the derivative of $f$ multiplied by $g$ plus the derivative of $g$ multiplied by $f$. Using these rules, we differentiate our symbols through pattern matching. Since it's partial differentiation, our parameter also includes an index to indicate which variable we are differentiating with respect to.
 
 - $\frac{\partial f}{\partial x_i} = 0$ if $f$ is a constant function
 - $\frac{\partial x_i}{\partial x_i} = 1, \frac{\partial x_j}{\partial x_i} = 0, i \neq j$
