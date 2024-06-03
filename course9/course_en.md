@@ -333,6 +333,27 @@ fn init {
 
 ---
 
+# Pattern Matching
+
+- The type must implement the `op_get` method, where the key is a native type and the value is an `Option[T]`.
+- When matching, the key must be a literal.
+- In `{ "key": pat }`, the pattern pat type is `Option[T]`.
+- Unmatched keys will be ignored even if they exist.
+- The code generated is optimized, with each key being queried at most once.
+
+```moonbit
+fn init {
+  let empty: Map[Int, Int] = make()
+  let one = { empty[1] = 1 }
+  match one {
+    { 2 : Some(y) } => println(y)
+    { 2 : None, 1 : Some(k) } => println(k)
+  }
+}
+```
+
+---
+
 # Summary
 
 - In this chapter, we learned how to
