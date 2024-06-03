@@ -311,11 +311,10 @@ Let's define `x` as the iteration variable with an initial value of 1.0. Since `
 
   ```moonbit
   test "Newton's method" {
-    fn abs(d : Double) -> Double { if d >= 0.0 { d } else { -d } }
     (loop Forward::var(1.0, true) { // initial value
       x => {
         let { value, derivative } = example_newton(x)
-        if abs(value / derivative) < 1.0e-9 {
+        if (value / derivative).abs() < 1.0e-9 {
           break x.value // end the loop and have x.value as the value of the loop body
         }
         continue Forward::var(x.value - value / derivative, true)
