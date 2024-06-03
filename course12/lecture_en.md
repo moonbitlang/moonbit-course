@@ -216,7 +216,7 @@ Finally, we use the previously defined example with conditionals to calculate de
 ```moonbit
 test "Forward differentiation" {
 // Forward differentiation with abstraction
-inspect(relu(Forward::var(10.0, true)), content="{value: 10.0, derivative: 1.0}")? 
+  inspect(relu(Forward::var(10.0, true)), content="{value: 10.0, derivative: 1.0}")? 
   inspect(relu(Forward::var(-10.0, true)), content="{value: 0.0, derivative: 0.0}")?
 // f(x, y) = x * y => df/dy(10, 100)
 inspect(Forward::var(10.0, false) * Forward::var(100.0, true), ~content="{value: 1000.0, derivative: 10.0}")?
