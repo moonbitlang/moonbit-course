@@ -185,6 +185,18 @@ impl MyTrait for Int with f(self) {
 
 ---
 
+# Automatic Derivation of Builtin Traits
+
+- Some simple builtin traits can be automatically derived by adding `derive(<traits>)` after the type definition.
+
+```moonbit no-check
+struct BoxedInt { value : Int } derive(Default, Eq, Compare, Debug)
+```
+
+- The member data types should have implemented the same traits.
+
+---
+
 # Method Chaining
 
 - In addition to `<type>::<method>(<expr>, ...)`, we can as well call the method using `<expr>.<method>(...)`, given `<expr>` is of type `<type>`.
@@ -204,18 +216,6 @@ fn init {
   let _five = plus_two(plus_one(plus_one({value: 1})))
 }
 ```
-
----
-
-# Automatic Derivation of Builtin Traits
-
-- Some simple builtin traits can be automatically derived by adding `derive(<traits>)` after the type definition.
-
-```moonbit no-check
-struct BoxedInt { value : Int } derive(Default, Eq, Compare, Debug)
-```
-
-- The member data types should have implemented the same traits.
 
 ---
 

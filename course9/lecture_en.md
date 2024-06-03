@@ -154,6 +154,16 @@ impl MyTrait for Int with f(self) {
 }
 ```
 
+### Automatic Derivation
+
+In MoonBit, it is possible to automatically derive certain basic traits by adding `derive(<traits>)` after the type declaration. If the type is composed of other types, those member types must have already implemented the same traits.
+
+In the given example, we derive the `Default`, `Eq`, `Compare`, and `Debug` traits for `BoxedInt`. These traits can be successfully derived because `Int` already implements them. However, if the required traits are not implemented by the member types, the compiler will generate an error message.
+
+```moonbit no-check
+struct BoxedInt { value : Int } derive(Default, Eq, Compare, Debug)
+```
+
 ## Method Chaining
 
 In addition to `<type>::<method>(<expr>, ...)`, we can as well call the method using `<expr>.<method>(...)`, given `<expr>` is of type `<type>`. When defining such methods, `<type>::` can also be omitted when the first parameter is named `self`.
@@ -174,16 +184,6 @@ fn init {
   // This avoids multiple nesting of method calls.
   let _five = plus_two(plus_one(plus_one({value: 1})))
 }
-```
-
-## Automatic Derivation of Builtin Traits
-
-In MoonBit, it is possible to automatically derive certain basic traits by adding `derive(<traits>)` after the type declaration. If the type is composed of other types, those member types must have already implemented the same traits.
-
-In the given example, we derive the `Default`, `Eq`, `Compare`, and `Debug` traits for `BoxedInt`. These traits can be successfully derived because `Int` already implements them. However, if the required traits are not implemented by the member types, the compiler will generate an error message.
-
-```moonbit no-check
-struct BoxedInt { value : Int } derive(Default, Eq, Compare, Debug)
 ```
 
 ## Example: Using Traits to Implement a Map
