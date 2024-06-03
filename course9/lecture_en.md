@@ -210,19 +210,15 @@ The complete implementation of `get` is as follows:
 
 ```moonbit
 fn get[Key: Eq, Value](map : Map[Key, Value], key : Key) -> Option[Value] {
-  fn aux(list : List[(Key, Value)]) -> Option[Value] {
-    match list {
-      Nil => None
-      Cons((k, v), tl) => if k == key {
-        // `Key` is bound by `Eq`, so we can call `==` directly.
-        Some(v)
-      } else {
-        aux(tl)
-      }
+  loop map.0 {
+    Nil => None
+    Cons((k, v), tl) => if k == key {
+      // `Key` is bound by `Eq`, so we can call `==` directly.
+      Some(v)
+    } else {
+      continue tl
     }
   }
-
-  aux(map.0) // Use `.0` to get the value.
 }
 ```
 
