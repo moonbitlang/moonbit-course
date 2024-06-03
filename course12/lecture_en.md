@@ -303,25 +303,31 @@ Then, we'll use Newton's method to find the value. Since there is only one param
   }
   ```
 
-Let's define $x$ as the iteration variable with an initial value of 1.0. Since $x$ is the variable with respect to which we are differentiating, we'll set the second parameter to be true. Next, we'll define an infinite loop. In line 5, we compute the value and derivative of the function corresponding to $x$. In line 6, if the value divided by the derivative (i.e., the step size we want to approximate) is small enough, it indicates that we are very close to zero, and we terminate the loop. In line 7, if the condition is not met, we update the value of $x$ to be the previous value minus the value divided by the derivative and then continue the loop. In this way, we can eventually get an approximate solution.
+To test Newton's method:  
 
-- Iterate through the loop
+- First, define $x$ as the iteration variable with an initial value of 1.0. Since $x$ is the variable with respect to which we are differentiating, we'll set the second parameter to be true.
+- Second, define an infinite loop.
+- Third, in line 5, compute the value and derivative of the function corresponding to $x$.
+- Fourth, in line 6, if the value divided by the derivative (i.e., the step size we want to approximate) is small enough, it indicates that we are very close to zero, and we terminate the loop.
+- Last, in line 7, if the condition is not met, update the value of $x$ to be the previous value minus the value divided by the derivative and then continue the loop.
 
-  - $x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}$
+In this way, we iterate through the loop to eventually get an approximate solution.
 
-  ```moonbit
-  test "Newton's method" {
-    (loop Forward::var(1.0, true) { // initial value
-      x => {
-        let { value, derivative } = example_newton(x)
-        if (value / derivative).abs() < 1.0e-9 {
-          break x.value // end the loop and have x.value as the value of the loop body
-        }
-        continue Forward::var(x.value - value / derivative, true)
+- $x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}$
+
+```moonbit
+test "Newton's method" {
+  (loop Forward::var(1.0, true) { // initial value
+    x => {
+      let { value, derivative } = example_newton(x)
+      if (value / derivative).abs() < 1.0e-9 {
+        break x.value // end the loop and have x.value as the value of the loop body
       }
-    } |> @assertion.assert_eq(0.37851665401644224))?
-  }
-  ```
+      continue Forward::var(x.value - value / derivative, true)
+    }
+  } |> @assertion.assert_eq(0.37851665401644224))?
+}
+```
 
 # Summary
 
