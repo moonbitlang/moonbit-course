@@ -78,7 +78,7 @@ fn Symbol::compute(self : Symbol, input : Array[Double]) -> Double {
 }
 ```
 
-Let's review the derivative rules for any constant function, any variable partially differentiated with respect to itself, the sum of two functions and the product of two functions. For example, the derivative of $f * g$ is the derivative of $f$ multiplied by $g$ plus the derivative of $g$ multiplied by $f$. Using these rules, we differentiate our symbols through pattern matching. Since it's partial differentiation, our parameter also includes an index to indicate which variable we are differentiating with respect to.
+Let's review the derivative rules for any constant function, any variable partially differentiated with respect to itself, the sum of two functions and the product of two functions. For example, the derivative of $f \times g$ is the derivative of $f$ multiplied by $g$ plus the derivative of $g$ multiplied by $f$. Using these rules, we differentiate our symbols through pattern matching. Since it's partial differentiation, our parameter also includes an index to indicate which variable we are differentiating with respect to.
 
 - $\frac{\partial f}{\partial x_i} = 0$ if $f$ is a constant function
 - $\frac{\partial x_i}{\partial x_i} = 1, \frac{\partial x_j}{\partial x_i} = 0, i \neq j$
@@ -197,7 +197,7 @@ fn Forward::var(d : Double, diff : Bool) -> Forward {
 }
 ```
 
-Next, let's define methods for addition and multiplication, using the derivative rules to directly calculate derivatives. For example, the value of the sum of two functions $f$ and $g$ is the sum of their values, and the derivative is the sum of their derivatives, as shown in line 4. For the product of two functions $f$ and $g$, the value is the product of their values, and the derivative is as introduced before: $f * g' + g * f'$. In this way, we directly calculate the derivatives without creating any intermediate data structures.
+Next, let's define methods for addition and multiplication, using the derivative rules to directly calculate derivatives. For example, the value of the sum of two functions $f$ and $g$ is the sum of their values, and the derivative is the sum of their derivatives, as shown in line 4. For the product of two functions $f$ and $g$, the value is the product of their values, and the derivative is as introduced before: $f \times g' + g \times f'$. In this way, we directly calculate the derivatives without creating any intermediate data structures.
 
 ```moonbit
 fn Forward::op_add(f : Forward, g : Forward) -> Forward { {
@@ -259,7 +259,7 @@ fn Backward::backward(b : Backward, d : Double) -> Unit { (b.backward)(d) }
 fn Backward::value(backward : Backward) -> Double { backward.value }
 ```
 
-Next, let's look at addition and multiplication. Suppose the functions $g$ and $h$ are involved in computation, the current function is $f$, and the final result is $y$, with $x$ as a parameter. We've previously mentioned the partial derivatives of $f$ with respect to $g$ and $h$ and will omit them here. For the accumulated partial derivative of $y$ with respect to $x$, the partial derivative through the path of $f$ and $g$ is the partial derivative of $y$ with respect to $f$ times the partial derivative of $f$ with respect to $g$ times the partial derivative of $g$ with respect to $x$. Here, the partial derivative of $y$ with respect to $f$ corresponds to the parameter $diff$ in the `backward` function. So we can see in line 4 that the parameter we pass to $g$ is $diff \times 1.0$, which corresponds to the partial derivative of $y$ with respect to $f$ times the partial derivative of $f$ with respect to $g$. We'll pass a similar parameter to $h$. In line 11, according to the derivative rules, the parameter passed to $g$ is `diff` times the current value of $h$, and the parameter passed to $h$ is `diff` times the current value of $g$.
+Next, let's look at addition and multiplication. Suppose the functions $g$ and $h$ are involved in computation, the current function is $f$, and the final result is $y$, with $x$ as a parameter. We've previously mentioned the partial derivatives of $f$ with respect to $g$ and $h$ and will omit them here. For the accumulated partial derivative of $y$ with respect to $x$, the partial derivative through the path of $f$ and $g$ is the partial derivative of $y$ with respect to $f$ times the partial derivative of $f$ with respect to $g$ times the partial derivative of $g$ with respect to $x$. Here, the partial derivative of $y$ with respect to $f$ corresponds to the parameter $diff$ in the `backward` function. So we can see in line 4 that the parameter we pass to $g$ is $diff \times 1.0$, which corresponds to the partial derivative of $y$ with respect to $f$ times the partial derivative of $f$ with respect to $g$. We'll pass a similar parameter to $h$. In line 11, according to the derivative rules, the parameter passed to $g$ is $diff$ times the current value of $h$, and the parameter passed to $h$ is $diff$ times the current value of $g$.
 
 ```moonbit
 fn Backward::op_add(g : Backward, h : Backward) -> Backward {
