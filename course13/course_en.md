@@ -11,6 +11,190 @@ style: |
   }
 ---
 
+<!--
+
+```moonbit
+pub struct Backward {
+  value : Double
+  propagate : () -> Unit // topogical sort
+  backward : (Double) -> Unit
+}
+
+fn Backward::constant(d : Double) -> Backward {
+  { value: d, propagate: fn() {  }, backward: fn { _ => () } }
+}
+
+fn Backward::var(value : Double, diff : Ref[Double]) -> Backward {
+  { value, propagate: fn() {  }, backward: fn { d => diff.val = diff.val + d } }
+}
+
+fn Backward::backward(b : Backward, d : Double) -> Unit {
+  (b.propagate)()
+  (b.backward)(d)
+}
+
+fn Backward::value(backward : Backward) -> Double {
+  backward.value
+}
+
+fn Backward::op_add(b1 : Backward, b2 : Backward) -> Backward {
+  let counter = { val: 0 }
+  let cumul = { val: 0.0 }
+  {
+    value: b1.value + b2.value,
+    propagate: fn() {
+      counter.val = counter.val + 1
+      if counter.val == 1 {
+        (b1.propagate)()
+        (b2.propagate)()
+      }
+    },
+    backward: fn(diff) {
+      counter.val = counter.val - 1
+      cumul.val = cumul.val + diff
+      if counter.val == 0 {
+        (b1.backward)(cumul.val)
+        (b2.backward)(cumul.val)
+      }
+    },
+  }
+}
+
+fn Backward::op_neg(b : Backward) -> Backward {
+  let counter = { val: 0 }
+  let cumul = { val: 0.0 }
+  {
+    value: -b.value,
+    propagate: fn() {
+      counter.val = counter.val + 1
+      if counter.val == 1 {
+        (b.propagate)()
+      }
+    },
+    backward: fn(diff) {
+      counter.val = counter.val - 1
+      cumul.val = cumul.val + diff
+      if counter.val == 0 {
+        (b.backward)(-cumul.val)
+      }
+    },
+  }
+}
+
+fn Backward::op_mul(b1 : Backward, b2 : Backward) -> Backward {
+  let counter = { val: 0 }
+  let cumul = { val: 0.0 }
+  {
+    value: b1.value * b2.value,
+    propagate: fn() {
+      counter.val = counter.val + 1
+      if counter.val == 1 {
+        (b1.propagate)()
+        (b2.propagate)()
+      }
+    },
+    backward: fn(diff) {
+      counter.val = counter.val - 1
+      cumul.val = cumul.val + diff
+      if counter.val == 0 {
+        (b1.backward)(cumul.val * b2.value)
+        (b2.backward)(cumul.val * b1.value)
+      }
+    },
+  }
+}
+
+fn Backward::op_div(b1 : Backward, b2 : Backward) -> Backward {
+  let counter = { val: 0 }
+  let cumul = { val: 0.0 }
+  {
+    value: b1.value / b2.value,
+    propagate: fn() {
+      counter.val = counter.val + 1
+      if counter.val == 1 {
+        (b1.propagate)()
+        (b2.propagate)()
+      }
+    },
+    backward: fn(diff) {
+      counter.val = counter.val - 1
+      cumul.val = cumul.val + diff
+      if counter.val == 0 {
+        (b1.backward)(cumul.val / b2.value)
+        (b2.backward)(-cumul.val * b1.value / b2.value / b2.value)
+      }
+    },
+  }
+}
+
+fn Backward::exp(b : Backward) -> Backward {
+  let b_exp = Base::exp(b.value)
+  let counter = { val: 0 }
+  let cumul = { val: 0.0 }
+  {
+    value: b_exp,
+    propagate: fn() {
+      counter.val = counter.val + 1
+      if counter.val == 1 {
+        (b.propagate)()
+      }
+    },
+    backward: fn(diff) {
+      counter.val = counter.val - 1
+      cumul.val = cumul.val + diff
+      if counter.val == 0 {
+        (b.backward)(cumul.val * b_exp)
+      }
+    },
+  }
+}
+
+fn Backward::log(b : Backward) -> Backward {
+  let counter = { val: 0 }
+  let cumul = { val: 0.0 }
+  {
+    value: Log::log(b.value),
+    propagate: fn() {
+      counter.val = counter.val + 1
+      if counter.val == 1 {
+        (b.propagate)()
+      }
+    },
+    backward: fn(diff) {
+      counter.val = counter.val - 1
+      cumul.val = cumul.val + diff
+      if counter.val == 0 {
+        (b.backward)(cumul.val / b.value)
+      }
+    },
+  }
+}
+
+// Implementation for Double
+
+fn Base::constant(d : Double) -> Double {
+  d
+}
+
+fn Base::value(d : Double) -> Double {
+  d
+}
+
+fn Base::exp(x : Double) -> Double {
+  x |> exp_ffi
+}
+
+fn exp_ffi(x : Double) -> Double = "math" "exp"
+
+fn Log::log(x : Double) -> Double {
+  x |> log_ffi
+}
+
+fn log_ffi(x : Double) -> Double = "math" "log"
+```
+
+-->
+
 # Programming with MoonBit: A Modern Approach
 
 ## Case Study: Neural Network
@@ -229,8 +413,8 @@ style: |
 	trait Log {
 	  log(Self) -> Self // for computing cross-entropy
 	}
-	fn cross_entropy[T : Base + Log](inputs: Array[T], expected: Int) -> Double {
-	  -inputs[expected].log().value()
+	fn cross_entropy[T : Base + Log](inputs: Array[T], expected: Int) -> T {
+	  -inputs[expected].log()
 	}
 	```
 
@@ -243,13 +427,13 @@ style: |
   ```moonbit
 	fn Backward::param(param: Array[Array[Double]], diff: Array[Array[Double]], 
 		i: Int, j: Int) -> Backward {
-	  { value: param[i][j], backward: fn { d => diff[i][j] = diff[i][j] + d} }
+	  { value: param[i][j], propagate: fn() {  }, backward: fn { d => diff[i][j] = diff[i][j] + d} }
 	}
 	```
   - Compute the cost and perform backward differentiation accordingly
   ```moonbit
 	fn diff(inputs: Array[Double], expected: Int,
-	   param_hidden: Array[Array[Backward]], param_output: Array[Array[Backward]]) {
+	   param_hidden: Array[Array[Backward]], param_output: Array[Array[Backward]]) -> Unit {
 	  let result = inputs
 	    |> input2hidden(param_hidden)
 	    |> hidden2output(param_output)
@@ -264,7 +448,8 @@ style: |
 
 - Adjust parameters based on the gradients
   ```moonbit
-	fn update(params: Array[Array[Double]], diff: Array[Array[Double]], step: Double) {
+	fn update(params: Array[Array[Double]],
+            diff: Array[Array[Double]], step: Double) -> Unit {
 	  for i = 0; i < params.length(); i = i + 1 {
 	    for j = 0; j < params[i].length(); j = j + 1 {
 	      params[i][j] = params[i][j] - step * diff[i][j]
