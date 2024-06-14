@@ -333,60 +333,60 @@ fn log_ffi(x : Double) -> Double = "math" "log"
 # Implementation
 
 - Activation function
-	```moonbit
-	fn reLU[T : Base](t : T) -> T {
-	  if t.value() < 0.0 { T::constant(0.0) } else { t }
-	}
+  ```moonbit
+  fn reLU[T : Base](t : T) -> T {
+    if t.value() < 0.0 { T::constant(0.0) } else { t }
+  }
 
-	fn softmax[T : Base](inputs : Array[T]) -> Array[T] {
-	  let n = inputs.length()
-	  let outputs : Array[T] = Array::make(n, T::constant(0.0))
-	  let mut sum = T::constant(0.0)
-	  for i = 0; i < n; i = i + 1 {
-	    sum = sum + inputs[i].exp()
-	  }
-	  for i = 0; i < n; i = i + 1 {
-	    outputs[i] = inputs[i].exp() / sum
-	  }
-	  outputs
-	}
-	```
+  fn softmax[T : Base](inputs : Array[T]) -> Array[T] {
+    let n = inputs.length()
+    let outputs : Array[T] = Array::make(n, T::constant(0.0))
+    let mut sum = T::constant(0.0)
+    for i = 0; i < n; i = i + 1 {
+      sum = sum + inputs[i].exp()
+    }
+    for i = 0; i < n; i = i + 1 {
+      outputs[i] = inputs[i].exp() / sum
+    }
+    outputs
+  }
+  ```
 
 ---
 
 # Implementation
 
 - Input layer -> Hidden layer
-	```moonbit
-	fn input2hidden[T : Base](inputs: Array[Double], param: Array[Array[T]]) -> Array[T] {
-	  let outputs : Array[T] = Array::make(param.length(), T::constant(0.0))
-	  for output = 0; output < param.length(); output = output + 1 { // 4 outputs
-	    for input = 0; input < inputs.length(); input = input + 1 { // 4 inputs
-	      outputs[output] = outputs[output] + T::constant(inputs[input]) * param[output][input]
-	    }
-	    outputs[output] = outputs[output] + param[output][inputs.length()] |> reLU // constant
-	  }
-	  outputs
-	}
-	```
+  ```moonbit
+  fn input2hidden[T : Base](inputs: Array[Double], param: Array[Array[T]]) -> Array[T] {
+    let outputs : Array[T] = Array::make(param.length(), T::constant(0.0))
+    for output = 0; output < param.length(); output = output + 1 { // 4 outputs
+      for input = 0; input < inputs.length(); input = input + 1 { // 4 inputs
+        outputs[output] = outputs[output] + T::constant(inputs[input]) * param[output][input]
+      }
+      outputs[output] = outputs[output] + param[output][inputs.length()] |> reLU // constant
+    }
+    outputs
+  }
+  ```
 
 ---
 
 # Implementation
 
 - Hidden layer -> Output layer
-	```moonbit
-	fn hidden2output[T : Base](inputs: Array[T], param: Array[Array[T]]) -> Array[T] {
-	  let outputs : Array[T] = Array::make(param.length(), T::constant(0.0))
-	  for output = 0; output < param.length(); output = output + 1 { // 3 outputs
-	    for input = 0; input < inputs.length(); input = input + 1 { // 4 inputs
-	      outputs[output] = outputs[output] + inputs[input] * param[output][input]
-	    }
-	    outputs[output] = outputs[output] + param[output][inputs.length()] // constant
-	  }
-	  outputs |> softmax
-	}
-	```
+  ```moonbit
+  fn hidden2output[T : Base](inputs: Array[T], param: Array[Array[T]]) -> Array[T] {
+    let outputs : Array[T] = Array::make(param.length(), T::constant(0.0))
+    for output = 0; output < param.length(); output = output + 1 { // 3 outputs
+      for input = 0; input < inputs.length(); input = input + 1 { // 4 inputs
+        outputs[output] = outputs[output] + inputs[input] * param[output][input]
+      }
+      outputs[output] = outputs[output] + param[output][inputs.length()] // constant
+    }
+    outputs |> softmax
+  }
+  ```
 
 ---
 
@@ -410,13 +410,13 @@ fn log_ffi(x : Double) -> Double = "math" "log"
   - $p(x_j)$: the probability of $x_j$ happening
 - Cost function:
   ```moonbit
-	trait Log {
-	  log(Self) -> Self // for computing cross-entropy
-	}
-	fn cross_entropy[T : Base + Log](inputs: Array[T], expected: Int) -> T {
-	  -inputs[expected].log()
-	}
-	```
+  trait Log {
+    log(Self) -> Self // for computing cross-entropy
+  }
+  fn cross_entropy[T : Base + Log](inputs: Array[T], expected: Int) -> T {
+    -inputs[expected].log()
+  }
+  ```
 
 ---
 
@@ -425,21 +425,21 @@ fn log_ffi(x : Double) -> Double = "math" "log"
 - Backpropagation: Compute the gradients with backward differentiation and adjust the parameters accordingly
   - Accumulate the partial derivatives
   ```moonbit
-	fn Backward::param(param: Array[Array[Double]], diff: Array[Array[Double]], 
-		i: Int, j: Int) -> Backward {
-	  { value: param[i][j], propagate: fn() {  }, backward: fn { d => diff[i][j] = diff[i][j] + d} }
-	}
-	```
+  fn Backward::param(param: Array[Array[Double]], diff: Array[Array[Double]], 
+    i: Int, j: Int) -> Backward {
+    { value: param[i][j], propagate: fn() {  }, backward: fn { d => diff[i][j] = diff[i][j] + d} }
+  }
+  ```
   - Compute the cost and perform backward differentiation accordingly
   ```moonbit
-	fn diff(inputs: Array[Double], expected: Int,
-	   param_hidden: Array[Array[Backward]], param_output: Array[Array[Backward]]) -> Unit {
-	  let result = inputs
-	    |> input2hidden(param_hidden)
-	    |> hidden2output(param_output)
-	    |> cross_entropy(expected)
-	  result.backward(1.0)
-	}
+  fn diff(inputs: Array[Double], expected: Int,
+     param_hidden: Array[Array[Backward]], param_output: Array[Array[Backward]]) -> Unit {
+    let result = inputs
+      |> input2hidden(param_hidden)
+      |> hidden2output(param_output)
+      |> cross_entropy(expected)
+    result.backward(1.0)
+  }
   ```
 
 ---
@@ -448,15 +448,15 @@ fn log_ffi(x : Double) -> Double = "math" "log"
 
 - Adjust parameters based on the gradients
   ```moonbit
-	fn update(params: Array[Array[Double]],
+  fn update(params: Array[Array[Double]],
             diff: Array[Array[Double]], step: Double) -> Unit {
-	  for i = 0; i < params.length(); i = i + 1 {
-	    for j = 0; j < params[i].length(); j = j + 1 {
-	      params[i][j] = params[i][j] - step * diff[i][j]
-	    }
-	  }
-	}
-	```
+    for i = 0; i < params.length(); i = i + 1 {
+      for j = 0; j < params[i].length(); j = j + 1 {
+        params[i][j] = params[i][j] - step * diff[i][j]
+      }
+    }
+  }
+  ```
 
 ---
 
