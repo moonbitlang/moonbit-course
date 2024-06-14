@@ -244,8 +244,8 @@ fn log_ffi(x : Double) -> Double = "math" "log"
 <div>
 
 - A typical neural network consists of
-  - Input layer: receives the inputs
-  - Output layer: outputs the results
+  - Input layer: receives the input values
+  - Output layer: provides the results
   - Hidden layers: layers between the input and output layers
 - The structure of a neural network includes
   - Number of hidden layers, neurons
@@ -478,7 +478,7 @@ fn log_ffi(x : Double) -> Double = "math" "log"
 
 ---
 
-# Training Set vs Testing Set
+# Training and Testing
 
 - Randomly divide the dataset into two parts:
   - Training set: To train the parameters
