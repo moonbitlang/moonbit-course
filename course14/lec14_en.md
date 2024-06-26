@@ -272,11 +272,11 @@ let program = Program::{
 
   ```moonbit
   fn Instruction::to_wasm(self : Instruction, buffer : Buffer) -> Unit {
-  match self {
-      Add => buffer.write_string("i32.add ")
-      Local_Get(val) => buffer.write_string("local.get $" + val + " ")
-      _ => buffer.write_string("...")
-  }
+    match self {
+        Add => buffer.write_string("i32.add ")
+        Local_Get(val) => buffer.write_string("local.get $" + val + " ")
+        _ => buffer.write_string("...")
+    }
   }
   ```
 
@@ -297,11 +297,11 @@ let program = Program::{
 
   ```moonbit
   enum Expression {
-  Number(Int)
-  Plus(Expression, Expression)
-  Minus(Expression, Expression)
-  Multiply(Expression, Expression)
-  Divide(Expression, Expression)
+    Number(Int)
+    Plus(Expression, Expression)
+    Minus(Expression, Expression)
+    Multiply(Expression, Expression)
+    Divide(Expression, Expression)
   }
   ```
 
@@ -311,12 +311,12 @@ let program = Program::{
 
   ```moonbit no-check
   fn compile_expression(expression : Expression) -> List[Instruction] {
-  match expression {
-      Number(i) => List::[Const(I32(i))]
-      Plus(a, b) => compile_expression(a) + compile_expression(b) + List::[Add]
-      Minus(a, b) => compile_expression(a) + compile_expression(b) + List::[Sub]
-      _ => List::[]
-  }
+    match expression {
+        Number(i) => List::[Const(I32(i))]
+        Plus(a, b) => compile_expression(a) + compile_expression(b) + List::[Add]
+        Minus(a, b) => compile_expression(a) + compile_expression(b) + List::[Sub]
+        _ => List::[]
+    }
   }
   ```
 
