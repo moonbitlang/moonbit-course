@@ -335,7 +335,7 @@ let program = Program::{
 ```moonbit
 enum StackValue {
   Val(Value) // Ordinary value
-  Func(@immutable_hashmap.Map[String, Value]) // Function stack, stores previous local variables
+  Func(@immut/hashmap.Map[String, Value]) // Function stack, stores previous local variables
 }
 
 enum AdministrativeInstruction {
@@ -346,7 +346,7 @@ enum AdministrativeInstruction {
 struct State {
   program : Program
   stack : @immut/list.List[StackValue]
-  locals : @immutable_hashmap.Map[String, Value]
+  locals : @immut/hashmap.Map[String, Value]
   instructions : @immut/list.List[AdministrativeInstruction]
 }
 ```
