@@ -101,7 +101,7 @@ enum Instruction {
   Add; Sub; Modulo; Equal              // Add, Subtract, Modulo, Equal
   Call(String)                         // Function call
   Local_Get(String); Local_Set(String) // Get value, Set value
-  If(Int, List[Instruction], List[Instruction]) // Conditional statement
+  If(Int, @immut/list.List[Instruction], @immut/list.List[Instruction]) // Conditional statement
 }
 ```
 
@@ -113,8 +113,8 @@ enum Instruction {
 struct Function {
   name : String
   // Only considering one data type, so omit the type of each data, only keep the name and quantity
-  params : List[String]; result : Int; locals : List[String]
-  instructions : List[Instruction]
+  params : @immut/list.List[String]; result : Int; locals : @immut/list.List[String]
+  instructions : @immut/list.List[Instruction]
 }
 ```
 
@@ -122,7 +122,7 @@ struct Function {
 
 ```moonbit
 struct Program {
-  functions : List[Function]
+  functions : @immut/list.List[Function]
   start : Option[String]
 }
 ```
@@ -132,7 +132,7 @@ struct Program {
 - Example: `1 + 2`
 
   ```moonbit no-check
-  List::[ Const(1), Const(2), Add ]
+  @immut/list.List::[ Const(1), Const(2), Add ]
   ```
 
   ![](../pics/add.drawio.svg)
@@ -142,7 +142,7 @@ struct Program {
 - Example: Function `add(a : Int, b : Int) { a + b }`
 
   ```moonbit no-check
-  List::[ Local_Get("a"), Local_Get("b"), Add ]
+  @immut/list.List::[ Local_Get("a"), Local_Get("b"), Add ]
   ```
 
   - Function parameters and local variables can be accessed and modified via `Local_Get` and `Local_Set`.
@@ -175,9 +175,9 @@ struct Program {
 - Example: `if 1 == 0 { 1 } else { 0 }`
 
   ```moonbit no-check
-  List::[
+  @immut/list.List::[
   Const(1), Const(0), Equal,
-  If(1, List::[Const(1)], List::[Const(0)])
+  If(1, @immut/list.List::[Const(1)], @immut/list.List::[Const(0)])
   ]
   ```
 
@@ -195,17 +195,17 @@ let program = Program::{
 
   start: Some("test_add"), // Program entry point
 
-  functions: List::[
+  functions: @immut/list.List::[
     Function::{
       name: "add", // Addition function
-      params: List::["a", "b"], result: 1, locals: List::[],
-      instructions: List::[Local_Get("a"), Local_Get("b"), Add],
+      params: @immut/list.List::["a", "b"], result: 1, locals: @immut/list.List::[],
+      instructions: @immut/list.List::[Local_Get("a"), Local_Get("b"), Add],
     },
     Function::{
       name: "test_add", // calculate add and output
-      params: List::[], result: 0, locals: List::[], // entry function with no input or output
+      params: @immut/list.List::[], result: 0, locals: @immut/list.List::[], // entry function with no input or output
       // “print_int" is a special function
-      instructions: List::[Const(0), Const(1), Call("add"), Call("print_int")],
+      instructions: @immut/list.List::[Const(0), Const(1), Call("add"), Call("print_int")],
     },
   ],
 }
@@ -254,7 +254,7 @@ let program = Program::{
 | `Local_Get("a")`                            | `local.get $a`                                     |
 | `Local_Set("a")`                            | `local.set $a`                                     |
 | `Call("add")`                               | `call $add`                                        |
-| `If(1, List::[Const(0)], List::[Const(1)])` | `if (result i32) i32.const 0 else i32.const 1 end` |
+| `If(1, @immut/list.List::[Const(0)], @immut/list.List::[Const(1)])` | `if (result i32) i32.const 0 else i32.const 1 end` |
 
 # Compile Program
 
@@ -310,12 +310,12 @@ let program = Program::{
 - String → Token Stream → (Abstract Syntax Tree) → WASM IR → Compile/Run
 
   ```moonbit no-check
-  fn compile_expression(expression : Expression) -> List[Instruction] {
+  fn compile_expression(expression : Expression) -> @immut/list.List[Instruction] {
     match expression {
-        Number(i) => List::[Const(I32(i))]
-        Plus(a, b) => compile_expression(a) + compile_expression(b) + List::[Add]
-        Minus(a, b) => compile_expression(a) + compile_expression(b) + List::[Sub]
-        _ => List::[]
+        Number(i) => @immut/list.List::[Const(I32(i))]
+        Plus(a, b) => compile_expression(a) + compile_expression(b) + @immut/list.List::[Add]
+        Minus(a, b) => compile_expression(a) + compile_expression(b) + @immut/list.List::[Sub]
+        _ => @immut/list.List::[]
     }
   }
   ```
@@ -345,9 +345,9 @@ enum AdministrativeInstruction {
 
 struct State {
   program : Program
-  stack : List[StackValue]
+  stack : @immut/list.List[StackValue]
   locals : @map.Map[String, Value]
-  instructions : List[AdministrativeInstruction]
+  instructions : @immut/list.List[AdministrativeInstruction]
 }
 ```
 
