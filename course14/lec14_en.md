@@ -177,7 +177,7 @@ struct Program {
   ```moonbit no-check
   @immut/list.List::[
   Const(1), Const(0), Equal,
-  If(1, @immut/list.List::[Const(1)], @immut/list.List::[Const(0)])
+  If(1, @immut/list.List:f:[Const(1)], @immut/list.List::[Const(0)])
   ]
   ```
 
