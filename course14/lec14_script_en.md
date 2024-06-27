@@ -72,6 +72,10 @@ If(1, List::[Const(1)], List::[Const(0)])
 We use the content we just described to implement an addition program. The definition of the addition function has been seen before, and we added a test_add as the main entry of the program. The only thing to pay attention to is that after calling the add function, we call the print_int function again. The print_int is a special function. You may have noticed that I did not mention how to define input and output in Wasm, because these functions need to be implemented by external functions, Wasm itself can be considered as a program running in a sandbox.
 
 ```moonbit expr
+struct Program {
+  functions : @immut/list.List[Function]
+  start : Option[String]
+}
 let program = Program::{
 
   start: Some("test_add"), // Program entry point
