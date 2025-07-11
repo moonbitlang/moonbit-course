@@ -93,8 +93,8 @@ fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
 // 程序测试
 test {
   // 命令
-  @assertion.assert_eq(num_water_bottles(9, 3), 13)?
-  @assertion.assert_eq(num_water_bottles(15, 4), 19)?
+  assert_eq(num_water_bottles(9, 3), 13)
+  assert_eq(num_water_bottles(15, 4), 19)
 }
 ```
 ---

@@ -38,7 +38,7 @@ VSCode插件可在浏览器的VSCode中使用，因此我们支持的开发环�
 
 在进行了月兔的开发准备后，让我们尝试理解月兔的代码。下面将为大家展示一个典型的月兔程序，亦是上一节课的案例代码。
 
-```moonbit live
+```moonbit
 //顶层函数定义
 fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
   // 本地函数定义
@@ -60,8 +60,8 @@ fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
 // 程序测试
 test {
   // 命令
-  @assertion.assert_eq(num_water_bottles(9, 3), 13)?
-  @assertion.assert_eq(num_water_bottles(15, 4), 19)?
+  assert_eq(num_water_bottles(9, 3), 13)
+  assert_eq(num_water_bottles(15, 4), 19)
 }
 ```
 
