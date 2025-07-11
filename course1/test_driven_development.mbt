@@ -20,6 +20,6 @@ fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
 // We recommend the test driven development
 // 我们推荐测试驱动的开发
 test {
-  @assertion.assert_eq(num_water_bottles(9, 3), 13)? // 9 + 3 + 1 = 13
-  @assertion.assert_eq(num_water_bottles(15, 4), 19)?
+  assert_eq(num_water_bottles(9, 3), 13) // 9 + 3 + 1 = 13
+  assert_eq(num_water_bottles(15, 4), 19)
 }

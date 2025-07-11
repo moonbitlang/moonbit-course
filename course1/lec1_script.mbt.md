@@ -72,8 +72,8 @@
 
 根据问题描述，我们并不需要进行输入输出的操作。我们只需要在给定两个整数：`num_bottles`和`num_exchange`的情况下返回一个代表最多喝到的瓶数的整数即可。依此，我们可以用MoonBit语言写出如下接口：
 
-```moonbit live
-fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
+```moonbit
+fn num_water_bottles_(num_bottles: Int, num_exchange: Int) -> Int {
     abort("To be done")
 }
 ```
@@ -85,15 +85,9 @@ fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
 写测试案例的过程也是加深对问题理解的过程。我们这里给出两个测试。大家也可以添加自己的测试。
 
 ```moonbit
-fn assert(test: Bool) {
-  if test.not() {
-    abort("Test failed")
-  }
-}
-
-fn init {
-  assert(num_water_bottles(9, 3) == 13)
-  assert(num_water_bottles(15, 4) == 19)
+test {
+  assert_eq(num_water_bottles_(9, 3), 13)
+  assert_eq(num_water_bottles_(15, 4), 19)
 }
 ```
 
@@ -103,12 +97,12 @@ fn init {
 
 到了这一步，我们可以实现我们的程序，并且可以通过运行我们的测试案例来进行检验。我们在这里给出一个可能的实现，它直接模拟了我们对问题的分析。
 
-```moonbit live
+```moonbit
 fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
   fn consume(num_bottles, num_drunk) {
     if num_bottles >= num_exchange {
-      num_bottles := num_bottles - num_exchange + 1
-      num_drunk := num_drunk + num_exchange
+      let num_bottles = num_bottles - num_exchange + 1
+      let num_drunk = num_drunk + num_exchange
       consume(num_bottles, num_drunk)
     } else {
       num_bottles + num_drunk
@@ -117,19 +111,13 @@ fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
   consume(num_bottles, 0)
 }
 
-fn init {
-  assert(num_water_bottles(9, 3) == 13)
-  assert(num_water_bottles(15, 4) == 19)
-}
-
-fn assert(test: Bool) {
-  if test.not() {
-    abort("Test failed")
-  }
+test {
+  assert_eq(num_water_bottles(9, 3), 13)
+  assert_eq(num_water_bottles(15, 4), 19)
 }
 ```
 
-我们可以运行[这一文件](https://try.moonbitlang.cn/#f9b7f68d)。没有输出代表我们的程序如测试案例所预期的那样执行了。大家也可以尝试修改其中的大于等于号，改为大于号并再次运行。此时我们将会观察到错误。
+我们可以运行它。没有输出代表我们的程序如测试案例所预期的那样执行了。大家也可以尝试修改其中的大于等于号，改为大于号并再次运行。此时我们将会观察到错误。
 
 ### 总结
 

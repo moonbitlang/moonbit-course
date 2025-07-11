@@ -13,3 +13,5 @@ lib/
 
 # scss
 *.css.map
+
+target/
