@@ -34,6 +34,8 @@
 | 10   | 哈希表与闭包                                   | [第十课.pdf](./course10/lec10.pdf) | [10.1：哈希表：直接寻址](https://www.bilibili.com/video/BV1bV411X74b/) [10.2：哈希表：开放寻址与闭包](https://www.bilibili.com/video/BV1g64y1P7nq) | [10 哈希表](https://try.moonbitlang.cn/#c7b8f2b8) | 《算法导论》第十一章、《算法》第3.4节 |
 | 11   | 案例：语法解析器与Tagless Final                | [第十一课.pdf](./course11/lec11.pdf) | [11.1：词法分析器](https://www.bilibili.com/video/BV18y421a7H7/) [11.2：语法分析器](https://www.bilibili.com/video/BV1Nv42117qq/) | [11 语法解析器与Tagless Final](https://try.moonbitlang.cn/#b7f0b9b3) | 调度场算法 斯坦福CS143 第1-8课 或 《编译原理》前五章 或 《现代编译原理》前三章 |
 | 12   | 案例：自动微分                                 | [第十二课.pdf](./course12/lec12.pdf) | [12：自动微分](https://www.bilibili.com/video/BV1QJ4m1s7xA/) | [12 自动微分 样例代码](https://try.moonbitlang.cn/#5f9a520a) | [3Blue1Brown 深度学习](https://space.bilibili.com/88461692/channel/seriesdetail?sid=1528929) |
+| 13   | 案例：神经网络                                 | [第十三课.pdf](./course13/lec13.pdf) | [13：神经网络](https://www.bilibili.com/video/BV1XZ421a7Cs/) | [13 神经网络 样例代码]() | [3Blue1Brown 深度学习](https://space.bilibili.com/88461692/channel/seriesdetail?sid=1528929) |
+| 14   | 案例：栈式虚拟机                               | [第十四课.pdf](./course14/lec14.pdf) | [14：堆栈虚拟机 上](https://www.bilibili.com/video/BV1bq421w7Mi/) [14.2：堆栈虚拟机 下](https://www.bilibili.com/video/BV1gt421J7FJ/) | [14 堆栈虚拟机 样例代码]() |  |
 
 ## 开发环境准备
 
