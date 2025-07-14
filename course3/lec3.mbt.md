@@ -11,25 +11,6 @@ backgroundImage: url('../pics/background_moonbit.png')
 
 ### 月兔公开课课程组
 
-<!--
-```moonbit
-let pi = 3.1415
-
-fn put(map: @map.Map[Int, Int64], num: Int, result: Int64) -> @map.Map[Int, Int64] {
-  map.insert(num, result)
-}
-
-fn get(map: @map.Map[Int, Int64], num: Int) -> Option[Int64] {
-  map.lookup(num)
-}
-
-fn make() -> @map.Map[Int, Int64] {
-  @map.empty()
-}
-
-```
--->
-
 ---
 
 # 基本数据类型：函数
@@ -52,18 +33,23 @@ fn make() -> @map.Map[Int, Int64] {
 # 函数
 
 - 计算半径为1、2、3的圆的面积：
-```moonbit expr
-let surface_r_1: Double = { let r = 1.0; pi * r * r }
-let surface_r_2: Double = { let r = 2.0; pi * r * r }
-let surface_r_3: Double = { let r = 3.0; pi * r * r }
-let result = (surface_r_1, surface_r_2, surface_r_3)
+```moonbit
+test {
+  let surface_r_1: Double = { let r = 1.0; @math.PI * r * r }
+  let surface_r_2: Double = { let r = 2.0; @math.PI * r * r }
+  let surface_r_3: Double = { let r = 3.0; @math.PI * r * r }
+  let result = (surface_r_1, surface_r_2, surface_r_3)
+}
 ```
 
 - 使用函数后
 
-```moonbit expr
-fn area(radius: Double) -> Double { pi * radius * radius }
-let result = (area(1.0), area(2.0), area(3.0))
+```moonbit
+fn area(radius : Double) -> Double {
+  @math.PI * radius * radius
+}
+
+let result : (Double, Double, Double) = (area(1.0), area(2.0), area(3.0))
 ```
 
 ---
@@ -76,13 +62,13 @@ fn <函数名> (<参数名>: <类型>, <参数名>: <类型>, ...) -> <类型> <
 
 定义的函数接口让其他使用者无需关注内部实现
 
-```moonbit expr
-fn one () -> Int {
+```moonbit
+fn one() -> Int {
   1
 }
 
-fn add_char(ch: Char, str: String) -> String { 
-  ch.to_string() + str 
+fn add_char(ch : Char, str : String) -> String {
+  ch.to_string() + str
 }
 ```
 
@@ -104,16 +90,16 @@ fn add_char(ch: Char, str: String) -> String {
 
 # 函数的应用与计算
 
-```moonbit expr
+```moonbit skip
 fn add_char(ch: Char, str: String) -> String { 
   ch.to_string() + str 
 }
 
-let moonbit: String = add_char(Char::from_int(109), "oonbit")
+let moonbit: String = add_char(Int::unsafe_to_char(109), "oonbit")
 ```
 
-&nbsp;     `add_char(Char::from_int(109), "oonbit")`
-$\mapsto$ `add_char('m', "oonbit")`            因为`Char::from_int(109)` $\mapsto$ `'m'`
+&nbsp;     `add_char(Int::unsafe_to_char(109), "oonbit")`
+$\mapsto$ `add_char('m', "oonbit")`            因为`Int::unsafe_to_char(109)` $\mapsto$ `'m'`
 $\mapsto$ `'m'.to_string() + "oonbit"`     替换表达式块中的标识符
 $\mapsto$ `"m" + "oonbit"`                                 因为`m.to_string()` $\mapsto$ `"m"`
 $\mapsto$ `"moonbit"`                                             因为`"m" + "oonbit"` $\mapsto$ `"moonbit"`
@@ -124,8 +110,8 @@ $\mapsto$ `"moonbit"`                              
 
 函数定义域有的时候是输入类型的子集，因此可能会有对于输入未定义输出的情况
 
-```moonbit expr
-let ch: Char = Char::from_int(-1) // 不合理输入：-1在统一码中不对应任何字符
+```moonbit
+let ch: Char = Int::unsafe_to_char(-1) // 不合理输入：-1在统一码中不对应任何字符
 let nan: Int = 1 / 0 // 不被允许的操作：运行时出错并终止
 ```
 
@@ -142,7 +128,7 @@ let nan: Int = 1 / 0 // 不被允许的操作：运行时出错并终止
 - 有值：`Some(value: T)`
 
 例如，我们可以用`Option`定义一个整数除法的完全函数
-```moonbit expr
+```moonbit
 fn div(a: Int, b: Int) -> Option[Int] {
   if b == 0 { None } else { Some(a / b) }
 }
@@ -158,7 +144,7 @@ fn div(a: Int, b: Int) -> Option[Int] {
 
 局部函数定义大多数时候可以省略参数类型和返回类型，亦可以省略名称（匿名函数）
 
-```moonbit expr
+```moonbit
 let answer: () -> Int = fn () {
   fn real_answer(i) {
     42
@@ -221,25 +207,25 @@ let x: Int = answer() // 42
 
 测试案例
 
-```moonbit no-check
-let empty_list: IntList = nil()
-@assertion.assert_eq(head_opt(empty_list), None)?
-@assertion.assert_eq(tail(empty_list), empty_list)?
-
-let list1: IntList = cons(1, empty_list)
-@assertion.assert_eq(head_opt(list1), Some(1))?
-@assertion.assert_eq(tail(list1), empty_list)?
-
-let list2: IntList = cons(2, list1)
-@assertion.assert_eq(head_opt(list2), Some(2))?
-@assertion.assert_eq(tail(list2), list1)?
+```moonbit
+test {
+  let empty_list : IntList = nil()
+  assert_eq(head_opt(empty_list), None)
+  assert_eq(tail(empty_list), empty_list)
+  let list1 : IntList = cons(1, empty_list)
+  assert_eq(head_opt(list1), Some(1))
+  assert_eq(tail(list1), empty_list)
+  let list2 : IntList = cons(2, list1)
+  assert_eq(head_opt(list2), Some(2))
+  assert_eq(tail(list2), list1)
+}
 ```
 
 ---
 
 # 月兔中的列表
 
-- 在月兔标准库中，列表的定义为
+- 在月兔中，函数式列表可以被定义为：
 ```moonbit
 enum List[T] {
   Nil // 一个空列表
@@ -294,10 +280,10 @@ match <表达式> {
 模式可以用数据的构造方式定义。模式中定义了标识符，其作用域为对应表达式
 
 ```moonbit
-fn head_opt(list: List[Int]) -> Option[Int] {
+fn head_opt(list : List[Int]) -> Int? {
   match list {
-    Nil              => Option::None
-    Cons(head, tail) => Option::Some(head)
+    Nil => Option::None
+    Cons(head, _tail) => Option::Some(head)
   }
 }
 ```
@@ -311,25 +297,25 @@ fn head_opt(list: List[Int]) -> Option[Int] {
 - 匹配成功后，根据模式定义替换表达式中的标识符
 - 简化表达式
 
-```moonbit expr
-fn head_opt(list: List[Int]) -> Option[Int] {
+```moonbit
+fn head_opt(list : List[Int]) -> Int? {
   match list {
-    Nil              => Option::None
+    Nil => Option::None
     Cons(head, tail) => Option::Some(head)
   }
 }
 
-let first_elem: Option[Int] = head_opt(Cons(1, Cons(2, Nil)))
+let first_elem : Int? = head_opt(Cons(1, Cons(2, Nil)))
 ```
 
 --- 
 # 模式匹配结果的化简
 
-```moonbit expr
+```moonbit skip
 head_opt(Cons(1, Cons(2, Nil)))
 ```
-$\mapsto$ （替换函数内的标识符）
-```moonbit expr
+$\mapsto$ （替换函数内的标识符
+```moonbit skip
 match List::Cons(1, Cons(2, Nil)) { 
   Nil              => Option::None
   Cons(head, tail) => Option::Some(head)
@@ -338,12 +324,10 @@ match List::Cons(1, Cons(2, Nil)) {
 $\mapsto$ `Some(1)`（匹配并根据模式定义替换表达式中的标识符）
 
 上面一步可以理解为：
-```moonbit expr
-{
-  let head = 1
-  let tail = List::Cons(2, Nil)
-  Option::Some(head)
-}
+```moonbit skip
+let head = 1
+let tail = List::Cons(2, Nil)
+Option::Some(head)
 ```
 
 ---
@@ -362,7 +346,7 @@ fn get_or_else(option_int: Option[Int64], default: Int64) -> Int64 {
 ```
 
 模式匹配中，亦可以省略部分情况（如确认存在值），来构造部分函数
-```moonbit expr
+```moonbit
 fn get(option_int: Option[Int64]) -> Int64 {
   match option_int { // 编辑器会警告我们有模式尚未被匹配
     Some(value) => value
@@ -433,7 +417,7 @@ fn length(list: List[Int]) -> Int {
 
 # 递归的计算
 
-```moonbit expr
+```moonbit
 let n = length(Cons(1, Cons(2, Nil)))
 
 fn length(list: List[Int]) -> Int {
@@ -447,36 +431,36 @@ fn length(list: List[Int]) -> Int {
 ---
 
 # 递归的计算
-```moonbit expr
+```moonbit skip
 length(List::Cons(1, Cons(2, Nil)))
 ```
 $\mapsto$ 替换为函数定义
-```moonbit expr
+```moonbit skip
 match List::Cons(1, Cons(2, Nil)) {
   Nil => 0
   Cons(_, tl) => 1 + length(tl) // tl = Cons(2, Nil)
 }
 ```
 $\mapsto$ 模式匹配并替换标识符
-```moonbit expr
+```moonbit skip
 1 + length(List::Cons(2, Nil))
 ```
 $\mapsto$ 再次调用函数
-```moonbit no-check
+```moonbit skip
 1 + match List::Cons(2, Nil) { ... }
 ```
 
 ---
 
 # 递归的计算
-```moonbit expr
+```moonbit skip
 1 + match List::Cons(2, Nil) {
   Nil => 0
   Cons(_, tl) => 1 + length(tl) // tl = Nil
 }
 ```
 $\mapsto$ 模式匹配并替换标识符
-```moonbit expr
+```moonbit skip
 1 + 1 + length(Nil)
 ```
 ...
@@ -490,7 +474,7 @@ $\mapsto$ `1 + 1 + 0` $\mapsto$ `2`
 - 定义对基础数据结构的计算
 - 定义对递归数据结构的计算
 
-```moonbit expr
+```moonbit
 fn length(list: List[Int]) -> Int {
   match list {
     Nil => 0                      // 终结情形
@@ -534,8 +518,7 @@ fn tail(list: List[Int]) -> List[Int] {
 
 不同的斐波那契数列的计算方式带来的不同性能差别（`num` > 40）
 
-```moonbit expr
-// 002_fib.mbt，try.moonbitlang.cn
+```moonbit
 fn fib(num: Int) -> Int {
   if num == 1 || num == 2 { 1 } else { fib(num - 1) + fib(num - 2) }
 }
@@ -556,7 +539,7 @@ fn fib2(num : Int) -> Int {
 
 # 简单的斐波那契数列的计算方式
 
-```moonbit expr
+```moonbit
 fn fib(num: Int) -> Int64 {
   if num == 1 || num == 2 { 1L } else { fib(num - 1) + fib(num - 2) }
 }
@@ -601,8 +584,7 @@ fn insert(map: IntMap, num: Int, value: Int64) -> IntMap // 存储数据，只�
 fn lookup(map: IntMap, num: Int) -> Option[Int64]        // 提取数据
 ```
 
-- 符合条件的数据结构有很多，我们的样例代码以`@map.Map[Int, Int64]`为例
-  - 我们无需关注它的具体实现。我们可以用`@vec.Vector[Option[Int64]]`替代
+- 符合条件的数据结构有很多，我们的样例代码以`Map[Int, Int64]`为例
 
 ---
 
@@ -612,9 +594,9 @@ fn lookup(map: IntMap, num: Int) -> Option[Int64]        // 提取数据
   - 若有，则直接使用
   - 若无，并将结果添加至数据结构中
 
-```moonbit expr
+```moonbit
 fn fib1(num: Int) -> Int64 {
-  fn aux(num: Int, map: @map.Map[Int, Int64]) -> (Int64, @map.Map[Int, Int64]) {
+  fn aux(num: Int, map: Map[Int, Int64]) -> (Int64, Map[Int, Int64]) {
     match get(map, num) {
       Some(result) => (result, map)
       None => {
@@ -632,9 +614,9 @@ fn fib1(num: Int) -> Int64 {
 
 # 可变变量
 
-注意到`map: AVLMap[Int, Int64]`被不断传递。为了简化写法，月兔提供可变变量
+注意到`map: Map[Int, Int64]`被不断传递。为了简化写法，月兔提供可变变量
 
-```moonbit expr
+```moonbit
 fn fib1_mut(num: Int) -> Int64 {
   let mut map = put(put(make(), 1, 1L), 2, 1L) // 通过let mut声明可变变量
   fn aux(num: Int) -> Int64 {
@@ -659,9 +641,9 @@ fn fib1_mut(num: Int) -> Int64 {
 
 - 我们从第一项出发，逐个计算之后的值，并将当前项的计算结果存入数据结构
 
-```moonbit expr
+```moonbit
 fn fib2(num: Int) -> Int64 {
-  fn aux(n: Int, map: @map.Map[Int, Int64]) -> Int64 {
+  fn aux(n: Int, map: Map[Int, Int64]) -> Int64 {
     let result = get_or_else(get(map, n - 1), 1L) + 
       get_or_else(get(map, n - 2), 1L)
     if n == num { result } 
@@ -678,7 +660,7 @@ fn fib2(num: Int) -> Int64 {
 
 - 注意到，我们每次只需保存当前项的前两个值，因此我们可以舍弃数据结构，直接通过递归参数传递
 
-```moonbit expr
+```moonbit
 fn fib2(num : Int) -> Int64 {
   fn aux(n: Int, acc1: Int64, acc2: Int64) -> Int64 {
     match n {
