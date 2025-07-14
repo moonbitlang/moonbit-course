@@ -91,21 +91,21 @@ fn g(pair: (String, Int)) -> PersonalInfo { { name: pair.0, age: pair.1, }}
 
 - 多元组是structural：只要结构相同（字段类型一一对应）就类型兼容
 ```moonbit
-fn accept(tuple: (Int, String)) -> Bool {
+fn accept_tuple(tuple: (Int, String)) -> Bool {
   true
 }
-let accepted: Bool = accept((1, "Yes"))
+let accepted: Bool = accept_tuple((1, "Yes"))
 ```
 
 - 结构体是nominal：只有类型名相同（字段顺序可以打乱）才类型兼容
 ```moonbit
 struct A { val : Int ; other: Int }
 struct B { val : Int ; other: Int }
-fn accept(a: A) -> Bool {
+fn accept_a(a: A) -> Bool {
   true
 }
-let not_accepted: Bool = accept(({ val : 1, other : 2 }: B)) // DO NOT COMPILE
-let accepted: Bool = accept(({other: 2, val: 1}: A))
+let not_accepted: Bool = accept_a(({ val : 1, other : 2 }: B)) // DO NOT COMPILE
+let accepted: Bool = accept_a(({other: 2, val: 1}: A))
 ```
 
 # 模式匹配
@@ -116,7 +116,7 @@ let accepted: Bool = accept(({other: 2, val: 1}: A))
 fn head_opt(list: List[Int]) -> Option[Int] {
   match list {
     Nil => None
-    Cons(head, tail) => Some(head)
+    Cons(head, _tail) => Some(head)
   }
 }
 ```
@@ -196,7 +196,7 @@ fn zip(l1: List[Int], l2: List[Char]) -> List[(Int ,Char)] {
 需要注意到模式匹配的顺序是从上到下的
 
 ```moonbit
-fn zip(l1: List[Int], l2: List[Char]) -> List[(Int ,Char)] {
+fn zip(l1: List[Int], l2: List[Char]) -> List[(Int, Char)] {
   match (l1, l2) {
     _ => Nil
     // 编辑器会提示未使用的模式及无法抵达的代码
@@ -320,20 +320,20 @@ enum ComputeResult {
 - $1 \times n = n$
     - 对于任意类型`T`，`(T, Unit)`与`T`同构
     ```moonbit
-    fn f[T](t: T) -> (T, Unit) { (t, ()) }
-    fn g[T](pair: (T, Unit)) -> T { pair.0 }
+    fn[T] f1(t: T) -> (T, Unit) { (t, ()) }
+    fn[T] g1(pair: (T, Unit)) -> T { pair.0 }
     ```
 - $0 + n = n$
     - 对于任意类型`T`，`enum PlusZero[T] { CaseT(T); CaseZero(Nothing) }`与`T`同构
     ```moonbit
-    fn f[T](t: PlusZero) -> T {
+    fn[T] f2(t: PlusZero) -> T {
       match t {
         CaseT(t) => t
         CaseZero(_) => abort("对应集合为空，即不存在这样的值")
       }
     }
 
-    fn g[T](t: T) -> PlusZero { CaseT(t) }
+    fn[T] g2(t: T) -> PlusZero { CaseT(t) }
     ```
 
 # 代数数据类型

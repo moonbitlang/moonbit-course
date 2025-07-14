@@ -31,7 +31,7 @@
 # 多元组与结构体的关系
 
 大家可能会发现，多元组和结构体似乎非常相像。事实上，一个结构体与相同类型集合构成的多元组是同构的关系。同构，也就是两个集合之间存在着一一映射的关系。在集合`A`与`B`之间存在一对映射关系`f: (A) -> B`以及`g: (B) -> A`，且对于任意的`a`与`b`有`g(f(a)) == a`和`f(g(b)) == b`，也就是如下图所示，那么这两个集合就是同构的。举例来说，`PersonalInfo`与`(String, Int)`就是同构的，因为我们可以构筑如下的一对映射：
- ```rust
+ ```moonbit
 fn f(info: PersonalInfo) -> (String, Int) { (info.name, info.age) }
 fn g(pair: (String, Int)) -> PersonalInfo { { name: pair.0, age: pair.1, }}
 ```
@@ -89,5 +89,3 @@ fn g(pair: (String, Int)) -> PersonalInfo { { name: pair.0, age: pair.1, }}
 同时介绍了代数数据类型的概念。
 
 我们推荐大家阅读Category Theory for Programmers第六章
-
-try.moonbitlang.com/#44a4eb28
