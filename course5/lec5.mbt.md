@@ -62,7 +62,7 @@ headingDivider: 1
 - 树的存储方式有多种（以二叉树为例，省略节点存储的数据）
   - 节点与子节点关系的列表：`[ (0, 1), (0, 2), (1, 3) ]`
   - 代数数据结构定义
-    ```moonbit
+    ```moonbit skip
     Node(0, 
       Node(1, 
         Leaf(3), 
@@ -153,17 +153,17 @@ fn dfs_search(target: Int, tree: IntTree) -> Bool {
 # 数据结构：队列
 - 我们在此使用的队列由以下接口定义：
 ```moonbit
-fn empty[T]() -> Queue[T] // 创建空队列
-fn enqueue[T](q: Queue[T], x: T) -> Queue[T] // 向队尾添加元素
+fn[T] empty() -> Queue[T] { ... } // 创建空队列
+fn[T] enqueue(q: Queue[T], x: T) -> Queue[T] { ... }  // 向队尾添加元素
 // 尝试取出一个元素，并返回剩余队列；若为空则为本身
-fn pop[T](q: Queue[T]) -> (Option[T], Queue[T]) 
+fn[T] pop(q: Queue[T]) -> (Option[T], Queue[T]) { ... }
 ```
 - 例如
 ```moonbit
 let q = enqueue(enqueue(empty(), 1), 2)
 let (head, tail) = pop(q)
-assert(head == Some(1))
-assert(tail == enqueue(empty(), 2))
+assert_eq(head, Some(1))
+assert_eq(tail, enqueue(empty(), 2))
 ```
 
 # 广度优先遍历：查找为例
@@ -275,8 +275,8 @@ enum AVLTree {
   Empty
   Node(Int, AVLTree, AVLTree, Int) // 当前节点值、左子树、右子树、树高度
 }
-fn create(value: Int, left: AVLTree, right: AVLTree) -> AVLTree
-fn height(tree: AVLTree) -> Int
+fn create(value: Int, left: AVLTree, right: AVLTree) -> AVLTree { ... }
+fn height(tree: AVLTree) -> Int { ... }
 ```
 
 # 二叉平衡树 AVL Tree
