@@ -29,10 +29,10 @@ headingDivider: 1
 # 堆栈
 
 - 我们定义以下操作，以存储整数的堆栈`IntStack`为例
-```moonbit no-check
-empty: () -> IntStack // 创建新的堆栈
-push : (Int, IntStack) -> IntStack // 将新的元素加入栈顶
-pop: IntStack -> (Option[Int], IntStack) // 从堆栈取出元素
+```moonbit
+fn empty() -> IntStack { ... } // 创建新的堆栈
+fn push(e : Int, stack : IntStack) -> IntStack { ... } // 将新的元素加入栈顶
+fn pop(stack : IntStack) -> (Option[Int], IntStack) { ... } // 从堆栈取出元素
 ```
 
 ![](../pics/stack-push-pop.drawio.png)
@@ -48,15 +48,15 @@ enum IntStack {
   NonEmpty(Int, IntStack)
 }
 fn IntStack::empty() -> IntStack { Empty }
-fn push(self: IntStack, value: Int) -> IntStack { NonEmpty(value, self) }
-fn pop(self: IntStack) -> (Option[Int], IntStack) {
+fn IntStack::push(self: IntStack, value: Int) -> IntStack { NonEmpty(value, self) }
+fn IntStack::pop(self: IntStack) -> (Option[Int], IntStack) {
   match self {
     Empty => (None, Empty)
     NonEmpty(top, rest) => (Some(top), rest)
   }
 }
 ```
-- 事实上，月兔中的列表就是一个堆栈
+- 事实上，之前定义的列表就是一个堆栈
 
 # 字符串堆栈
 
@@ -68,8 +68,8 @@ enum StringStack {
   NonEmpty(String, StringStack)
 }
 fn StringStack::empty() -> StringStack { Empty }
-fn push(self: StringStack, value: String) -> StringStack { NonEmpty(value, self) }
-fn pop(self: StringStack) -> (Option[String], StringStack) {
+fn StringStack::push(self: StringStack, value: String) -> StringStack { NonEmpty(value, self) }
+fn StringStack::pop(self: StringStack) -> (Option[String], StringStack) {
   match self {
     Empty => (None, Empty)
     NonEmpty(top, rest) => (Some(top), rest)
@@ -91,8 +91,8 @@ enum Stack[T] {
   NonEmpty(T, Stack[T])
 }
 fn Stack::empty[T]() -> Stack[T] { Empty }
-fn push[T](self: Stack[T], value: T) -> Stack[T] { NonEmpty(value, self) }
-fn pop[T](self: Stack[T]) -> (Option[T], Stack[T]) {
+fn Stack::push[T](self: Stack[T], value: T) -> Stack[T] { NonEmpty(value, self) }
+fn Stack::pop[T](self: Stack[T]) -> (Option[T], Stack[T]) {
   match self {
     Empty => (None, Empty)
     NonEmpty(top, rest) => (Some(top), rest)
@@ -114,11 +114,11 @@ fn pop[T](self: Stack[T]) -> (Option[T], Stack[T]) {
 # 泛型数据结构：队列
 
 - 我们定义如下的操作：
-```moonbit no-check
-fn empty[T]() -> Queue[T] // 创建空队列
-fn push[T](q: Queue[T], x: T) -> Queue[T] // 向队尾添加元素
+```moonbit
+fn Queue::empty[T]() -> Queue[T] { ... } // 创建空队列
+fn Queue::push[T](q: Queue[T], x: T) -> Queue[T] { ... } // 向队尾添加元素
 // 尝试取出一个元素，并返回剩余队列；若为空则为本身
-fn pop[T](q: Queue[T]) -> (Option[T], Queue[T]) 
+fn Queue::pop[T](q: Queue[T]) -> (Option[T], Queue[T]) { ... }
 ```
 - 我们可以用一个列表（堆栈）模拟队列，但是效率低下
   - 在队尾添加元素需要重新构建整个列表
@@ -179,23 +179,23 @@ struct Queue[T] {
   front: Stack[T]
   back: Stack[T]
 }
-fn Queue::empty[T]() -> Queue[T] { {front: Empty, back: Empty} }
-fn push[T](self: Queue[T], value: T) -> Queue[T] { // 将元素存入队尾
+fn[T] Queue::empty() -> Queue[T] { {front: Empty, back: Empty} }
+fn[T] Queue::push(self: Queue[T], value: T) -> Queue[T] { // 将元素存入队尾
   normalize({ ..self, back: self.back.push(value)}) // 通过定义第一个参数为self，我们可以用xxx.f()
 }
-fn pop[T](self: Queue[T]) -> (Option[T], Queue[T]) { // 取出第一个元素
+fn[T] Queue::pop(self: Queue[T]) -> (Option[T], Queue[T]) { // 取出第一个元素
   match self.front {
     Empty => (None, self)
     NonEmpty(top, rest) => (Some(top), normalize({ ..self, front: rest}))
   }
 }
-fn normalize[T](self: Queue[T]) -> Queue[T] { // 如果front为空，反转back到front
+fn[T] Queue::normalize(self: Queue[T]) -> Queue[T] { // 如果front为空，反转back到front
   match self.front {
     Empty => { front: self.back.reverse(), back: Empty }
     _ => self
   }
 }
-fn reverse[T](self: Stack[T]) -> Stack[T] { // 辅助函数：反转堆栈
+fn Stack::reverse[T](self: Stack[T]) -> Stack[T] { // 辅助函数：反转堆栈
  // 省略实现
 }
 ```
@@ -215,7 +215,7 @@ fn sum(list: List[Int]) -> Int {
 ```
 - 我们要求一个列表长度
 ```moonbit
-fn length[T](list: List[T]) -> Int {
+fn[T] length(list: List[T]) -> Int {
   match list {
     Nil => 0
     Cons(hd, tl) => 1 + length(tl)
@@ -227,8 +227,8 @@ fn length[T](list: List[T]) -> Int {
 
 - 我们发现它们有共通点
 
-```moonbit no-check
-fn func[A, B](list: List[A]) -> B {
+```moonbit
+fn[A, B] func(list: List[A]) -> B {
   match list {
     Nil => b // b : B
     Cons(hd, tl) => f(hd, func(tl)) // f : (A, B) -> B 
@@ -246,7 +246,7 @@ fn func[A, B](list: List[A]) -> B {
 - 在月兔中，函数是一等公民。这就意味着，我们可以把函数作为参数传递，也可以将函数作为计算结果存储：
   - 以刚才的结构为例，函数可以作为参数传递
 ```moonbit
-fn fold_right[A, B](list: List[A], f: (A, B) -> B, b: B) -> B {
+fn[A, B] fold_right(list: List[A], f: (A, B) -> B, b: B) -> B {
   match list {
     Nil => b
     Cons(hd, tl) => f(hd, fold_right(tl, f, b))
@@ -258,7 +258,7 @@ fn fold_right[A, B](list: List[A], f: (A, B) -> B, b: B) -> B {
 # 函数是一等公民
 - 重复一个函数的运算
 ```moonbit
-fn repeat[A](f: (A) -> A) -> (A) -> A { // repeat的类型是((A) -> A) -> (A) -> A
+fn[A] repeat(f: (A) -> A) -> (A) -> A { // repeat的类型是((A) -> A) -> (A) -> A
   fn (a) { f(f(a)) }  
 } // 函数作为计算的结果
 
@@ -294,8 +294,8 @@ $\mapsto$ `3 + 1` $\mapsto$ `4`
 # 高阶函数的应用：列表折叠
 
 - 我们刚才已经看到了列表折叠的一种可能性
-```moonbit no-check
-fn fold_right[A, B](list: List[A], f: (A, B) -> B, b: B) -> B {
+```moonbit
+fn[A, B] fold_right(list: List[A], f: (A, B) -> B, b: B) -> B {
   match list {
     Nil => b
     Cons(hd, tl) => f(hd, fold_right(tl, f, b))
@@ -309,7 +309,7 @@ fn fold_right[A, B](list: List[A], f: (A, B) -> B, b: B) -> B {
 
 - 我们也可以从另一个方向进行折叠
 ```moonbit
-fn fold_left[A, B](list: List[A], f: (B, A) -> B, b: B) -> B {
+fn[A, B] fold_left(list : List[A], f : (B, A) -> B, b: B) -> B {
   match list {
     Nil => b
     Cons(hd, tl) => fold_left(tl, f, f(b, hd))
@@ -324,14 +324,14 @@ fn fold_left[A, B](list: List[A], f: (B, A) -> B, b: B) -> B {
 - 一个常见的操作是对列表中的每一个元素进行映射
   - 例如，从个人信息列表中获得姓名列表
   - `struct PersonalInfo { name: String; age: Int }`
-```moonbit no-check
-fn map[A, B](self: List[A], f: (A) -> B) -> List[B] {
+```moonbit
+fn[A, B] map(self : List[A], f : (A) -> B) -> List[B] {
   match list {
     Nil => Nil
     Cons(hd, tl) => Cons(f(hd), map(tl, f))
   }
 }
-let infos: List[PersonalInfo] = ???
+let infos: List[PersonalInfo] = { ... }
 let names: List[String] = infos.map(fn (info) { info.name })
 ```
 
@@ -339,8 +339,8 @@ let names: List[String] = infos.map(fn (info) { info.name })
 
 - 事实上，我们还可以用`fold_right`来实现`map`函数
 ```moonbit
-fn map[A, B](list: List[A], f: (A) -> B) -> List[B] {
-  fold_right(list, fn (value, cumulator) { Cons(f(value), cumulator) }, Nil)
+fn[A, B] map(list : List[A], f : (A) -> B) -> List[B] {
+  fold_right(list, fn(value, cumulator) { Cons(f(value), cumulator) }, Nil)
 }
 ```
 - 思考题：如何用`fold_right`来实现`fold_left`？
@@ -357,8 +357,8 @@ enum Tree[T] {
 
 // 我们需要一个比较函数来比较值的大小以了解顺序
 // 负数表示小于，0表示等于，正数表示大于
-fn insert[T](self: Tree[T], value: T, compare: (T, T) -> Int) -> Tree[T]
-fn delete[T](self: Tree[T], value: T, compare: (T, T) -> Int) -> Tree[T]
+fn[T] insert(self: Tree[T], value: T, compare: (T, T) -> Int) -> Tree[T] { ... }
+fn[T] delete(self: Tree[T], value: T, compare: (T, T) -> Int) -> Tree[T] { ... }
 ```
 
 # 总结
