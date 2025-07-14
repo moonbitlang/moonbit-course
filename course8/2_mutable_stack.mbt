@@ -1,18 +1,22 @@
+///|
 struct LinkedList[T] {
-  mut head: Option[Node[T]]
-  mut tail: Option[Node[T]]
-} derive(Debug, Show)
+  mut head : Node[T]?
+  mut tail : Node[T]?
+} derive(Show)
 
+///|
 struct Node[T] {
-  value: T
-  mut next: Option[Node[T]]
-} derive(Debug, Show)
+  value : T
+  mut next : Node[T]?
+} derive(Show)
 
-fn LinkedList::make[T]() -> LinkedList[T] {
+///|
+fn[T] LinkedList::make() -> LinkedList[T] {
   { head: None, tail: None }
 }
 
-fn push[T](self: LinkedList[T], value: T) -> LinkedList[T] {
+///|
+fn[T] push(self : LinkedList[T], value : T) -> LinkedList[T] {
   let node = { value, next: None }
   match self.tail {
     None => {
@@ -27,30 +31,32 @@ fn push[T](self: LinkedList[T], value: T) -> LinkedList[T] {
   self
 }
 
-fn peek[T](self: LinkedList[T]) -> Option[T] {
+///|
+fn[T] peek(self : LinkedList[T]) -> T? {
   match self.head {
     None => None
     Some(n) => Some(n.value)
   }
 }
 
-fn pop[T](self: LinkedList[T]) -> LinkedList[T] {
+///|
+fn[T] pop(self : LinkedList[T]) -> LinkedList[T] {
   match self.head {
     None => ()
-    Some(n) => { match n.next {
-      None => {
-        self.head = None
-        self.tail = None
+    Some(n) =>
+      match n.next {
+        None => {
+          self.head = None
+          self.tail = None
+        }
+        Some(_) => self.head = n.next
       }
-      Some(_) => {
-        self.head = n.next
-      }
-    } }
   }
   self
 }
 
-fn length[T](self: LinkedList[T]) -> Int {
+///|
+fn[T] length(self : LinkedList[T]) -> Int {
   // fn aux(node: Option[Node[T]]) -> Int {
   //   match node {
   //     None => 0
@@ -58,19 +64,22 @@ fn length[T](self: LinkedList[T]) -> Int {
   //   }
   // }
   // aux(self.head)
-  fn aux2(node: Option[Node[T]], cumul) -> Int {
+  fn aux2(node : Node[T]?, cumul) -> Int {
     match node {
       None => cumul
       Some(node) => aux2(node.next, 1 + cumul)
     }
   }
+
   aux2(self.head, 0)
 }
 
+///|
 test {
   let list = LinkedList::make()
   for i = 0; i < 100000; i = i + 1 {
     let _ = list.push(i)
+
   }
-  @assertion.assert_eq(list.length(), 100000)?
+  assert_eq(list.length(), 100000)
 }

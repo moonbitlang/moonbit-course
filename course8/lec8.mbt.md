@@ -25,8 +25,8 @@ headingDivider: 1
 
 - 我们实现以下函数（以整数队列为例）
 
-```moonbit
-struct Queue { .. }
+```moonbit skip
+struct Queue { ... }
 
 fn make() -> Queue // 创建空列表
 fn push(self: Queue, t: Int) -> Queue // 添加元素
@@ -36,7 +36,7 @@ fn length(self: Queue) -> Int // 查看列表长度
 ```
 
 - 其中`push`与`pop`均将修改`self`，为了方便起见，我们将本身作为返回值传回
-```moonbit
+```moonbit skip
 make().push(1).push(2).push(3).pop().pop().length() // 1
 ```
 
@@ -46,7 +46,7 @@ make().push(1).push(2).push(3).pop().pop().length() // 1
   - 数组是一个连续的存储空间，每一个字段均可被修改
   - 数组被分配后长度不变
 
-```moonbit
+```moonbit skip
 let a: Array[Int] = Array::make(5, 0)
 a[0] = 1
 a[1] = 2
@@ -91,20 +91,16 @@ fn push(self: Queue, t: Int) -> Queue {
 - 队列的扩容操作
   - 我们首先判断是否需要扩容
   - 我们创建新的更长的数组，并将原有数据进行复制
-
 ```moonbit
 fn push(self: Queue, t: Int) -> Queue {
   if self.length == self.array.length() {
     let new_array: Array[Int] = Array::make(self.array.length() * 2, 0)
-    let mut i = 0
-    while i < self.array.length(), i = i + 1 {
-      new_array[i] = self.array[(self.start + i) % self.array.length()]
-    }
+    self.array.blit_to(new_array, len=self.length)
     self.start = 0
     self.end = self.array.length()
     self.array = new_array
     self.push(t)
-  } else { .. }
+  } else { ... }
 }
 ```
 
@@ -130,9 +126,9 @@ fn length(self: Queue) -> Int {
 
 - 我们希望存储不止整数
 ```moonbit
-fn make[T]() -> Queue[T] {
+fn[T] make() -> Queue[T] {
   {
-    array: Array::make(5, ???),
+    array: Array::make(5, { ... }),
     start: 0, end: 0, length: 0
   }
 }
@@ -172,7 +168,7 @@ struct LinkedList[T] {
   - 若非空，则向队尾添加，并维护链表关系
 
 ```moonbit
-fn push[T](self: LinkedList[T], value: T) -> LinkedList[T] {
+fn[T] push(self: LinkedList[T], value: T) -> LinkedList[T] {
   let node = { value, next: None }
   match self.tail {
     None => {
@@ -193,7 +189,7 @@ fn push[T](self: LinkedList[T], value: T) -> LinkedList[T] {
 - 我们写一个简单的判定长度的递归函数
   - 我们使用递归从头开始沿着引用链访问所有的节点
 ```moonbit
-fn length[T](self: LinkedList[T]) -> Int {
+fn[T] length(self: LinkedList[T]) -> Int {
   fn aux(node: Option[Node[T]]) -> Int {
     match node {
       None => 0
@@ -211,8 +207,9 @@ fn length[T](self: LinkedList[T]) -> Int {
 fn init {
   let list = make()
   let mut i = 0
-  while i < 100000, i = i + 1 {
+  while i < 100000 {
     let _ = list.push(i)
+    i = i + 1
   }
   println(list.length())
 }  
@@ -235,7 +232,7 @@ fn init {
 - 函数调用的结果即最终的运算结果
   - 如此，我们无需保留当前运算环境
 ```moonbit
-fn length[T](self: LinkedList[T]) -> Int {
+fn[T] length(self: LinkedList[T]) -> Int {
   fn aux2(node: Option[Node[T]], cumul) -> Int {
     match node {
       None => cumul
