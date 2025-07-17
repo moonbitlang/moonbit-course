@@ -1,5 +1,7 @@
 {
   "devDependencies": {
+    "@types/markdown-it": "14.1.0",
+    "markdown-it": "^14.1.0",
     "@marp-team/marp-cli": "^3.4.0",
     "github-markdown-css": "^5.5.1",
     "sass": "^1.71.1",
