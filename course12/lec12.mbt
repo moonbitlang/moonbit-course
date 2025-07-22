@@ -1,48 +1,48 @@
-/// Symbolic differentiation 符号微分
+///| Symbolic differentiation 符号微分
 enum Symbol {
   Constant(Double)
   Var(Int)
   Add(Symbol, Symbol)
   Mul(Symbol, Symbol)
-} derive(Debug, Show)
+} derive(Show)
 
+///|
 fn Symbol::constant(d : Double) -> Symbol {
   Constant(d)
 }
 
-fn Symbol::var(i : Int) -> Symbol {
+///|
+fn Symbol::variable(i : Int) -> Symbol {
   Var(i)
 }
 
-fn Symbol::op_add(f1 : Symbol, f2 : Symbol) -> Symbol {
+///|
+impl Add for Symbol with op_add(f1 : Symbol, f2 : Symbol) -> Symbol {
   // Add(f1, f2) // Without simplification 无化简实现
   // With simplification 以下为化简实现
   match (f1, f2) {
     (Constant(0.0), a) => a
     (Constant(a), Constant(b)) => Constant(a + b)
-    (a, Constant(_) as const) => const + a
-    (Mul(n, Var(x1)), Mul(m, Var(x2))) =>
-      if x1 == x2 {
-        Mul(m + n, Var(x1))
-      } else {
-        Add(f1, f2)
-      }
+    (a, Constant(_) as c) => c + a
+    (Mul(n, Var(x1)), Mul(m, Var(x2))) if x1 == x2 => Mul(m + n, Var(x1))
     _ => Add(f1, f2)
   }
 }
 
-fn Symbol::op_mul(f1 : Symbol, f2 : Symbol) -> Symbol {
+///|
+impl Mul for Symbol with op_mul(f1 : Symbol, f2 : Symbol) -> Symbol {
   // Mul(f1,f2) // Without simplification 无化简实现
   // With simplification 以下为化简实现
   match (f1, f2) {
     (Constant(0.0), _) => Constant(0.0)
     (Constant(1.0), a) => a
     (Constant(a), Constant(b)) => Constant(a * b)
-    (a, Constant(_) as const) => const * a
+    (a, Constant(_) as c) => c * a
     _ => Mul(f1, f2)
   }
 }
 
+///|
 fn compute(self : Symbol, input : Array[Double]) -> Double {
   match self {
     Constant(d) => d
@@ -52,8 +52,9 @@ fn compute(self : Symbol, input : Array[Double]) -> Double {
   }
 }
 
-// val is the index of the variable to be differentiated 
-// val代表当前微分的变量
+///|
+/// val is the index of the variable to be differentiated 
+/// val代表当前微分的变量
 fn differentiate(self : Symbol, val : Int) -> Symbol {
   match self {
     Constant(_) => Constant(0.0)
@@ -63,166 +64,230 @@ fn differentiate(self : Symbol, val : Int) -> Symbol {
   }
 }
 
+///|
+/// 5 x^2 + y
 fn example() -> Symbol {
-  Symbol::constant(5.0) * Symbol::var(0) * Symbol::var(0) + Symbol::var(1)
+  Symbol::constant(5.0) * Symbol::variable(0) * Symbol::variable(0) +
+  Symbol::variable(1)
 }
 
+///|
 test "Symbolic differentiation 符号微分" {
   let input = [10.0, 100.0]
   let symbol : Symbol = example()
-  @assertion.assert_eq(symbol.compute(input), 600.0)?
-  // Expression of df/dx 关于x的偏微分表达式树
-  inspect(symbol.differentiate(0), ~content="Mul(Constant(5.0), Var(0))")?
-  @assertion.assert_eq(symbol.differentiate(0).compute(input), 100.0)?
-  @assertion.assert_eq(symbol.differentiate(1).compute(input), 1.0)?
+  assert_eq(symbol.compute(input), 600.0)
+  // Expression of df/dx 关于 x 的偏微分表达式树
+  inspect(symbol.differentiate(0), content="Mul(Constant(10), Var(0))")
+  assert_eq(symbol.differentiate(0).compute(input), 100.0)
+  assert_eq(symbol.differentiate(1).compute(input), 1.0)
 }
 
-// Abstraction of computation 对运算的抽象
-trait Number  {
+///| Abstraction of computation 对运算的抽象
+trait Number: Add + Mul {
   constant(Double) -> Self
-  op_add(Self, Self) -> Self
-  op_mul(Self, Self) -> Self
   value(Self) -> Double
 }
 
-// Implement abstraction for Double 对浮点数实现抽象
-fn Number::constant(d : Double) -> Double {
+///| Implement abstraction for Double 对浮点数实现抽象
+impl Number for Double with constant(d : Double) -> Double {
   d
 }
 
-fn Number::value(d : Double) -> Double {
+///|
+impl Number for Double with value(d : Double) -> Double {
   d
 }
 
-// Compute max with native control flow 利用原生控制流求最大值
-fn max[N : Number](x : N, y : N) -> N {
+///| Compute max with native control flow 利用原生控制流求最大值
+fn[N : Number] max(x : N, y : N) -> N {
   if x.value() > y.value() {
     x
   } else {
     y
   }
 }
-// Rectified linear unit 线性整流函数
-fn relu[N : Number](x : N) -> N {
+
+///| Rectified linear unit 线性整流函数
+fn[N : Number] relu(x : N) -> N {
   max(x, N::constant(0.0))
 }
 
-// Forward differentiation: dual number 前向微分，二元数
+///| Forward differentiation: dual number 前向微分，二元数
 struct Forward {
   value : Double
   derivative : Double
-} derive(Debug, Show)
+} derive(Show)
 
-fn Forward::constant(d : Double) -> Forward {
-  { value: d, derivative: 0.0 }
-}
-
-// diff: weather differentiate this variable
-// diff：是否对当前变量求偏微分
-fn Forward::var(d : Double, diff : Bool) -> Forward {
+///|
+/// diff: weather differentiate this variable
+/// diff：是否对当前变量求偏微分
+fn Forward::variable(d : Double, diff : Bool) -> Forward {
   { value: d, derivative: if diff { 1.0 } else { 0.0 } }
 }
 
-fn Forward::op_add(f : Forward, g : Forward) -> Forward {
-  {
-    value: f.value + g.value,
-    derivative: f.derivative + g.derivative // f' + g',,,
-  }
+///|
+impl Add for Forward with op_add(f : Forward, g : Forward) -> Forward {
+  { value: f.value + g.value, derivative: f.derivative + g.derivative } // f' + g',,,
 }
 
-fn Forward::op_mul(f : Forward, g : Forward) -> Forward {
+///|
+impl Mul for Forward with op_mul(f : Forward, g : Forward) -> Forward {
   {
     value: f.value * g.value,
-    derivative: f.value * g.derivative + g.value * f.derivative // f * g' + g * f',,,
+    derivative: f.value * g.derivative + g.value * f.derivative, // f * g' + g * f',,,
   }
 }
 
-fn Forward::value(f : Forward) -> Double {
+///|
+impl Number for Forward with constant(d : Double) -> Forward {
+  { value: d, derivative: 0.0 }
+}
+
+///|
+impl Number for Forward with value(f : Forward) -> Double {
   f.value
 }
 
+///|
 test "Forward differentiation 前向微分" {
   // Compute using abstraction 利用抽象进行计算值
-  @assertion.assert_eq(relu(10.0), 10.0)?
-  @assertion.assert_eq(relu(-10.0), 0.0)?
+  assert_eq(relu(10.0), 10.0)
+  assert_eq(relu(-10.0), 0.0)
   // Forward differentiation with abstraction 利用抽象进行前向微分
-  inspect(relu(Forward::var(10.0, true)), ~content="{value: 10.0, derivative: 1.0}")?
-  inspect(relu(Forward::var(-10.0, true)), ~content="{value: 0.0, derivative: 0.0}")?
+  inspect(
+    relu(Forward::variable(10.0, true)),
+    content="{value: 10, derivative: 1}",
+  )
+  inspect(
+    relu(Forward::variable(-10.0, true)),
+    content="{value: 0, derivative: 0}",
+  )
   // f(x, y) = x * y => df/dy(10, 100)
-  inspect(Forward::var(10.0, false) * Forward::var(100.0, true), ~content="{value: 1000.0, derivative: 10.0}")?
+  inspect(
+    Forward::variable(10.0, false) * Forward::variable(100.0, true),
+    content="{value: 1000, derivative: 10}",
+  )
 }
 
-// Backward differentiation 后向微分
-// Warning : this implementation is not fully correct as it can cause exponential complexity
-// 警告：这个实现并不完全正确，可能会导致指数级复杂度的计算
+///|
+/// Backward differentiation 后向微分
 struct Backward {
   value : Double
+  propagate : () -> Unit
   backward : (Double) -> Unit // update the partial derivative of the current path 更新当前路径获得的偏微分
-} derive(Debug, Show)
+} derive(Show)
 
-fn Backward::constant(d : Double) -> Backward {
-  { value: d, backward: fn { _ => () } }
+///|
+fn Backward::variable(value : Double, diff : Ref[Double]) -> Backward {
+  { value, propagate: () => (), backward: d => diff.val += d } // accumulate partial derivative 累加偏微分
 }
 
-fn Backward::var(value : Double, diff : Ref[Double]) -> Backward {
-  { value, backward: fn { d => diff.val = diff.val + d } } // accumulate partial derivative 累加偏微分
+///|
+/// df / df = 1.0
+fn Backward::backward(b : Backward) -> Unit {
+  (b.propagate)()
+  (b.backward)(1.0)
 }
 
-fn Backward::backward(b : Backward, d : Double) -> Unit {
-  (b.backward)(d)
+///|
+impl Number for Backward with constant(d : Double) -> Backward {
+  { value: d, propagate: () => (), backward: _ => () }
 }
 
-fn Backward::value(backward : Backward) -> Double {
+///|
+impl Number for Backward with value(backward : Backward) -> Double {
   backward.value
 }
 
-fn Backward::op_add(b1 : Backward, b2 : Backward) -> Backward {
+///|
+impl Add for Backward with op_add(b1 : Backward, b2 : Backward) -> Backward {
+  let counter = { val: 0 }
+  let cumul = { val: 0.0 }
   {
     value: b1.value + b2.value,
-    backward: fn(diff) { b1.backward(diff); b2.backward(diff) },
-  }
-}
-
-fn Backward::op_mul(b1 : Backward, b2 : Backward) -> Backward {
-  {
-    value: b1.value * b2.value,
+    propagate: fn() {
+      counter.val += 1
+      if counter.val == 1 {
+        (b1.propagate)()
+        (b2.propagate)()
+      }
+    },
     backward: fn(diff) {
-      b1.backward(diff * b2.value)
-      b2.backward(diff * b1.value)
+      counter.val -= 1
+      cumul.val += diff
+      if counter.val == 0 {
+        (b1.backward)(cumul.val)
+        (b2.backward)(cumul.val)
+      }
     },
   }
 }
 
+///|
+impl Mul for Backward with op_mul(b1 : Backward, b2 : Backward) -> Backward {
+  let counter = { val: 0 }
+  let cumul = { val: 0.0 }
+  {
+    value: b1.value * b2.value,
+    propagate: fn() {
+      counter.val += 1
+      if counter.val == 1 {
+        (b1.propagate)()
+        (b2.propagate)()
+      }
+    },
+    backward: fn(diff) {
+      counter.val -= 1
+      cumul.val += diff
+      if counter.val == 0 {
+        (b1.backward)(cumul.val * b2.value)
+        (b2.backward)(cumul.val * b1.value)
+      }
+    },
+  }
+}
+
+///|
 test "Backward differentiation 后向微分" {
   let diff_x = Ref::{ val: 0.0 }
   let diff_y = Ref::{ val: 0.0 }
-  let x = Backward::var(10.0, diff_x)
-  let y = Backward::var(100.0, diff_y)
-  (x * y).backward(1.0) // df / df = 1
-  inspect(diff_x, ~content="{val: 100.0}")?
-  inspect(diff_y, ~content="{val: 10.0}")?
+  let x = Backward::variable(10.0, diff_x)
+  let y = Backward::variable(100.0, diff_y)
+  (x * y).backward()
+  inspect(diff_x, content="{val: 100}")
+  inspect(diff_y, content="{val: 10}")
 }
 
-fn example_newton[N : Number](x : N) -> N {
+///|
+/// x^3 - 10 x^2 + x + 1.0
+fn[N : Number] example_newton(x : N) -> N {
   x * x * x + N::constant(-10.0) * x * x + x + N::constant(1.0)
 }
 
+///|
 test "Newton's method 牛顿迭代法案例" {
-  fn abs(d : Double) -> Double {
-    if d >= 0.0 {
-      d
-    } else {
-      -d
+  // Using Forward differentiation with abstraction 利用抽象进行前向微分
+  let mut x = 1.0
+  while true {
+    let { value: y, derivative } = example_newton(Forward::variable(x, true))
+    if (y / derivative).abs() < 1.0e-9 {
+      break
     }
+    x -= y / derivative // update x 更新 x
   }
+  inspect(x, content="0.37851665401644224")
 
-  (loop Forward::var(1.0, true) { // initial value 初始值
-    x => {
-      let { value, derivative } = example_newton(x)
-      if abs(value / derivative) < 1.0e-9 {
-        break x.value // end the loop and have x.value as the value of the loop body 结束循环，并且将x.value作为整个循环体的值
-      }
-      continue Forward::var(x.value - value / derivative, true) // continue the loop 继续循环
+  // Using Backward differentiation with abstraction 利用抽象进行后向微分
+  let derivative = Ref::{ val: 0.0 }
+  let mut x = 1.0
+  while true {
+    let y = example_newton(Backward::variable(x, derivative))
+    y.backward()
+    if (y.value / derivative.val).abs() < 1.0e-9 {
+      break
     }
-  } |> @assertion.assert_eq(0.37851665401644224))?
+    x -= y.value / derivative.val // update x 更新 x
+    derivative.val = 0.0 // reset the partial derivative 重置偏微分
+  }
+  inspect(x, content="0.37851665401644224")
 }

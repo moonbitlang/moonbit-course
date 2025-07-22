@@ -65,7 +65,7 @@ headingDivider: 1
 		```moonbit
 		// 需要额外定义原生算子以实现相同效果
 		fn max[N : Number](x : N, y : N) -> N {
-			if x.value() < y.value() { x } else { y }
+		  if x.value() < y.value() { x } else { y }
 		}
 		```
 
@@ -90,13 +90,13 @@ headingDivider: 1
 	  Var(Int) // x0, x1, x2, ...
 	  Add(Symbol, Symbol)
 	  Mul(Symbol, Symbol)
-	} derive(Debug)
+	} derive(Show)
 
 	// 定义简单构造器，并重载运算符
 	fn Symbol::constant(d : Double) -> Symbol { Constant(d) }
-	fn Symbol::var(i : Int) -> Symbol { Var(i) }
-	fn Symbol::op_add(f1 : Symbol, f2 : Symbol) -> Symbol { Add(f1, f2) }
-	fn Symbol::op_mul(f1 : Symbol, f2 : Symbol) -> Symbol { Mul(f1, f2) }
+	fn Symbol::variable(i : Int) -> Symbol { Var(i) }
+	impl Add for Symbol with op_add(f1 : Symbol, f2 : Symbol) -> Symbol { Add(f1, f2) }
+	impl Mul for Symbol with op_mul(f1 : Symbol, f2 : Symbol) -> Symbol { Mul(f1, f2) }
 
 	// 计算函数值
 	fn Symbol::compute(f : Symbol, input : Array[Double]) -> Double { ... }
@@ -126,13 +126,13 @@ headingDivider: 1
 - 利用符号微分，先构建抽象语法树，再转换为对应的微分，最后进行计算
 	```moonbit
 	fn example() -> Symbol {
-	  Symbol::constant(5.0) * Symbol::var(0) * Symbol::var(0) + Symbol::var(1)
+	  Symbol::constant(5.0) * Symbol::variable(0) * Symbol::variable(0) + Symbol::variable(1)
 	}
-	fn init {
+	test {
 	  let input : Array[Double] = [10., 100.]
 	  let func : Symbol = example() // 函数的抽象语法树
 	  let diff_0_func : Symbol = func.differentiate(0) // 对x_0的偏微分
-	  let _ = diff_0_func.compute(input)
+	  assert_eq(diff_0_func.compute(input), 100)
 	}
 	```
 - 其中，`diff_0`为
@@ -147,56 +147,58 @@ headingDivider: 1
 
 - 我们可以在构造期间进行化简
 
-	```moonbit
-	fn Symbol::op_add(f1 : Symbol, f2 : Symbol) -> Symbol {
-	  match (f1, f2) {
-	    (Constant(0.0), a) => a // 0 + a = a
-	    (Constant(a), Constant(b)) => Constant(a * b)
-	    (a, Constant(_) as const) => const + a
-	    _ => Add(f1, f2)
-  } }
+  ```moonbit
+  impl Add for Symbol with op_add(f1 : Symbol, f2 : Symbol) -> Symbol {
+    match (f1, f2) {
+      (Constant(0.0), a) => a // 0 + a = a
+      (Constant(a), Constant(b)) => Constant(a +b)
+      (a, Constant(_) as c) => c + a
+      (Mul(n, Var(x1)), Mul(m, Var(x2))) if x1 == x2 => Mul(m + n, Var(x1))
+      _ => Add(f1, f2)
+    } 
+  }
+  ```
 
 # 符号微分
 
 - 我们可以在构造期间进行化简
 
-	```moonbit
-	fn Symbol::op_mul(f1 : Symbol, f2 : Symbol) -> Symbol {
-	  match (f1, f2) {
-	    (Constant(0.0), _) => Constant(0.0) // 0 * a = 0
-	    (Constant(1.0), a) => a             // 1 * a = 1
-	    (Constant(a), Constant(b)) => Constant(a * b)
-	    (a, Constant(_) as const) => const * a
-	    _ => Mul(f1, f2)
-  } }
-	```
+  ```moonbit
+  impl Mul for Symbol with op_mul(f1 : Symbol, f2 : Symbol) -> Symbol {
+    match (f1, f2) {
+      (Constant(0.0), _) => Constant(0.0) // 0 * a = 0
+      (Constant(1.0), a) => a             // 1 * a = 1
+      (Constant(a), Constant(b)) => Constant(a * b)
+      (a, Constant(_) as c) => c * a
+      _ => Mul(f1, f2)
+    } 
+  }
+  ```
 
 - 化简效果
 	```moonbit
-	let diff_0 : Symbol = Mul(Constant(5.0), Var(0))
+	let diff_0 : Symbol = Mul(Constant(10), Var(0))
 	```
 
 # 自动微分
 
 - 通过接口定义我们想要实现的运算
   ```moonbit
-	trait Number  {
-	  constant(Double) -> Self
-	  op_add(Self, Self) -> Self
-	  op_mul(Self, Self) -> Self
-	  value(Self) -> Double // 获取当前计算值
-	}
-	```
+  trait Number : Add + Mul {
+  	constant(Double) -> Self
+  	value(Self) -> Double // 获取当前计算值
+  }
+  ```
 
 - 可以利用语言原生的控制流计算，动态生成计算图
   ```moonbit
-	fn max[N : Number](x : N, y : N) -> N {
-	  if x.value() > y.value() { x } else { y }
-	}
-	fn relu[N : Number](x : N) -> N {
-		max(x, N::constant(0.0))
-	}
-	```
+  fn[N : Number] max(x : N, y : N) -> N {
+    if x.value() > y.value() { x } else { y }
+  }
+  fn[N : Number] relu(x : N) -> N {
+  	max(x, N::constant(0.0))
+  }
+  ```
 
 # 前向微分
 
@@ -207,13 +209,13 @@ headingDivider: 1
 	struct Forward {
 	  value : Double      // 当前节点值   f
 	  derivative : Double // 当前节点微分 f'
-	} derive(Debug)
+	} derive(Show)
 
-	fn Forward::constant(d : Double) -> Forward { { value: d, derivative: 0.0 } }
-	fn Forward::value(f : Forward) -> Double { f.value }
+	impl Number for Forward with constant(d : Double) -> Forward { { value: d, derivative: 0.0 } }
+	impl Number for Forward with value(f : Forward) -> Double { f.value }
 
-	// 是否对当前变量进行微分
-	fn Forward::var(d : Double, diff : Bool) -> Forward {
+	// diff: 是否对当前变量进行微分
+	fn Forward::variable(d : Double, diff : Bool) -> Forward {
 	  { value : d, derivative : if diff { 1.0 } else { 0.0 } }
 	}
 	```
@@ -222,12 +224,12 @@ headingDivider: 1
 
 - 利用求导法则直接计算微分
 	```moonbit
-	fn Forward::op_add(f : Forward, g : Forward) -> Forward { {
+	impl Add for Forward with op_add(f : Forward, g : Forward) -> Forward { {
 	  value : f.value + g.value,
 	  derivative : f.derivative + g.derivative // f' + g'
 	} }
 
-	fn Forward::op_mul(f : Forward, g : Forward) -> Forward { {
+	impl Mul for Forward with op_mul(f : Forward, g : Forward) -> Forward { {
 	  value : f.value * g.value,
 	  derivative : f.value * g.derivative + g.value * f.derivative // f * g' + g * f'
 	} }
@@ -237,17 +239,21 @@ headingDivider: 1
 
 - 对输入的参数需逐个计算微分，适用于输出参数多于输入参数
 	```moonbit
-  relu(Forward::var(10.0, true))  |> debug // {value: 10.0, derivative: 1.0}
-  relu(Forward::var(-10.0, true)) |> debug // {value: 0.0, derivative: 0.0}
-  // d(x * y) / dy : {value: 1000.0, derivative: 10.0} 
-  Forward::var(10.0, false) * Forward::var(100.0, true) |> debug
+  test {
+    // f = x, df/dx(10)
+    inspect(relu(Forward::variable(10.0, true)), content="{value: 10, derivative: 1}")
+    // f = x, df/dx(-10)
+    inspect(relu(Forward::variable(-10.0, true)), content="{value: 0, derivative: 0}")
+    // f = x * y, df/dy(10, 100)
+    inspect(Forward::variable(10.0, false) * Forward::variable(100.0, true), content="{value: 1000, derivative: 10}")
+  }  
 	```
 
 # 案例：牛顿迭代法求零点
 
 - $f = x^3 - 10 x^2 + x + 1$
 	```moonbit
-	fn example_newton[N : Number](x : N) -> N {
+	fn[N : Number] example_newton(x : N) -> N {
 	  x * x * x + N::constant(-10.0) * x * x + x + N::constant(1.0)
 	}
 	```
@@ -256,20 +262,19 @@ headingDivider: 1
 
 - 通过循环进行迭代
 	- $x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}$
-	```moonbit
-	fn init {
-	  fn abs(d : Double) -> Double { if d >= 0.0 { d } else { -d } }
-	  loop Forward::var(1.0, true) {  // 迭代起点
-	    x => {
-	      let { value, derivative } = example_newton(x)
-	      if abs(value / derivative) < 1.0e-9 {
-	        break x.value // 精度足够，终止循环
-	      }
-	      continue Forward::var(x.value - value / derivative, true)
-	    }
-	  } |> debug // 0.37851665401644224
+  ```moonbit
+  test {
+    let mut x = 1.0 // 迭代起点
+    while true {
+      let { value, derivative } = example_newton(Forward::variable(x, true))
+      if (value / derivative).abs() < 1.0e-9 {
+        break // 精度足够，终止循环
+      }
+      x -= value / derivative
+	  } 
+    inspect(x, content="0.37851665401644224")
 	}
-	```
+  ```
 
 # 后向微分
 
@@ -287,25 +292,26 @@ headingDivider: 1
 
 - 需前向计算，再后向计算微分
 
-	```moonbit
-	struct Backward {
-	  value : Double              // 当前节点计算值
-	  backward : (Double) -> Unit // 对当前子表达式微分并累加
-	}
+  ```moonbit
+  struct Backward {
+    value : Double              // 当前节点计算值
+    propagate : () -> Unit      // 防止指数级增长
+    backward : (Double) -> Unit // 对当前子表达式微分并累加
+  }
 
-	fn Backward::var(value : Double, diff : Ref[Double]) -> Backward {
-	  // 更新一条计算路径的偏微分 df / dvi * dvi / dx
-	  { value, backward: fn { d => diff.val = diff.val + d } } 
-	}
-
-	fn Backward::constant(d : Double) -> Backward {
-	  { value: d, backward: fn { _ => () } }
-	}
-
-	fn Backward::backward(b : Backward, d : Double) { (b.backward)(d) }
-
-	fn Backward::value(backward : Backward) -> Double { backward.value }
-	```
+  fn Backward::variable(value : Double, diff : Ref[Double]) -> Backward {
+    // 更新一条计算路径的偏微分 df / dvi * dvi / dx
+    { value, backward: d => diff.val += d, propagate: () => () } 
+  }  
+  impl Number for Backward with constant(d : Double) -> Backward {
+    { value: d, backward: _ => (), propagate: () => () }
+  }  
+  impl Number for Backward with value(backward : Backward) -> Double { backward.value }
+  fn Backward::backward(b : Backward) -> Unit { 
+    (b.propagate)()
+    (b.backward)(1.0)
+  }  
+  ```
 
 # 后向微分
 - 需前向计算，再后向计算微分
@@ -314,17 +320,39 @@ headingDivider: 1
 	- 经过$f, g$：$\frac{\partial y}{\partial x} = \frac{\partial y}{\partial f} \frac{\partial f}{\partial g} \frac{\partial g}{\partial x}$，其中$\frac{\partial y}{\partial f}$对应`diff`
 
 ```moonbit
-fn Backward::op_add(g : Backward, h : Backward) -> Backward {
-  {
+impl Add for Backward with op_add(g : Backward, h : Backward) -> Backward {
+  let counter = Ref::{ val : 0 }; let cumul = Ref::{ val : 0.0 }
+  Backward::{
     value: g.value + h.value,
-    backward: fn(diff) { g.backward(diff * 1.0); h.backward(diff * 1.0) },
+    propagate: fn() { counter.val += 1
+      if counter.val == 1 { (g.propagate)(); (h.propagate)() }
+    },
+    backward: fn(diff) { counter.val -= 1
+      cumul.val += diff
+      if counter.val == 0 { (g.backward)(cumul.val * 1.0); (h.backward)(cumul.val * 1.0) }
+    }
   }
 }
+```
 
-fn Backward::op_mul(g : Backward, h : Backward) -> Backward {
-  {
+# 后向微分
+- 需前向计算，再后向计算微分
+	- $f = g + h, \frac{\partial f}{\partial g} = 1, \frac{\partial f}{\partial h} = 1$
+	- $f = g \times h, \frac{\partial f}{\partial g} = h, \frac{\partial f}{\partial h} = g$
+	- 经过$f, g$：$\frac{\partial y}{\partial x} = \frac{\partial y}{\partial f} \frac{\partial f}{\partial g} \frac{\partial g}{\partial x}$，其中$\frac{\partial y}{\partial f}$对应`diff`
+
+```moonbit
+impl Mul for Backward with op_mul(g : Backward, h : Backward) -> Backward {
+  let counter = Ref::{ val : 0 }; let cumul = Ref::{ val : 0.0 }
+  Backward::{
     value: g.value * h.value,
-    backward: fn(diff) { g.backward(diff * h.value); h.backward(diff * g.value) },
+    propagate: fn() { counter.val += 1
+      if counter.val == 1 { (g.propagate)(); (h.propagate)() }
+    },
+    backward: fn(diff) { counter.val -= 1
+      cumul.val += diff
+      if counter.val == 0 { (g.backward)(cumul.val * h.value); (h.backward)(cumul.val * g.value) }
+    }
   }
 }
 ```
@@ -332,17 +360,15 @@ fn Backward::op_mul(g : Backward, h : Backward) -> Backward {
 # 后向微分
 
 ```moonbit
-fn init {
+test {
   let diff_x = Ref::{ val: 0.0 } // 存储x的微分
   let diff_y = Ref::{ val: 0.0 } // 存储y的微分
 
-  let x = Backward::var(10.0, diff_x)
-  let y = Backward::var(100.0, diff_y)
-
-  (x * y).backward(1.0) // df / df = 1.0
-
-  debug(diff_x) // { val : 100.0 }
-  debug(diff_y) // { val : 10.0 }
+  let x = Backward::variable(10.0, diff_x)
+  let y = Backward::variable(100.0, diff_y)
+  (x * y).backward()
+  inspect(diff_x, content="{val: 100}")
+  inspect(diff_y, content="{val: 10}")
 }
 ```
 
