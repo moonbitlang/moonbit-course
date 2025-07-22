@@ -71,43 +71,41 @@ headingDivider: 1
   ```moonbit
   enum Token {
     Value(Int); LParen; RParen; Plus; Minus; Multiply; Divide
-  } derive(Debug)
+  } derive(Show)
   ```
 # 解析器组合子
 
 - 构造可组合的解析器
   ```moonbit
   // V 代表解析成功后获得的值
-  // Lexer[V] == (String) -> Option[(V, String)]
-  type Lexer[V] (String) -> Option[(V, String)]
+  // @string.View 代表 String 的一部份
+  type Lexer[V] (@string.View) -> (V, @string.View)?
 
-  fn parse[V](self : Lexer[V], str : String) -> Option[(V, String)] {
-    (self.0)(str)
+  fn Lexer::parse[V](self : Lexer[V], str : @string.View) -> (V, @string.View)? {
+    self.inner()(str)
   }
   ```
   - 我们简化处理报错信息以及错误位置（可以使用`Result[A, B]`）
 
 # 解析器组合子
 
-- 最简单的解析器
-  - 判断下一个待读取的字符是否符合条件，符合则读取并前进
+- 最简单的解析子：判断下一个待读取的字符是否符合条件，符合则读取并前进
   ```moonbit
   fn pchar(predicate : (Char) -> Bool) -> Lexer[Char] {
-    Lexer(fn(input) {
-      if input.length() > 0 && predicate(input[0]) {
-        Some(input[0], input.to_bytes().sub_string(1, input.length() - 1))
-      } else {
-        None
-  } }) }
+    Lexer(input => match input {
+      [ch, .. rest] if predicate(ch) => Some((ch, rest))
+      _ => None
+    })
+  }
   ```
 - 例如
   ```moonbit
-  fn init {
-    debug(pchar(fn{ ch => ch == 'a' }).parse("asdf")) // Some(('a', "sdf"))
-    debug(pchar(fn{ 
-      'a' => true
-       _  => false
-    }).parse("sdf")) // None
+  test "pchar" {
+    inspect(pchar(ch => ch is 'a').parse("asdf"),
+      content=(
+        #|Some(('a', "sdf"))
+    ))
+    inspect(pchar(ch => ch is 'a').parse("sdf"), content="None")
   }
   ```
 
@@ -118,41 +116,35 @@ headingDivider: 1
 enum Token {
   Value(Int)
   LParen; RParen; Plus; Minus; Multiply; Divide
-} derive(Debug)
+} derive(Show)
 ```
 
 - 分析运算符、括号、空白字符等
 
 ```moonbit
-let symbol: Lexer[Char] = pchar(fn{  
-  '+' | '-' | '*' | '/' | '(' | ')' => true
-  _ => false
-})
-let whitespace : Lexer[Char] = pchar(fn{ ch => ch == ' ' })
+let symbol: Lexer[Char] =  pchar(ch => ch
+  is ('+' | '-' | '*' | '/' | '(' | ')'))
+let whitespace : Lexer[Char] = pchar(ch => ch is ' ')
 ```
 
 # 解析器组合子
 
 - 如果解析成功，对解析结果进行转化
 ```moonbit
-fn map[I, O](self : Lexer[I], f : (I) -> O) -> Lexer[O] {
-  Lexer(fn(input) {
-    // 非空为Some(v)中的v，空值直接返回
-    let (value, rest) = self.parse(input)?
-    Some(f(value), rest)
-}) }
+fn[I, O] Lexer::map(self : Lexer[I], f : (I) -> O) -> Lexer[O] {
+  Lexer(fn(input) { self.parse(input).map(pair => (f(pair.0), pair.1)) })
+}
 ```
 
 - 分析运算符、括号并映射为对应的枚举值
 
 ```moonbit
-let symbol: Lexer[Token] = pchar(fn{  
-    '+' | '-' | '*' | '/' | '(' | ')' => true
-    _ => false
-}).map(fn{
-    '+' => Plus;     '-' => Minus
-    '*' => Multiply; '/' => Divide
-    '(' => LParen;   ')' => RParen
+let symbol : Lexer[Token] = pchar(ch => ch
+  is ('+' | '-' | '*' | '/' | '(' | ')')).map(token => match token {
+  '+' => Token::Plus; '-' => Token::Minus
+  '*' => Token::Multiply; '/' => Token::Divide
+  '(' => Token::LParen; ')' => Token::RParen
+  _ => panic()
 })
 ```
 
@@ -160,41 +152,40 @@ let symbol: Lexer[Token] = pchar(fn{
 
 - 解析`a`，如果成功再解析`b`，并返回`(a, b)`
 ```moonbit
-fn and[V1, V2](self : Lexer[V1], parser2 : Lexer[V2]) -> Lexer[(V1, V2)] {
+fn[V1, V2] Lexer::then(self : Lexer[V1], parser2 : Lexer[V2]) -> Lexer[(V1, V2)] {
   Lexer(fn(input) {
-    let (value, rest) = self.parse(input)?
-    let (value2, rest2) = parser2.parse(rest)?
-    Some((value, value2), rest2)
+    guard self.parse(input) is Some((value, rest)) else { return None }
+    guard parser2.parse(rest) is Some((value2, rest2)) else { return None }
+    Some(((value, value2), rest2))
 }) }
 ```
 
 - 解析`a`，如果失败则解析`b`
 ```moonbit
-fn or[Value](self : Lexer[Value], parser2 : Lexer[Value]) -> Lexer[Value] {
-  Lexer(fn (input) {
+fn[Value] Lexer::or(self : Lexer[Value], parser2 : Lexer[Value]) -> Lexer[Value] {
+  Lexer(fn(input) {
     match self.parse(input) {
       None => parser2.parse(input)
       Some(_) as result => result
-} }) }
+    }
+}) }
 ```
 
 # 解析器组合子
 
 - 重复解析`a`，零或多次，直到失败为止
 ```moonbit
-fn many[Value](self: Lexer[Value]) -> Lexer[List[Value]] {
+fn[Value] Lexer::many(self : Lexer[Value]) -> Lexer[@list.T[Value]] {
   Lexer(fn(input) {
-      let mut rest = input
-      let mut cumul = List::Nil
-      while true {
+    loop (input, @list.empty()) {
+      (rest, cumul) =>
         match self.parse(rest) {
-          None => break
-          Some(value, new_rest) => {
-            rest = new_rest
-            cumul = Cons(value, cumul) // 解析成功添加内容
-      } } }
-      Some(reverse_list(cumul), rest) // ⚠️List是栈，需要翻转以获得正确顺序
-}) }
+          None => Some((cumul.rev(), rest)) // List 是栈，需要反转
+          Some((value, rest)) => continue (rest, @list.construct(value, cumul))
+        }
+    }
+  })
+}
 ```
 
 # 词法分析
@@ -203,21 +194,23 @@ fn many[Value](self: Lexer[Value]) -> Lexer[List[Value]] {
 
 ```moonbit
 // 通过字符编码将字符转化为数字
-let zero: Lexer[Int] = 
-  pchar(fn{ ch => ch == '0' }).map(fn{ _ => 0 })
-let one_to_nine: Lexer[Int] = 
-  pchar(fn{ ch => ch.to_int() >= 0x31 && ch.to_int() <= 0x39 }).map(fn { ch => ch.to_int() - 0x30 })
-let zero_to_nine: Lexer[Int] = 
-  pchar(fn{ ch => ch.to_int() >= 0x30 && ch.to_int() <= 0x39 }).map(fn { ch => ch.to_int() - 0x30 })
+let zero : Lexer[Int] = pchar(ch => ch is '0').map(_ => 0)
+
+let one_to_nine : Lexer[Int] = pchar(ch => ch is ('1'..='9')).map(ch => ch.to_int() - '0'.to_int())
+
+let zero_to_nine : Lexer[Int] = pchar(ch => ch is ('0'..='9')).map(ch => ch.to_int() - '0'.to_int())
 
 // number = %x30 / (%x31-39) *(%x30-39)
-let value: Lexer[Token] = 
-  zero.or(
-    one_to_nine.and(zero_to_nine.many()) // (Int, List[Int])
-      .map(fn{ // 1 2 3 -> 1 * 100 + 2 * 10 + 3
-        (i, ls) => fold_left_list(ls, fn {i, j => i * 10 + j }, i)
-      })
-  ).map(Token::Value)
+let value : Lexer[Token] = zero
+  .or(
+    one_to_nine
+    .then(zero_to_nine.many())
+    .map(pair => {
+      let (i, ls) = pair
+      ls.fold((i, j) => i * 10 + j, init=i)
+    }),
+  )
+  .map(Token::Value(_))
 ```
 
 # 词法分析
@@ -226,13 +219,18 @@ let value: Lexer[Token] =
   - 在单词之间可能存在空格
 
   ```moonbit
-  let tokens: Lexer[List[Token]] = 
-    number.or(symbol).and(whitespace.many())
-      .map(fn { (symbols, _) => symbols }) // 忽略空格
-      .many() 
-
-  fn init {
-    debug(tokens.parse("-10123-+-523 103    ( 5) )  "))
+  let tokens : Lexer[@list.T[Token]] = value
+    .or(symbol)
+    .then(whitespace.many())
+    .map(p => p.0)
+    .many()
+  test {
+    inspect(
+    tokens.parse("-10123+-+523 103    ( 5) )  ").unwrap(),
+    content=(
+      #|(@list.of([Minus, Value(10123), Plus, Minus, Plus, Value(523), Value(103), LParen, Value(5), RParen, RParen]), "")
+    ),
+  )
   }
   ```
 
@@ -302,11 +300,9 @@ let value: Lexer[Token] =
 
 - 定义语法解析组合子
   ```moonbit
-  type Parser[V] (List[Token]) -> Option[(V, List[Token])]
+  type Parser[V] (@list.T[Token]) -> (V, @list.T[Token])?
 
-  fn parse[V](self : Parser[V], tokens : List[Token]) -> Option[(V, List[Token])] {
-    (self.0)(tokens)
-  }
+  fn[V] Parser::parse(self : Parser[V], tokens : @list.T[Token]) -> (V, @list.T[Token])? { self.inner()(tokens) }
   ```
 - 大部分组合子与`Lexer[V]`类似
 - 递归组合：`atomic = Value / "(" expression ")"`
@@ -320,10 +316,8 @@ let value: Lexer[Token] =
   - 在定义其他解析器后更新引用中内容
 
   ```moonbit
-  fn Parser::ref[Value](ref: Ref[Parser[Value]]) -> Parser[Value] {
-    Parser(fn(input) {
-      ref.val.parse(input)
-    })
+  fn[Value] Parser::from_ref(ref_ : Ref[Parser[Value]]) -> Parser[Value] {
+    Parser(fn(input) { ref_.val.parse(input) })
   }
   ```
   - `ref.val`将在使用时获取，此时已更新完毕
@@ -334,21 +328,22 @@ let value: Lexer[Token] =
   ```moonbit
   fn parser() -> Parser[Expression] {
     // 首先定义空引用
-    let expression_ref : Ref[Parser[Expression]] = { val : Parser(fn{ _ => None }) }
+    let expression_ref : Ref[Parser[Expression]] = { val : Parser(_ => None) }
 
     // atomic = Value / "(" expression ")"
-    let atomic =  // 利用引用定义
-      (lparen.and(ref(expression_ref)).and(rparen).map(fn { ((_, expr), _) => expr}))
-        .or(number)
+    let atom =  // 利用引用定义
+      (lparen.then(Parser::from_ref(expression_ref)).then(rparen).map(expr => expr.0.1).or(number)
 
     // combine = atomic *( ("*" / "/") atomic)
-    let combine = atomic.and(multiply.or(divide).and(atomic).many()).map(fn {
-      ...
+    let combine = atom.then(multiply.or(divide).then(atom).many()).map(pair => {
+      guard pair is (expr, list)
+      list.fold(init=expr, (expr, op_expr) => match op_expr { ... })
     })
   
     // expression = combine *( ("+" / "-") combine)
-    expression_ref.val = combine.and(plus.or(minus).and(combine).many()).map(fn {
-      ...
+    expression_ref.val = combine.then(plus.or(minus).then(combine).many()).map(pair => {
+      guard pair is (expr, list)
+      list.fold(init=expr, (expr, op_expr) => match op_expr { ... })
     })
 
     expression_ref.val
@@ -364,14 +359,12 @@ let value: Lexer[Token] =
   fn recursive_parser() -> Parser[Expression] {
     // 定义互递归函数
     // atomic = Value / "(" expression ")"
-    fn atomic(tokens: List[Token]) -> Option[(Expression, List[Token])] {
-      lparen.and(
-        Parser(expression) // 引用函数
-      ).and(rparen).map(fn { ((_, expr), _) => expr})
+    letrec atom = fn(tokens: @list.T[Token]) -> (Expression, @list.T[Token])? {
+      lparen.then( Parser(expression) ).and(rparen).map(expr => expr.0.1)
         .or(number).parse(tokens)
     }
-    fn combine(tokens: List[Token]) -> Option[(Expression, List[Token])] { ... }
-    fn expression(tokens: List[Token]) -> Option[(Expression, List[Token])] { ... }
+    and combine = fn(tokens: @list.T[Token]) -> (Expression, @list.T[Token])? { ... }
+    and expression = fn (tokens: @list.T[Token]) -> (Expression, @list.T[Token])? { ... }
 
     // 返回函数代表的解析器
     Parser(expression)
@@ -384,12 +377,8 @@ let value: Lexer[Token] =
 - 计算表达式，除了生成为抽象语法树再解析，我们还可以有其他的选择
 - 我们通过“行为”来进行抽象
   ```moonbit
-  trait Expr {
+  trait Expr : Add + Sub + Mul + Div {
     number(Int) -> Self
-    op_add(Self, Self) -> Self
-    op_sub(Self, Self) -> Self
-    op_mul(Self, Self) -> Self
-    op_div(Self, Self) -> Self
   }
   ```
   - 接口的不同实现即是对行为的不同语义
@@ -397,40 +386,59 @@ let value: Lexer[Token] =
 # 语法树之外：Tagless Final
 - 我们利用行为的抽象定义解析器
   ```moonbit
-  fn recursive_parser[E : Expr]() -> Parser[E] {
-    let number : Parser[E] = ptoken(fn { Value(_) => true; _ => false})
-      .map(fn { Value(i) => E::number(i) }) // 利用抽象的行为
+  fn[E : Expr] recursive_parser() -> Parser[E] {
+    let number : Parser[E] = ptoken(token => token is Value(_)).map(ptoken => {
+      guard ptoken is Value(i)
+      E::number(i)  // 利用抽象的行为
+    })
 
-    fn atomic(tokens: List[Token]) -> Option[(E, List[Token])] { ... }
+    letrec atomic = fn(tokens: @list.T[Token]) -> (E, @list.T[Token])? { ... }
     // 转化为 a * b * c * ... 和 a / b / c / ...
-    fn combine(tokens: List[Token]) -> Option[(E, List[Token])] { ... }
+    and combine = fn(tokens: @list.T[Token]) -> (E, @list.T[Token])? { ... }
     // 转化为 a + b + c + ... 和 a - b - c - ...
-    fn expression(tokens: List[Token]) -> Option[(E, List[Token])] { ... }
+    and expression=fn(tokens: @list.T[Token]) -> (E, @list.T[Token])? { ... }
 
     Parser(expression)
   }
 
   // 结合在一起
-  fn parse_string[E : Expr](str: String) -> Option[(E, String, List[Token])] {
-    let (token_list, rest_string) = tokens.parse(str)?
-    let (expr, rest_token) : (E, List[Token]) = recursive_parser().parse(token_list)?
-    Some(expr, rest_string, rest_token)
+  fn[E : Expr] parse_string(
+  str : @string.View,
+  ) -> (E, @string.View, @list.T[Token])? {
+    guard tokens.parse(str) is Some((token_list, rest_string)) else { return None }
+    guard recursive_parser().parse(token_list) is Some((expr, rest_token)) else { return None }
+    Some((expr, rest_string, rest_token))
   }
   ```
 
 # 语法树之外：Tagless Final
 - 我们可以提供不同的实现，获得不同的诠释
   ```moonbit
-  enum Expression { ... } derive(Debug) // 语法树实现
-  type BoxedInt Int derive(Debug) // 整数实现
+  enum Expression { ... } derive(Show) // 语法树实现
+  type BoxedInt Int derive(Show) // 整数实现
   // 实现接口（此处省略其他方法）
   fn BoxedInt::number(i: Int) -> BoxedInt { BoxedInt(i) }
   fn Expression::number(i: Int) -> Expression { Number(i) }
-  // 解析
-  debug((parse_string_tagless_final("1 + 1 * (307 + 7) + 5 - (3 - 2)") 
-    : Option[(Expression, String, List[Token])])) // 获得语法树
-  debug((parse_string_tagless_final("1 + 1 * (307 + 7) + 5 - (3 - 2)") 
-    : Option[(BoxedInt, String, List[Token])])) // 获得计算结果
+  test {
+    // 获得语法树
+    inspect(
+      (
+        parse_string("1 + 1 * (307 + 7) + 5 - 3 - 2") :
+        (Expression, @string.View, @list.T[Token])?).unwrap(),
+      content=(
+        #|(Minus(Minus(Plus(Plus(Number(1), Multiply(Number(1), Plus(Number(307), Number(7)))), Number(5)), Number(3)), Number(2)), "", @list.of([]))
+      ),
+    )
+    // 获得计算结果
+    inspect(
+      (
+        parse_string("1 + 1 * (307 + 7) + 5 - 3 - 2") :
+        (BoxedInt, @string.View, @list.T[Token])?).unwrap(),
+      content=(
+        #|(BoxedInt(315), "", @list.of([]))
+      ),
+    )
+  }
   ```
 
 # 总结
