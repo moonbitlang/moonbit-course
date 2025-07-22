@@ -116,13 +116,9 @@ style: |
 # 神经网络实现
 - 运算的定义
 	```moonbit
-	trait Base {
+	trait Base : Add + Neg + Mul + Div {
 	  constant(Double) -> Self
 	  value(Self) -> Double
-	  op_add(Self, Self) -> Self
-	  op_neg(Self) -> Self
-	  op_mul(Self, Self) -> Self
-	  op_div(Self, Self) -> Self
 	  exp(Self) -> Self // 用于计算softmax
 	}
 	```
@@ -136,15 +132,8 @@ style: |
 
 	fn softmax[T : Base](inputs : Array[T]) -> Array[T] {
 	  let n = inputs.length()
-	  let outputs : Array[T] = Array::make(n, T::constant(0.0))
-	  let mut sum = T::constant(0.0)
-	  for i = 0; i < n; i = i + 1 {
-	    sum = sum + inputs[i].exp()
-	  }
-	  for i = 0; i < n; i = i + 1 {
-	    outputs[i] = inputs[i].exp() / sum
-	  }
-	  outputs
+	  let sum = inputs.fold(init=T::constant(0.0), (acc, input) => acc + input.exp())
+	  Array::makei(n, i => inputs[i].exp() / sum)
 	}
 	```
 # 神经网络实现
@@ -152,14 +141,12 @@ style: |
 - 输入->隐含层
 	```moonbit
 	fn input2hidden[T : Base](inputs: Array[Double], param: Array[Array[T]]) -> Array[T] {
-	  let outputs : Array[T] = Array::make(param.length(), T::constant(0.0))
-	  for output = 0; output < param.length(); output = output + 1 { // 4 outputs
-	    for input = 0; input < inputs.length(); input = input + 1 { // 4 inputs
-	      outputs[output] = outputs[output] + T::constant(inputs[input]) * param[output][input]
-	    }
-	    outputs[output] = outputs[output] + param[output][inputs.length()] |> reLU // constant
-	  }
-	  outputs
+	  let outputs : Array[T] = Array::makei(param.length(), o => reLU(
+      inputs.foldi(init=T::constant(0.0), 
+        (index, acc, input) => acc + T::constant(input) * param[o][index]) +
+      param[o][inputs.length()],
+    ))
+    outputs
 	}
 	```
 
@@ -168,13 +155,11 @@ style: |
 - 隐含层->输出
 	```moonbit
 	fn hidden2output[T : Base](inputs: Array[T], param: Array[Array[T]]) -> Array[T] {
-	  let outputs : Array[T] = Array::make(param.length(), T::constant(0.0))
-	  for output = 0; output < param.length(); output = output + 1 { // 3 outputs
-	    for input = 0; input < inputs.length(); input = input + 1 { // 4 inputs
-	      outputs[output] = outputs[output] + inputs[input] * param[output][input]
-	    }
-	    outputs[output] = outputs[output] + param[output][inputs.length()] // constant
-	  }
+	  let outputs : Array[T] = Array::makei(param.length(), o => 
+      inputs.foldi(init=T::constant(0.0),
+        (index, acc, input) => acc + input * param[o][index],
+      ) +
+      param[o][inputs.length()])
 	  outputs |> softmax
 	}
 	```
@@ -206,9 +191,12 @@ style: |
 - 后向微分：计算梯度
 	- 从现有参数构建，积累微分
 	```moonbit
-	fn Backward::param(param: Array[Array[Double]], diff: Array[Array[Double]], 
-		i: Int, j: Int) -> Backward {
-	  { value: param[i][j], backward: fn { d => diff[i][j] = diff[i][j] + d} }
+	fn Backward::param(param: Array[Array[Double]], diff: Array[Array[Double]]) -> Array[Array[Backward]] {
+	  Array::makei(param.length(), i => Array::makei(param[i].length(), j => {
+      value: param[i][j],
+      propagate: fn() {  },
+      backward: d => diff[i][j] += d,
+    }))
 	}
 	```
 	- 计算并根据损失函数求微分
@@ -219,7 +207,7 @@ style: |
 	    |> input2hidden(param_hidden)
 	    |> hidden2output(param_output)
 	    |> cross_entropy(expected)
-	  result.backward(1.0)
+	  result.backward()
 	}
 	```
 # 神经网络训练
@@ -228,7 +216,7 @@ style: |
 	fn update(params: Array[Array[Double]], diff: Array[Array[Double]], step: Double) {
 	  for i = 0; i < params.length(); i = i + 1 {
 	    for j = 0; j < params[i].length(); j = j + 1 {
-	      params[i][j] = params[i][j] - step * diff[i][j]
+	      params[i][j] -= step * diff[i][j]
 	    }
 	  }
 	}
@@ -252,6 +240,5 @@ style: |
 - 本章节介绍了神经网络的基础知识
 	- 神经网络的结构
 	- 神经网络的训练
-- 具体实现参见月兔试用环境
 - 参考资料
 	- [What is a neural network](https://www.ibm.com/topics/neural-networks)

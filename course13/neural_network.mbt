@@ -1,14 +1,12 @@
-trait Base  {
+///|
+trait Base: Add + Neg + Mul + Div {
   constant(Double) -> Self
   value(Self) -> Double
-  op_add(Self, Self) -> Self
-  op_neg(Self) -> Self
-  op_mul(Self, Self) -> Self
-  op_div(Self, Self) -> Self
   exp(Self) -> Self // For computing softmax 用于计算softmax
 }
 
-fn reLU[T : Base](t : T) -> T {
+///|
+fn[T : Base] reLU(t : T) -> T {
   if t.value() < 0.0 {
     T::constant(0.0)
   } else {
@@ -16,136 +14,130 @@ fn reLU[T : Base](t : T) -> T {
   }
 }
 
-fn softmax[T : Base](inputs : Array[T]) -> Array[T] {
+///|
+fn[T : Base] softmax(inputs : Array[T]) -> Array[T] {
   let n = inputs.length()
-  let outputs : Array[T] = Array::make(n, T::constant(0.0))
-  let mut sum = T::constant(0.0)
-  for i = 0; i < n; i = i + 1 {
-    sum = sum + inputs[i].exp()
-  }
-  for i = 0; i < n; i = i + 1 {
-    outputs[i] = inputs[i].exp() / sum
-  }
+  let sum = inputs.fold(init=T::constant(0.0), (acc, input) => acc + input.exp())
+  let outputs : Array[T] = Array::makei(n, i => inputs[i].exp() / sum)
   outputs
 }
 
-fn input2hidden[T : Base](inputs : Array[Double], param : Array[Array[T]]) ->
-     Array[T] {
-  let outputs : Array[T] = Array::make(param.length(), T::constant(0.0))
-  for output = 0; output < param.length(); output = output + 1 {
-    for input = 0; input < inputs.length(); input = input + 1 {
-      outputs[output] = outputs[output] + T::constant(inputs[input]) * param[output][input]
-    }
-    outputs[output] = outputs[output] + param[output][inputs.length()] // constant 常数
-      |> reLU
-  }
+///|
+fn[T : Base] input2hidden(
+  inputs : Array[Double],
+  param : Array[Array[T]],
+) -> Array[T] {
+  let outputs : Array[T] = Array::makei(param.length(), o => reLU(
+    inputs.foldi(init=T::constant(0.0), (index, acc, input) => acc +
+      T::constant(input) * param[o][index]) +
+    param[o][inputs.length()],
+  ))
   outputs
 }
 
-fn hidden2output[T : Base](inputs : Array[T], param : Array[Array[T]]) ->
-     Array[T] {
-  let outputs : Array[T] = Array::make(param.length(), T::constant(0.0))
-  for output = 0; output < param.length(); output = output + 1 {
-    for input = 0; input < inputs.length(); input = input + 1 {
-      outputs[output] = outputs[output] + inputs[input] * param[output][input]
-    }
-    outputs[output] = outputs[output] + param[output][inputs.length()] // constant 常数
-  }
+///|
+fn[T : Base] hidden2output(
+  inputs : Array[T],
+  param : Array[Array[T]],
+) -> Array[T] {
+  let outputs : Array[T] = Array::makei(param.length(), o => inputs.foldi(
+      init=T::constant(0.0),
+      (index, acc, input) => acc + input * param[o][index],
+    ) +
+    param[o][inputs.length()])
   outputs |> softmax
 }
 
-fn compute[T : Base](inputs : Array[Double], param_hidden : Array[Array[T]],
-        param_output : Array[Array[T]]) -> Array[T] {
+///|
+fn[T : Base] compute(
+  inputs : Array[Double],
+  param_hidden : Array[Array[T]],
+  param_output : Array[Array[T]],
+) -> Array[T] {
   inputs |> input2hidden(param_hidden) |> hidden2output(param_output)
 }
 
-trait Log  {
+///|
+trait Log {
   log(Self) -> Self // For computing cross entropy 用于计算交叉熵
 }
 
-fn cross_entropy[T : Base + Log](inputs : Array[T], expected : Int) -> T {
+///|
+fn[T : Base + Log] cross_entropy(inputs : Array[T], expected : Int) -> T {
   -inputs[expected].log()
 }
 
-fn verify[N : Base](result : Array[N], expected : Int) -> Bool {
+///|
+fn[N : Base] verify(result : Array[N], expected : Int) -> Bool {
   match expected {
     0 =>
-      return result[0].value() > result[1].value() && result[0].value() > result[2].value()
+      return result[0].value() > result[1].value() &&
+        result[0].value() > result[2].value()
     1 =>
-      return result[1].value() > result[0].value() && result[1].value() > result[2].value()
+      return result[1].value() > result[0].value() &&
+        result[1].value() > result[2].value()
     2 =>
-      return result[2].value() > result[1].value() && result[2].value() > result[0].value()
+      return result[2].value() > result[1].value() &&
+        result[2].value() > result[0].value()
     _ => abort("")
   }
 }
 
-fn diff(inputs : Array[Double], expected : Int,
-        param_hidden : Array[Array[Backward]],
-        param_output : Array[Array[Backward]]) -> Unit {
+///|
+fn diff(
+  inputs : Array[Double],
+  expected : Int,
+  param_hidden : Array[Array[Backward]],
+  param_output : Array[Array[Backward]],
+) -> Unit {
   let result = compute(inputs, param_hidden, param_output)
     |> cross_entropy(expected)
-  result.backward(1.0)
+  result.backward()
 }
 
-fn update(params : Array[Array[Double]], diff : Array[Array[Double]],
-        step : Double) -> Unit {
+///|
+fn update(
+  params : Array[Array[Double]],
+  diff : Array[Array[Double]],
+  step : Double,
+) -> Unit {
   for i = 0; i < params.length(); i = i + 1 {
     for j = 0; j < params[i].length(); j = j + 1 {
-      params[i][j] = params[i][j] - step * diff[i][j]
+      params[i][j] -= step * diff[i][j]
     }
   }
 }
 
-fn train(param_hidden : Array[Array[Double]],
-        param_output : Array[Array[Double]], step : Double) -> Unit {
-  let diff_hidden : Array[Array[Double]] = Array::make(
+///|
+fn train(
+  param_hidden : Array[Array[Double]],
+  param_output : Array[Array[Double]],
+  step : Double,
+) -> Unit {
+  let diff_hidden : Array[Array[Double]] = Array::makei(param_hidden.length(), i => Array::make(
+    param_hidden[i].length(),
+    0.0,
+  ))
+  let backward_hidden : Array[Array[Backward]] = Array::makei(
     param_hidden.length(),
-    Array::default(),
+    i => Array::makei(param_hidden[i].length(), j => {
+      value: param_hidden[i][j],
+      propagate: fn() {  },
+      backward: d => diff_hidden[i][j] += d,
+    }),
   )
-  for i = 0; i < diff_hidden.length(); i = i + 1 {
-    diff_hidden[i] = Array::make(param_hidden[i].length(), 0.0)
-  }
-  let backward_hidden : Array[Array[Backward]] = Array::make(
-    param_hidden.length(),
-    Array::default(),
-  )
-  for i = 0; i < param_hidden.length(); i = i + 1 {
-    backward_hidden[i] = Array::make(
-      param_hidden[i].length(),
-      Backward::constant(0.0),
-    )
-    for j = 0; j < param_hidden[i].length(); j = j + 1 {
-      backward_hidden[i][j] = {
-        value: param_hidden[i][j],
-        propagate: fn() {  },
-        backward: fn { d => diff_hidden[i][j] = diff_hidden[i][j] + d },
-      }
-    }
-  }
-  let diff_output : Array[Array[Double]] = Array::make(
+  let diff_output : Array[Array[Double]] = Array::makei(param_output.length(), i => Array::make(
+    param_output[i].length(),
+    0.0,
+  ))
+  let backward_output : Array[Array[Backward]] = Array::makei(
     param_output.length(),
-    Array::default(),
+    i => Array::makei(param_output[i].length(), j => {
+      value: param_output[i][j],
+      propagate: fn() {  },
+      backward: d => diff_output[i][j] += d,
+    }),
   )
-  for i = 0; i < diff_output.length(); i = i + 1 {
-    diff_output[i] = Array::make(param_output[i].length(), 0.0)
-  }
-  let backward_output : Array[Array[Backward]] = Array::make(
-    param_output.length(),
-    Array::default(),
-  )
-  for i = 0; i < param_output.length(); i = i + 1 {
-    backward_output[i] = Array::make(
-      param_output[i].length(),
-      Backward::constant(0.0),
-    )
-    for j = 0; j < param_output[i].length(); j = j + 1 {
-      backward_output[i][j] = {
-        value: param_output[i][j],
-        propagate: fn() {  },
-        backward: fn { d => diff_output[i][j] = diff_output[i][j] + d },
-      }
-    }
-  }
   for i = 0; i < train_dataset.length(); i = i + 1 {
     diff(
       train_dataset[i].input,
@@ -158,15 +150,14 @@ fn train(param_hidden : Array[Array[Double]],
   update(param_output, diff_output, step)
 }
 
+///|
 fn main {
-  let hidden_layer : Array[Array[Double]] = Array::make(4, Array::default())
-  for i = 0; i < hidden_layer.length(); i = i + 1 {
-    hidden_layer[i] = Array::make(5, 0.2)
-  }
-  let output_layer : Array[Array[Double]] = Array::make(3, Array::default())
-  for i = 0; i < output_layer.length(); i = i + 1 {
-    output_layer[i] = Array::make(5, 0.2)
-  }
+  let hidden_layer : Array[Array[Double]] = Array::makei(4, _ => Array::make(
+    5, 0.2,
+  ))
+  let output_layer : Array[Array[Double]] = Array::makei(3, _ => Array::make(
+    5, 0.2,
+  ))
   let learning_rate = 0.002
   let decay_rate = -0.005
   for i = 0; i < 400; i = i + 1 {
@@ -179,45 +170,40 @@ fn main {
   for i = 0, correct = 0, wrong = 0; i < test_dataset.length(); {
     let result = compute(test_dataset[i].input, hidden_layer, output_layer)
     if verify(result, test_dataset[i].expected) {
-      continue i + 1,
-        correct + 1,
-        wrong
+      continue i + 1, correct + 1, wrong
     } else {
-      continue i + 1,
-        correct,
-        wrong + 1
+      continue i + 1, correct, wrong + 1
     }
   } else {
-    println("correct \(correct) wrong \(wrong)")
+    println("correct \{correct} wrong \{wrong}")
   }
 }
 
-// Backward differentiation 后向微分
-
+///| Backward differentiation 后向微分
 pub struct Backward {
   value : Double
   propagate : () -> Unit // Topogical sort 拓扑排序
   backward : (Double) -> Unit
 }
 
-fn Backward::constant(d : Double) -> Backward {
-  { value: d, propagate: fn() {  }, backward: fn { _ => () } }
+///|
+impl Base for Backward with constant(d : Double) -> Backward {
+  { value: d, propagate: fn() {  }, backward: _ => () }
 }
 
-fn Backward::var(value : Double, diff : Ref[Double]) -> Backward {
-  { value, propagate: fn() {  }, backward: fn { d => diff.val = diff.val + d } }
-}
-
-fn Backward::backward(b : Backward, d : Double) -> Unit {
+///|
+fn Backward::backward(b : Backward) -> Unit {
   (b.propagate)()
-  (b.backward)(d)
+  (b.backward)(1.0)
 }
 
-fn Backward::value(backward : Backward) -> Double {
+///|
+impl Base for Backward with value(backward : Backward) -> Double {
   backward.value
 }
 
-fn Backward::op_add(b1 : Backward, b2 : Backward) -> Backward {
+///|
+impl Add for Backward with op_add(b1 : Backward, b2 : Backward) -> Backward {
   let counter = { val: 0 }
   let cumul = { val: 0.0 }
   {
@@ -240,7 +226,8 @@ fn Backward::op_add(b1 : Backward, b2 : Backward) -> Backward {
   }
 }
 
-fn Backward::op_neg(b : Backward) -> Backward {
+///|
+impl Neg for Backward with op_neg(b : Backward) -> Backward {
   let counter = { val: 0 }
   let cumul = { val: 0.0 }
   {
@@ -261,7 +248,8 @@ fn Backward::op_neg(b : Backward) -> Backward {
   }
 }
 
-fn Backward::op_mul(b1 : Backward, b2 : Backward) -> Backward {
+///|
+impl Mul for Backward with op_mul(b1 : Backward, b2 : Backward) -> Backward {
   let counter = { val: 0 }
   let cumul = { val: 0.0 }
   {
@@ -284,7 +272,8 @@ fn Backward::op_mul(b1 : Backward, b2 : Backward) -> Backward {
   }
 }
 
-fn Backward::op_div(b1 : Backward, b2 : Backward) -> Backward {
+///|
+impl Div for Backward with op_div(b1 : Backward, b2 : Backward) -> Backward {
   let counter = { val: 0 }
   let cumul = { val: 0.0 }
   {
@@ -307,7 +296,8 @@ fn Backward::op_div(b1 : Backward, b2 : Backward) -> Backward {
   }
 }
 
-fn Backward::exp(b : Backward) -> Backward {
+///|
+impl Base for Backward with exp(b : Backward) -> Backward {
   let b_exp = Base::exp(b.value)
   let counter = { val: 0 }
   let cumul = { val: 0.0 }
@@ -329,7 +319,8 @@ fn Backward::exp(b : Backward) -> Backward {
   }
 }
 
-fn Backward::log(b : Backward) -> Backward {
+///|
+impl Log for Backward with log(b : Backward) -> Backward {
   let counter = { val: 0 }
   let cumul = { val: 0.0 }
   {
@@ -352,32 +343,33 @@ fn Backward::log(b : Backward) -> Backward {
 
 // Implementation for Double 浮点数的实现
 
-fn Base::constant(d : Double) -> Double {
+///|
+impl Base for Double with constant(d : Double) -> Double {
   d
 }
 
-fn Base::value(d : Double) -> Double {
+///|
+impl Base for Double with value(d : Double) -> Double {
   d
 }
 
-fn Base::exp(x : Double) -> Double {
-  x |> exp_ffi
+///|
+impl Base for Double with exp(x : Double) -> Double {
+  @math.exp(x)
 }
 
-fn exp_ffi(x : Double) -> Double = "math" "exp"
-
-fn Log::log(x : Double) -> Double {
-  x |> log_ffi
+///|
+impl Log for Double with log(x : Double) -> Double {
+  @math.ln(x)
 }
 
-fn log_ffi(x : Double) -> Double = "math" "log"
-
-/// IRIS 鸢尾花
+///| IRIS 鸢尾花
 struct Data {
   input : Array[Double]
   expected : Int
 }
 
+///|
 let train_dataset : Array[Data] = [
   { input: [5.1, 3.5, 1.4, 0.2], expected: 0 },
   { input: [4.9, 3.0, 1.4, 0.2], expected: 0 },
@@ -449,6 +441,7 @@ let train_dataset : Array[Data] = [
   { input: [6.0, 2.2, 5.0, 1.5], expected: 2 },
 ]
 
+///|
 let test_dataset : Array[Data] = [
   { input: [5.4, 3.4, 1.7, 0.2], expected: 0 },
   { input: [5.1, 3.7, 1.5, 0.4], expected: 0 },
