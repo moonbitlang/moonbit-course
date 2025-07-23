@@ -236,7 +236,7 @@ let program : Program = Program::{
 
 # 编译程序
 
-- 利用内建`Buffer`数据结构，比字符串拼接更高效
+- 利用内建 `StringBuilder` 数据结构，比字符串拼接更高效
   ```moonbit
   fn Instruction::to_wasm(self : Instruction, buffer : StringBuilder) -> Unit
   fn Function::to_wasm(self : Function, buffer : StringBuilder) -> Unit
@@ -245,7 +245,7 @@ let program : Program = Program::{
 
 # 编译指令
 
-- 利用内建`Buffer`数据结构，比拼接字符串更高效
+- 利用内建 `StringBuilder` 数据结构，比拼接字符串更高效
 ```moonbit
 fn Instruction::to_wasm(self : Instruction, buffer : StringBuilder) -> Unit {
   match self {
