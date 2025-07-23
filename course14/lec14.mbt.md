@@ -90,12 +90,13 @@ enum Value { I32(Int) } // 只考虑32位有符号整数
 - 指令
 ```moonbit
 enum Instruction {
-  Const(Int)                           // 常数
+  Const(Value)                         // 常数
   Add; Sub; Modulo; Equal              // 加、减、取模、相等
   Call(String)                         // 函数调用
   Local_Get(String); Local_Set(String) // 取值、设值
   If(Int, List[Instruction], List[Instruction]) // 条件判断
 }
+typealias @list.T as List
 ```
   
 # 类型定义
@@ -148,7 +149,7 @@ struct Program {
 
 - 例：`add(1, 2)`
   ```moonbit no-check
-  Lists::[ Const(1), Const(2), Call("add") ]
+  @list.from_array([ Const(1), Const(2), Call("add") ])
   ```
   - 在栈上存储函数的返回值数量
   ![](../pics/return.drawio.svg)
@@ -156,11 +157,11 @@ struct Program {
 # 条件跳转
 
 - 例：`if 1 == 0 { 1 } else { 0 }`
-  ```moonbit no-check
-  List::[ 
+  ```moonbit
+  @list.from_array([ 
     Const(1), Const(0), Equal,
     If(1, List::[Const(1)], List::[Const(0)])
-  ]
+  ])
   ```
 
   - 当执行`If(n, then_block, else_block)`时栈顶为非0整数（`true`）
@@ -172,25 +173,25 @@ struct Program {
 
 # 例：加法
 
-```moonbit expr
-let program = Program::{
+```moonbit
+let program : Program = Program::{
 
   start: Some("test_add"), // 程序入口
 
-  functions: List::[
+  functions: @list.of([
     Function::{
       name: "add", // 加法函数
-      params: List::["a", "b"], result: 1, locals: List::[],
-      instructions: List::[Local_Get("a"), Local_Get("b"), Add],
+      params: @list.of(["a", "b"]), result: 1, locals: @list.of([]),
+      instructions: @list.of([Local_Get("a"), Local_Get("b"), Add]),
     },
 
     Function::{
       name: "test_add", // 加法运算并输出
-      params: List::[], result: 0, locals: List::[], // 入口函数无输入无输出
+      params: @list.of([]), result: 0, locals: @list.of([]), // 入口函数无输入无输出
       // “print_int"为特殊函数
-      instructions: List::[Const(0), Const(1), Call("add"), Call("print_int")], 
+      instructions: @list.of([Const(I32(0)), Const(I32(1)), Call("add"), Call("print_int")]), 
     },
-  ],
+  ]),
 }
 ```
 
@@ -236,20 +237,20 @@ let program = Program::{
 # 编译程序
 
 - 利用内建`Buffer`数据结构，比字符串拼接更高效
-  ```moonbit no-check
-  fn Instruction::to_wasm(self : Instruction, buffer : Buffer) -> Unit
-  fn Function::to_wasm(self : Function, buffer : Buffer) -> Unit
-  fn Program::to_wasm(self : Program, buffer : Buffer) -> Unit
+  ```moonbit
+  fn Instruction::to_wasm(self : Instruction, buffer : StringBuilder) -> Unit
+  fn Function::to_wasm(self : Function, buffer : StringBuilder) -> Unit
+  fn Program::to_wasm(self : Program, buffer : StringBuilder) -> Unit
   ```
 
 # 编译指令
 
 - 利用内建`Buffer`数据结构，比拼接字符串更高效
 ```moonbit
-fn Instruction::to_wasm(self : Instruction, buffer : Buffer) -> Unit {
+fn Instruction::to_wasm(self : Instruction, buffer : StringBuilder) -> Unit {
   match self {
     Add => buffer.write_string("i32.add ")
-    Local_Get(val) => buffer.write_string("local.get $\(val) ")
+    Local_Get(val) => buffer.write_string("local.get $\{val} ")
     _ => buffer.write_string("...")
   }
 }
@@ -287,10 +288,10 @@ enum Expression {
 ```moonbit
 fn compile_expression(expression : Expression) -> List[Instruction] {
   match expression {
-    Number(i) => List::[Const(I32(i))]
-    Plus(a, b) => compile_expression(a) + compile_expression(b) + List::[Add]
-    Minus(a, b) => compile_expression(a) + compile_expression(b) + List::[Sub]
-    _ => List::[]
+    Number(i) => @list.of([Const(I32(i))])
+    Plus(a, b) => compile_expression(a) + compile_expression(b) + @list.of([Add])
+    Minus(a, b) => compile_expression(a) + compile_expression(b) + @list.of([Sub])
+    _ => @list.of([])
   }
 }
 ```
@@ -310,7 +311,7 @@ fn compile_expression(expression : Expression) -> List[Instruction] {
 ```moonbit
 enum StackValue {
   Val(Value) // 普通数值
-  Func(@map.Map[String, Value]) // 函数堆栈，存放先前的本地变量
+  Func(@immut/hashmap.T[String, Value]) // 函数堆栈，存放先前的本地变量
 }
 
 enum AdministrativeInstruction {
@@ -321,7 +322,7 @@ enum AdministrativeInstruction {
 struct State {
   program : Program
   stack : List[StackValue]
-  locals : @map.Map[String, Value]
+  locals : @immut/hashmap.T[String, Value]
   instructions : List[AdministrativeInstruction]
 }
 ```
@@ -334,11 +335,11 @@ struct State {
 - 读取当前指令与栈顶数据
 
 ```moonbit
-fn evaluate(state : State, stdout : Buffer) -> Option[State] {
+fn evaluate(state : State, stdout : StringBuilder) -> Option[State] {
   match (state.instructions, state.stack) {
-    (Cons(Plain(Add), tl), Cons(Val(I32(b)), Cons(Val(I32(a)), rest))) =>
+    (More(Plain(Add), tail=tl), More(Val(I32(b)), tail=More(Val(I32(a)), tail=rest))) =>
       Some(
-        State::{ ..state, instructions: tl, stack: Cons(Val(I32(a + b)), rest) },
+        State::{ ..state, instructions: tl, stack: @list.construct(Val(I32(a + b)), rest) },
       )
     _ => None
   }
@@ -352,7 +353,7 @@ fn evaluate(state : State, stdout : Buffer) -> Option[State] {
 - 条件判断时，根据分支取出对应代码
 
 ```moonbit no-check
-(Cons(Plain(If(_, then, else_)), tl), Cons(Val(I32(i)), rest)) =>
+(More(Plain(If(_, then, else_)), tail=tl), More(Val(I32(i)), tail=rest)) =>
   Some(State::{..state,
       stack: rest,
       instructions: (if i != 0 { then } else { else_ }).map(
@@ -367,7 +368,7 @@ fn evaluate(state : State, stdout : Buffer) -> Option[State] {
 - 对输出函数进行特判
 
 ```moonbit no-check
-(Cons(Plain(Call("print_int")), tl), Cons(Val(I32(i)), rest)) => {
+(More(Plain(Call("print_int")), tail=tl), More(Val(I32(i)), tail=rest)) => {
   stdout.write_string(i.to_string())
   Some(State::{ ..state, stack: rest, instructions: tl })
 }
