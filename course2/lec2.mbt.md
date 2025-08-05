@@ -30,38 +30,27 @@ backgroundImage: url('../pics/background_moonbit.png')
 - 开发工具
     - VS Code插件：语言服务器、包级别构建等功能
     - 命令行工具：项目级别构建、项目测试、依赖管理等功能
+    - [语言导览](https://tour.moonbitlang.com/zh/index.html)：快速学习月兔的互动教程
 - 开发环境
     - 浏览器环境（无命令行工具）
-    - 云原生开发环境
-        - [腾讯云Coding](coding.net)
-        - [Gitpod.io](gitpod.io)
-        - [Github.dev](github.dev)
-        - ...
+    - 云原生开发环境（如[Github Codespaces](https://github.com/features/codespaces)）
     - 本地开发环境
+    
 ---
 
 # 浏览器环境
 
-- 访问 [try.moonbitlang.cn](https://try.moonbitlang.cn) ，或从[官网](https://moonbitlang.cn)点击“试用”
+- 访问[try.moonbitlang.cn](https://try.moonbitlang.cn)，或从[官网](https://moonbitlang.cn)点击“试用”
 - 试用环境可以快速创建文件并运行
 - 试用环境提供代码样例，方便熟悉月兔语法
 - 试用环境提供分享功能
 
 ---
 
-# 云原生开发环境（以腾讯云为例）
-
-- 基于远程服务器、按需使用的开发环境
-- 需要依赖云原生开发环境供应商，如腾讯云Coding等
-- 新建/克隆仓库并启动开发环境后，安装"MoonBit Language"插件
-- 进阶开发需安装[命令行工具](https://www.moonbitlang.cn/download/)，或克隆[云原生开发模板](https://github.com/peter-jerry-ye/moonbit-template)。后续参考[月兔构建系统教程](https://www.moonbitlang.cn/docs/build-system-tutorial/)
-
----
-
 # 本地开发环境
 
 - 安装[VS Code](https://code.visualstudio.com/)或[VS Codium](https://mirrors.cernet.edu.cn/list/VSCodium)，并安装"MoonBit Language"插件
-- 进阶开发需安装[命令行工具](https://www.moonbitlang.cn/download/)（支持Windows、MacOS与Ubuntu等环境），并参考[月兔构建系统教程](https://www.moonbitlang.cn/docs/build-system-tutorial/)
+- 安装[命令行工具](https://www.moonbitlang.cn/download/)（支持Windows、MacOS与Ubuntu等环境），并参考[月兔构建系统教程](https://www.moonbitlang.cn/docs/build-system-tutorial/)
 
 ---
 
@@ -73,45 +62,39 @@ backgroundImage: url('../pics/background_moonbit.png')
 
 ```moonbit
 //顶层函数定义
-fn num_water_bottles(num_bottles: Int, num_exchange: Int) -> Int {
-  // 本地函数定义
-  fn consume(num_bottles, num_drunk) {
-    // 条件表达式
-    if num_bottles >= num_exchange {
-      // 数据绑定
-      let num_bottles = num_bottles - num_exchange + 1
-      let num_drunk = num_drunk + num_exchange
-      // 函数运算
-      consume(num_bottles, num_drunk)
+fn num_water_bottles(num_bottles : Int, num_exchange : Int) -> Int {
+  for num_full = num_bottles, num_empty = 0, num_total = 0 {
+    if num_full > 0 {
+      continue 0, num_empty + num_full, num_total + num_full
+    } else if num_empty >= num_exchange {
+      continue num_empty / num_exchange, num_empty % num_exchange, num_total
     } else {
-      num_bottles + num_drunk
+      break num_total
     }
   }
-  consume(num_bottles, 0)
 }
 
 // 程序测试
 test {
-  // 命令
   assert_eq(num_water_bottles(9, 3), 13)
   assert_eq(num_water_bottles(15, 4), 19)
 }
 ```
+
 ---
 
 # 基于表达式编程
 
-- 为了写出正确的程序，我们需要知道程序是如何被运算的：我们需要建立**计算模型**来理解程序的运算过程
+- 为了写出正确的程序，我们需要知道程序是如何被运算的：建立**计算模型**来理解程序的运算过程
 - 月兔程序可以通过**面向值编程**来描述
-  - 面向值编程：定义是什么
+  - 面向值编程：定义程序**是**什么
     - 我们写的月兔代码都是表达一个值的**表达式**
-  - 命令式编程风格：定义做什么
+  - 命令式编程风格：定义程序**做**什么
     - 程序由修改程序状态的**命令**组成
       - `创建名为x的变量`
       - `令x为5`
       - `令y指向x`
       - ……
-
 
 --- 
 
@@ -122,7 +105,7 @@ test {
 |`Int`|`-1` `0` `1` `2`|`+` `-` `*` `/`|`5` `(3 + y * x)`|
 |`Double`|`0.12` `3.1415`|`+` `-` `*` `/`|`3.0 * (4.0 * a)`|
 |`String`|`"hello"` `"Moonbit"`|`+`|`"Hello, " + "MoonBit"`|
-|`Bool`|`true` `false`|`&&` `\|\|` `not()`|`not(b1) \|\| b2`|
+|`Bool`|`true` `false`|`&&` `\|\|` `!`|`!b1 \|\| b2`|
 
 - 每一个**类型**对应一个**值**的集合
 - 每一个**表达式**由基于值的**运算**构成，并且可以简化为一个值（或已经是一个值）
@@ -141,9 +124,9 @@ test {
 # 静态类型
 - 每一个**标识符**都关联着唯一一个类型
 - “冒号”用于关联一个标识符和它的类型
-    - `x: Int`
-    - `a: Double`
-    - `s: String`
+    - `x : Int`
+    - `a : Double`
+    - `s : String`
 - 每一个月兔**表达式**都有一个唯一的类型，这个类型由组成它的子表达式决定
   ![类型推导示范 height:200px](../pics/well-typed-expression.drawio.png)
 
@@ -176,10 +159,10 @@ test {
   - `true`
   - `false`
 - 常见运算
-  - 非：非真为假，非假为真 　`not(true) == false`
+  - 非：非真为假，非假为真 　`!true == false`
   - 与：两者皆真才为真 　　　`true && false == false`
   - 或：两者皆假才为假 　　　`true || false == true`
-- 小练习：如何用或、与、非定义异或（一者为真才为真）
+- 小练习：如何用或、与、非定义**异或**（一者为真才为真）
 ---
 
 # 整数类型
@@ -203,9 +186,9 @@ test {
 - 作为基础类型的浮点数只能表示有限小数，且只能近似表达
     - 浮点数在计算机内部表现形式为尾数`b`与指数`e`（均为整数）：$b \times 2^e$
     - 例如：[`0.1 + 0.2 != 0.3`](https://try.moonbitlang.cn/#02ce0b43)
-- 月兔中浮点数类型为双精度浮点数：`Double`
-    - `Int`与`Double`不能混合运算：`1 + 2.0` 报错
-    - `Int`转换为`Double`：`(1).to_double() == 1.0`
+- 月兔中浮点数类型分为单精度浮点数`Float`和双精度浮点数`Double`
+    - 整数和浮点数不能混合运算：`1 + 2.0` 报错
+    - `Int`可以转换为`Double`：`(1).to_double() == 1.0`
     - `Double`转化为`Int`：`(-1.2).to_int() == -1`
 - 小练习：如何通过整数与浮点数的相互转换，来比较`0.1 + 0.2`与`0.3`？
 
@@ -228,8 +211,8 @@ test {
 # 多元组
 
 - 多元组允许我们将表达固定长度的、不同类型的数据组合
-  - `("Bob", 3): (String, Int)`
-  - `(2023, 10, 24): (Int, Int, Int)`
+  - `("Bob", 3) : (String, Int)`
+  - `(2023, 10, 24) : (Int, Int, Int)`
 - 可以通过从0开始的下标访问数据
   - `(2023, 10, 24).0 == 2023`
   - `(2023, 10, 24).1 == 10`
@@ -240,11 +223,11 @@ test {
 
 - 月兔有丰富的类型结构
   - 函数类型
-    - `op_add : (Int, Int) -> Int`
+    - `add : (Int, Int) -> Int`
   - 单值类型
-    - `(): Unit`
+    - `() : Unit`
   - 列表类型
-    - `List::Cons(1, Nil): List[Int]`
+    - `List::Cons(1, Nil) : List[Int]`
   - ……
 - 我们会在后续课程中见到它们，以及自定义数据结构
 
@@ -258,7 +241,7 @@ test {
 
 - 我们可以将月兔的表达式看作定义**值**的一种方式
 - 我们可以将月兔的运行过程看作一系列的**计算**或**简化**的求值步骤
-- 相比之下，命令式编程则可以被看作执行一系列**行为**或者**命令**，每一个命令都会修改机器的状态
+- 相比之下，命令式编程则可以被看作执行一系列**行为**或者**命令**
     - 创建指针`x`与`y`并分配内存，令`x`值为3，令`y`值为4
     - 令`y`指向`x`
     - 令`x`自增
@@ -319,11 +302,10 @@ $\mapsto$ `15`                               因为
 表达式块的类型即为最后的表达式的类型，表达式块的值即为最后表达式的值
 
 ```moonbit
-// 顶层（全局）即指定义在一个文件中所有表达式块外部定义的函数或标识符
-let 顶层标识符 = 10
+let 顶层标识符 = 10 // 顶层（全局）指定义在一个文件中所有表达式块外部定义的函数或标识符
+
 fn 顶层函数() -> Unit {
-  // 本地（局部）即指某个表达式块内部的函数或标识符
-  fn 本地函数() { 
+  fn 本地函数() { // 本地（局部）指某个表达式块内部的函数或标识符
     let 本地标识符 = 1 // 局部数值绑定可以简化
     本地标识符 // 表达式块的值
   }
@@ -352,14 +334,12 @@ fn 顶层函数() -> Unit {
 - 对剩余表达式进行化简
 
 ```moonbit expr
-let y: Int = 10
-
+let y : Int = 10
 let value = {
   let x = 1
   let tmp = x * 2
   let another_tmp = {
     let tmp = x * 3
-
     tmp
   }
   tmp + another_tmp + y
@@ -376,14 +356,12 @@ let value = {
 - 对剩余表达式进行化简
 
 ```moonbit expr
-let y: Int = 10
-
+let y : Int = 10
 let value = {
   let x = 1
   let tmp = 1 * 2 // 替换x
   let another_tmp = {
     let tmp = 1 * 3 // 替换x
-
     tmp
   }
   tmp + another_tmp + 10 // 替换y
@@ -401,13 +379,11 @@ let value = {
 
 ```moonbit expr
 // 省略y的定义
-
 let value = {
   // 省略x的定义
   let tmp = 2 // 简化右侧表达式
   let another_tmp = {
     let tmp = 3 // 简化右侧表达式
-
     tmp
   }
   tmp + another_tmp + 10
@@ -425,11 +401,9 @@ let value = {
 
 ```moonbit expr
 let value = {
-
   let tmp = 2
   let another_tmp = {
     let tmp = 3
-
     3 // 替换表达式
   }
   tmp + another_tmp + 10
@@ -447,7 +421,6 @@ let value = {
 
 ```moonbit expr
 let value = {
-
   let tmp = 2
   let another_tmp = 3 // 简化右侧表达式
   tmp + another_tmp + 10
@@ -465,7 +438,6 @@ let value = {
 
 ```moonbit expr
 let value = {
-
   let tmp = 2
   let another_tmp = 3 // 简化右侧表达式
   2 + 3 + 10 // 替换表达式
@@ -489,7 +461,7 @@ let value = 15
 
 # 条件表达式
 
-`if 条件 表达式块｜条件为真 else 表达式块｜条件为假`
+`if 条件 条件为真的表达式块 else 条件为假的表达式块`
 
 月兔的条件表达式也是**表达式**，因此可以被用在其他表达式内
 
@@ -503,7 +475,9 @@ let value = 15
 
 `if 条件 表达式块 else 表达式块`
 
-分支的表达式块的类型需相同，且整个条件表达式的类型取决于分支的表达式块的类型；条件的类型需为逻辑值
+- 分支的表达式块的类型需相同
+- 整个条件表达式的类型取决于分支的表达式块的类型
+- 条件的类型需为逻辑值
 
 ![](../pics/if-else-then.drawio.png)
 
@@ -511,7 +485,7 @@ let value = 15
 
 # 简化条件表达式
 
-条件式表达式的值为哪个分支的值取决于条件的简化结果为真或假
+条件式表达式的值为哪个分支的值取决于**条件的简化结果**为真或假
 
 例如：
 
