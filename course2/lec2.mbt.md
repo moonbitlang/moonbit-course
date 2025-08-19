@@ -28,29 +28,28 @@ backgroundImage: url('../pics/background_moonbit.png')
 # 月兔开发环境
 
 - 开发工具
-    - VS Code插件：语言服务器、包级别构建等功能
-    - 命令行工具：项目级别构建、项目测试、依赖管理等功能
+    - [VS Code 插件](https://marketplace.visualstudio.com/items?itemName=moonbit.moonbit-lang)：语言服务器功能
+    - [命令行工具](https://www.moonbitlang.com/download/#moonbit-cli-tools)：项目构建、测试、依赖管理等功能
     - [语言导览](https://tour.moonbitlang.com/zh/index.html)：快速学习月兔的互动教程
 - 开发环境
-    - 浏览器环境（无命令行工具）
-    - 云原生开发环境（如[Github Codespaces](https://github.com/features/codespaces)）
+    - [浏览器环境](https://try.moonbitlang.cn)（无命令行工具）
+    - 云原生开发环境（如 [Github Codespaces](https://github.com/features/codespaces)）
     - 本地开发环境
     
 ---
 
 # 浏览器环境
 
-- 访问[try.moonbitlang.cn](https://try.moonbitlang.cn)，或从[官网](https://moonbitlang.cn)点击“试用”
+- 访问 [try.moonbitlang.cn](https://try.moonbitlang.cn)，或从[官网](https://moonbitlang.cn)点击“试用”
 - 试用环境可以快速创建文件并运行
 - 试用环境提供代码样例，方便熟悉月兔语法
-- 试用环境提供分享功能
 
 ---
 
 # 本地开发环境
 
-- 安装[VS Code](https://code.visualstudio.com/)或[VS Codium](https://mirrors.cernet.edu.cn/list/VSCodium)，并安装"MoonBit Language"插件
-- 安装[命令行工具](https://www.moonbitlang.cn/download/)（支持Windows、MacOS与Ubuntu等环境），并参考[月兔构建系统教程](https://www.moonbitlang.cn/docs/build-system-tutorial/)
+- 安装 [VS Code](https://code.visualstudio.com/) 或 [VS Codium](https://mirrors.cernet.edu.cn/list/VSCodium)，并安装["MoonBit Language"插件](https://marketplace.visualstudio.com/items?itemName=moonbit.moonbit-lang)
+- 安装[命令行工具](https://www.moonbitlang.cn/download/)（支持 Windows、MacOS 与 Ubuntu 等环境），并参考[月兔构建系统教程](https://www.moonbitlang.cn/docs/build-system-tutorial/)
 
 ---
 
@@ -102,18 +101,19 @@ test {
 
 |类型|值|运算|表达式|
 |-----|------|----------|-----------|
-|`Int`|`-1` `0` `1` `2`|`+` `-` `*` `/`|`5` `(3 + y * x)`|
-|`Double`|`0.12` `3.1415`|`+` `-` `*` `/`|`3.0 * (4.0 * a)`|
+|`Int`|`-1` `0` `1` `2`|`+` `-` `*` `/`|`5` `3 + (y * x)`|
 |`String`|`"hello"` `"Moonbit"`|`+`|`"Hello, " + "MoonBit"`|
 |`Bool`|`true` `false`|`&&` `\|\|` `!`|`!b1 \|\| b2`|
 
 - 每一个**类型**对应一个**值**的集合
 - 每一个**表达式**由基于值的**运算**构成，并且可以简化为一个值（或已经是一个值）
+- 直接写出来，而不是通过变量、表达式、计算或函数调用得到的值叫做**字面量**
 - 可以使用括号来嵌套表达式
 
 --- 
 
 # 静态 vs 动态
+
 - “静态”指在程序运行**之前**的性质
 - “动态”指在程序运行**之时**的性质
 
@@ -144,11 +144,13 @@ test {
 # 月兔的基本数据类型
 
 - 逻辑值（布尔值）
-- 整数（整型、长整形）
+- 整数（整型、长整型）
 - 浮点数（单精度浮点数、双精度浮点数）
 - 字符与字符串
 - 多元组
 - ……
+
+<!-- 字面量 -->
 
 ---
 
@@ -163,21 +165,21 @@ test {
   - 与：两者皆真才为真 　　　`true && false == false`
   - 或：两者皆假才为假 　　　`true || false == true`
 - 小练习：如何用或、与、非定义**异或**（一者为真才为真）
+
 ---
 
 # 整数类型
 
-- 作为基础类型的整数分为两个类型，分别有不同的范围：
-    - 整型 `Int`：从$-2^{31}$到$2^{31}-1$（即从-2147483648到2147483647）
-    - 长整型 `Int64`：从$-2^{63}$到$2^{63}-1$
+|类型|范围|字面量|转换到该类型|
+|-----|------|----------|---|
+| 整型 `Int` | $-2^{31} \sim 2^{31}-1$   | `123` | `123L.to_int()` |
+| 长整型 `Int64` | $-2^{63} \sim 2^{63}-1$   | `123L` | `(123).to_int64()` |
+| 无符号整型 `UInt` | $0 \sim 2^{32}-1$   | `123U` | `123UL.to_uint()` |
+| 无符号长整型 `UInt64` | $0 \sim 2^{64}-1$   | `123UL` | `123U.to_uint64()` |
+
 - 在月兔中，整数相除依然获得整数，其结果为商
-    - 被除数÷除数=**商**······余数
-- 对整数进行超出范围的运算后会**溢出**
-    - 2147483647 + 1结果为-2147483648
-- 整型只能与整型进行四则运算，长整型只能与长整型进行四则运算
-    - 长整型数值后需加`L`进行标记：如`2147483648L` `-2147483649L`
-    - `Int`与`Int64`互相转换：`(100).to_int64()` `100L.to_int()`
-- 小练习：如何计算两个正的`Int`的平均数？小心溢出！
+- 对整数进行超出范围的运算后会**溢出**：`2147483647 + 1` 结果为 `-2147483648`
+- 小练习：如何计算两个正的 `Int` 的平均数？小心溢出！
 
 ---
 
@@ -186,13 +188,24 @@ test {
 - 作为基础类型的浮点数只能表示有限小数，且只能近似表达
     - 浮点数在计算机内部表现形式为尾数`b`与指数`e`（均为整数）：$b \times 2^e$
     - 例如：[`0.1 + 0.2 != 0.3`]
-- 月兔中浮点数类型分为单精度浮点数`Float`和双精度浮点数`Double`
+- 月兔中浮点数类型分为单精度浮点数 `Float` 和双精度浮点数 `Double`
     - 整数和浮点数不能直接混合运算：`1 + 2.0` 报错
-    - 当第一个操作数是浮点数时，第二个操作数会被自动提升为浮点数：
-    `2.0 + 1 == 3.0`
     - `Int`可以转换为`Double`：`(1).to_double() == 1.0`
     - `Double`转化为`Int`：`(-1.2).to_int() == -1`
 - 小练习：如何通过整数与浮点数的相互转换，来比较`0.1 + 0.2`与`0.3`？
+
+--- 
+
+# 数字自动类型提升
+
+- 不同数据类型之间不能直接混合运算：`1 + 2.0` 报错
+- 在值的类型已知的情况下，字面量会进行自动类型提升
+  - 整数字面量会提升为特定整数或特定精度的浮点数类型：
+    `1U + 1 == 2`
+    `1.0 + 2 == 3.0`
+  - 浮点数字面量会提升为特定精度的浮点数类型：
+    `Float::to_int(1.0) == Double::to_int(1.0)`
+    （例子中：`1.0` 既可以作为 `Float`，也可以作为 `Double`）
 
 ---
 
@@ -206,7 +219,7 @@ test {
         - 例如：A～Z对应65～90
     - Unicode（统一码）：支持中文等多国字符及表情符号（emoji），兼容ASCII，有UTF-8、UTF-16等编码方式
         - 例如：“月”“兔”分别对应26376与20820
-    - `Int`转化为`Char`：`Char::from_int(65) == 'A'`
+    - `Int`转化为`Char`：`(65).unsafe_to_char() == 'A'`
 
 ---
 
