@@ -17,7 +17,9 @@ backgroundImage: url('../pics/background_moonbit.png')
 
 - 现代静态类型**多范式**编程语言
 - 语法轻量，易上手
-- 参考资料: [moonbitlang.cn](https://moonbitlang.cn)
+- 参考资料: 
+  - [官网 moonbitlang.cn](https://moonbitlang.cn)
+  - [语言导览 tour.moonbitlang.com/zh](https://tour.moonbitlang.com/zh/index.html)：快速学习月兔的互动教程
 
 ---
 
@@ -28,11 +30,10 @@ backgroundImage: url('../pics/background_moonbit.png')
 # 月兔开发环境
 
 - 开发工具
-    - [VS Code 插件](https://marketplace.visualstudio.com/items?itemName=moonbit.moonbit-lang)：语言服务器功能
-    - [命令行工具](https://www.moonbitlang.com/download/#moonbit-cli-tools)：项目构建、测试、依赖管理等功能
-    - [语言导览](https://tour.moonbitlang.com/zh/index.html)：快速学习月兔的互动教程
+    - VS Code 插件：语言服务器功能
+    - 命令行工具：项目构建、测试、依赖管理等功能
 - 开发环境
-    - [浏览器环境](https://try.moonbitlang.cn)（无命令行工具）
+    - [浏览器环境 try.moonbitlang.cn](https://try.moonbitlang.cn)（无命令行工具）
     - 云原生开发环境（如 [Github Codespaces](https://github.com/features/codespaces)）
     - 本地开发环境
     
