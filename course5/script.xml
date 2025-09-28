@@ -1,0 +1,356 @@
+<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="zh-CN">
+  <voice name="zh-CN-YunyiMultilingualNeural">
+    <p>
+      大家好，欢迎来到由IDEA研究院基础软件中心为大家带来的现代编程思想公开课。
+      上节课我们学习了如何自定义数据结构。
+      那么今天的课程，就让我们来看一个常用的数据结构：树，以及相关的算法。
+      <break time="500ms" />
+    </p>
+    <p>
+      这节课我们将会从最简单的树结构开始，了解树的概念，然后学习一种特化的树：二叉树。
+      之后，我们会对二叉树进行特化，变成二叉搜索树。
+      在二叉搜索树的基础上，我们还会学习二叉平衡树。
+      <break time="500ms" />
+    </p>
+    <p>
+      树在我们生活中是十分常见的植物，例如左下图所示。
+      我们所常见的树都是有一个树根，从树根上逐渐分化出多个树枝，每个树枝上有着叶子，或者其他小树杈，树杈又继续分化。
+      事实上，生活中很多的数据结构都有着一种类似的结构，长得像一棵树。
+      比如，我们所常见的谱系图，或者又被称为家族树。
+      从一对先祖出发，家族不断壮大。我们也会用开枝散叶来形容这一过程。
+      又比如文件结构，一个文件夹中可能有着一些文件和其他的文件夹，就像叶子和树杈。
+      数学表达式也可以用类似一棵树表示，每一个节点都是运算符，每一片叶子都是数字，越靠近根部的运算符越晚被计算。
+      <break time="500ms" />
+    </p>
+    <p>
+      在数据结构中，树是由有限个节点构成的具有层次关系的集合。
+      每一个节点是存储数据的结构。而节点与节点之间存在着层次关系。
+      习惯上，我们一般用家庭关系来描述。
+      例如，我们会说相邻的节点之间存在亲子关系，称为父节点和<emphasis level="moderate">子</emphasis>节点，也有的翻译称为双亲节点。
+      同时，我们也会用祖先和后代来描述关系稍远一些的节点。
+      <break time="500ms" />
+    </p>
+    <p>
+      对于一棵树而言，如果不为空，那么它应该有着唯一一个<emphasis level="moderate">根</emphasis>节点，这个<emphasis level="moderate">根</emphasis>节点只有父节点，没有<emphasis level="moderate">子</emphasis>节点。
+      而除了<emphasis level="moderate">根</emphasis>节点以外的所有节点都应当有且仅有一个父节点。
+      对于没有<emphasis level="moderate">子</emphasis>节点的节点，也就是最外侧一圈的节点，我们称为<emphasis level="moderate">叶</emphasis>节点，就像树的叶子。
+      另外，任何节点不能是自己的后代节点，也就是说，树中不能出现环路。
+      <break time="500ms" />
+    </p>
+    <p>
+      在树中，一条边指的是一对节点 u, v，其中 u 是 v 的父节点，或者 v 是 u 的父节点；
+      简单说，这两个节点应该存在亲子关系。
+      我们在图中用箭头标识亲子关系，由长辈指向晚辈。
+      <break time="500ms" />
+    </p>
+    <p>
+      在下面的例子当中，这就不是一棵树。
+      每一个红色的地方都违反了树结构的要求。
+      右上方，出现了一个<emphasis level="moderate">根</emphasis>节点以外的没有父节点的节点，也就是有两个<emphasis level="moderate">根</emphasis>节点，这不符合要求；
+      最下面的两个<emphasis level="moderate">叶</emphasis>节点，左侧多了一个指向<emphasis level="moderate">根</emphasis>节点的箭头，也就意味着它成了<emphasis level="moderate">根</emphasis>节点的父节点；
+      而这也就意味着，<emphasis level="moderate">根</emphasis>节点成为了本身的<emphasis level="moderate">子</emphasis>节点的<emphasis level="moderate">子</emphasis>节点的<emphasis level="moderate">子</emphasis>节点，自己成了自己的后辈，这也不符合要求；
+      右侧的<emphasis level="moderate">叶</emphasis>节点则出现了两个父节点，这也不符合要求。
+      <break time="500ms" />
+    </p>
+    <p>
+      在计算机程序语境中，一般把<emphasis level="moderate">根</emphasis>节点放在上方，<emphasis level="moderate">子</emphasis>节点都放在父节点的下方。
+      我们以这种方式来定义相关的术语。
+      首先是节点的深度。
+      节点的深度对应从<emphasis level="moderate">根</emphasis>节点向下，到这个节点的路径的长度，或者说经过的边的数量。
+      也就是说，从<emphasis level="moderate">根</emphasis>节点出发，只向下，不向上所经过的边的数量。
+      因此，<emphasis level="moderate">根</emphasis>节点的深度是0。
+      之后是节点的高度。节点的高度对应从这个节点向下，到<emphasis level="moderate">叶</emphasis>节点的最长路径的长度。
+      也就是说，如果在节点的后代中有多个<emphasis level="moderate">叶</emphasis>节点，我们以距离最远的那个为准。
+      同理，<emphasis level="moderate">叶</emphasis>节点的高度为0。最后则是树的高度，它等同于<emphasis level="moderate">根</emphasis>节点的高度。
+      如果一个树只有一个节点，那么这个节点既是<emphasis level="moderate">根</emphasis>节点，也是<emphasis level="moderate">叶</emphasis>节点，高度为0，因此树的高度为0。
+      而如果一棵树为空，也就是说没有任何的节点，那么我们定义它的高度为-1。
+      当然，有的书本可能采取不同的定义，以“层次”来“定义”树的高度，以根为第一层，如果遇到了，大家也不要感觉奇怪。
+      <break time="500ms" />
+    </p>
+    <p>
+      说完了树的逻辑结构，让我们来看看树的存储结构。
+      逻辑结构定义了数据之间的关系，而存储结构则定义了数据的具体的表示。
+      我们以二叉树为例。这样的树，至多只有两个节点。
+      我们在这里省略节点存储的数据，用数字来代表每个节点。
+      例如，<emphasis level="moderate">根</emphasis>节点的编号为0，其他节点从1开始编号。
+      一种方式是以一个二元组的列表来表示树。
+      其中，每一个二元组定义了亲子关系，例如，0 1 表示编号0的节点是编号1的节点的父节点。
+      而 0 2 则代表编号0的节点是编号2的节点的父节点。
+      之后，编号1的节点又是编号3的节点的父节点。
+      通过这种形式，我们能够定义一棵树。
+      另一种方式则是用我们上节课学习过的代数数据结构来定义。
+      我们用枚举类型来定义几种情况：Node 代表一颗普通的树，它具有自身的编号以及两个<emphasis level="moderate">子</emphasis>树； Leaf 代表一个只有<emphasis level="moderate">一</emphasis>个节点的树，也就是<emphasis level="moderate">叶</emphasis>节点，它只有本身的编号，Empty则代表一个空树。
+      这种情况下，我们同样能定义与刚才同样的树结构。
+      当然，这只是一种可能的实现。
+      最后一种方式则是一个列表，其中每一层的结构从左到右连续排布。
+      例如，第一层的<emphasis level="moderate">根</emphasis>节点被放在第一位；
+      之后两位则是第二层的节点，从左到右排布；
+      再之后则是第三层的节点，从左到右排布。
+      因此，3以及右侧一个节点是1的<emphasis level="moderate">子</emphasis>节点，而后两者则是2的<emphasis level="moderate">子</emphasis>节点。
+      当然，目前都是空。我们可以看到，这三者都定义了相同的一棵树，而它们的存储结构大相径庭。
+      因此，我们可以得出结论，数据的逻辑结构独立于存储结构，这点希望大家注意。
+      <break time="500ms" />
+    </p>
+    <p>
+      最后，树这一数据结构有着众多的衍伸。
+      例如，线段树，每一个节点都存储了一个区间以及对应的数据，因此十分适合一维查询。
+      二叉树则是一个特别的树，每个节点至多有两个分支，分别为左<emphasis level="moderate">子</emphasis>树与右<emphasis level="moderate">子</emphasis>树。
+      B树则适合顺序访问，利于硬盘存储数据。
+      KD-Tree和R-Tree则适合存储空间集合结构。
+      其中，KD-Tree和R-Tree分别是二叉树和B树的衍伸。
+      除此以外还有众多的树结构，大家可以自行学习了解。
+      <break time="500ms" />
+    </p>
+    <p>
+      接下来让我们从树出发，进入更加特殊的树，二叉树的学习。
+      二叉树刚才已经见过了，它要么是一颗空树，要么是一个节点，这个节点最多具有两个<emphasis level="moderate">子</emphasis>树，分别是左<emphasis level="moderate">子</emphasis>树和右<emphasis level="moderate">子</emphasis>树。
+      其中，叶节点意味着两个<emphasis level="moderate">子</emphasis>树都是空树。
+      我们这里采用基于递归枚举类型的定义，默认存储的数据为整数。
+      当枚举类型的一个情形包含多个负载值时，为了更清晰的区分每个负载值，可以在定义负载值类型时加上标签。
+      带标签的负载值定义为标签名、波浪号、冒号、和类型。
+      例如二叉树节点的定义中，我们分别为左<emphasis level="moderate">子</emphasis>树和右<emphasis level="moderate">子</emphasis>树这两个负载值添加标签，left 和 right，它们的类型都是二叉树。
+      例子中也可以看出，带标签和不带标签的负载值，可以同时出现在一个枚举情形的定义中。
+      在定义 Node 情形的枚举值时，使用标签和等号，来标明定义的是哪一个负载值。
+      如 tree 这个变量所示。
+      模式匹配时，可以使用等号和标识符来绑定带标签的负载值，也可以使用波浪号来重复使用标签本身的名字进行绑定。
+      下面的例子中，在对 Node 情形进行模式匹配时，左子树和右子树分别被绑定到 l 和 right 这两个标识符。
+      <break time="500ms" />
+    </p>
+    <p>
+      我们首先要谈到的算法是二叉树的遍历。
+      树的遍历是指以某种规律，不重复的访问树的所有节点的过程。
+      通常，有两种方式可以遍历：深度优先遍历，和广度优先遍历。
+      深度优先遍历总是先访问一个<emphasis level="moderate">子</emphasis>树，再访问另一个<emphasis level="moderate">子</emphasis>树。
+      而在访问这个<emphasis level="moderate">子</emphasis>树的过程中，也总是访问其中的一个<emphasis level="moderate">子</emphasis>树。
+      如此递归，总是先访问到深度最深的节点，再进行返回。
+      例如左图中，我们首先访问左<emphasis level="moderate">子</emphasis>树，之后再次访问左<emphasis level="moderate">子</emphasis>树，于是3被访问了。
+      之后我们不断访问右<emphasis level="moderate">子</emphasis>树，于是访问了5。
+      最后，我们才访问了整棵树的右<emphasis level="moderate">子</emphasis>树2。
+      而广度优先遍历则不同，它从<emphasis level="moderate">根</emphasis>节点开始，一层一层进行访问，将一定深度的节点访问完才会访问更深的节点。
+      例如同样的一棵树，广度优先遍历会先访问<emphasis level="moderate">根</emphasis>节点，之后是<emphasis level="moderate">子</emphasis>树1和2，再之后是3和4，最后才是深度最深的5。
+      <break time="500ms" />
+    </p>
+    <p>
+      深度优先遍历通常也分几种情况：前序遍历、中序遍历和后序遍历。
+      它们的区别是，在走遍整棵树的过程当中，访问<emphasis level="moderate">根</emphasis>节点的时机不同。
+      例如，前序遍历会先对<emphasis level="moderate">根</emphasis>节点进行访问，之后再对左<emphasis level="moderate">子</emphasis>树进行访问，最后对右<emphasis level="moderate">子</emphasis>树进行访问。
+      以我们刚才看到的这棵树为例，这就意味着先从0开始，再访问左<emphasis level="moderate">子</emphasis>树；
+      而访问左<emphasis level="moderate">子</emphasis>树的时候也是先从<emphasis level="moderate">根</emphasis>节点开始，也就是从 1 开始；
+      之后则是3，4，5，2。而中序遍历，则是先访问左<emphasis level="moderate">子</emphasis>树，再访问<emphasis level="moderate">根</emphasis>节点，最后访问右<emphasis level="moderate">子</emphasis>树。
+      于是，它会先对左<emphasis level="moderate">子</emphasis>树访问。此时左<emphasis level="moderate">子</emphasis>树还有左<emphasis level="moderate">子</emphasis>树，于是我们找到 3 这棵树。
+      此时这是一个<emphasis level="moderate">叶</emphasis>节点，没有左<emphasis level="moderate">子</emphasis>树，因此我们对<emphasis level="moderate">根</emphasis>节点3进行访问。
+      之后我们向上返回，访问<emphasis level="moderate">子</emphasis>树的<emphasis level="moderate">根</emphasis>节点1，之后再对右<emphasis level="moderate">子</emphasis>树进行访问。
+      后序遍历同理，先访问左<emphasis level="moderate">子</emphasis>树，再访问右<emphasis level="moderate">子</emphasis>树，最后访问<emphasis level="moderate">根</emphasis>节点。
+      而广度优先遍历，我们刚才已经解释过了，从左到右，顺序便是 0, 1, 2, 3, 4, 5。
+      <break time="500ms" />
+    </p>
+    <p>
+      我们以查找树的节点中的具体的值来看一下两种遍历的具体实现。
+      首先是深度优先遍历。
+      如刚才所介绍，这是一个基于结构化递归的遍历。
+      我们首先对基本情形进行处理，也就是树为空的情况。
+      如第三行所示。这种情况下，我们没有找到我们所要找的值，因此返回 false。
+      之后，我们对递归情形进行处理。对于一个节点，我们判断它的值是不是我们要找的结果，如第5行所示。
+      如果找到，那么结果就是 true。
+      否则，我们继续对左右<emphasis level="moderate">子</emphasis>树轮流遍历，结果是左<emphasis level="moderate">子</emphasis>树有当前值或右<emphasis level="moderate">子</emphasis>树有当前值。
+      在目前的二叉树中，要找到给定的值，我们需要遍历左右<emphasis level="moderate">子</emphasis>树才能找到结果。
+      之后介绍的二叉搜索树将会优化这一过程。
+      前序、中序、后序遍历只需改变对当前节点操作、对左节点遍历以及对右节点遍历这三者的顺序即可。
+      <break time="500ms" />
+    </p>
+    <p>
+      我们在这里补充一下第二节课没有提到的内容，那就是逻辑值的短路运算。
+      逻辑值的<emphasis level="moderate">或</emphasis>-<emphasis level="moderate">与</emphasis>操作是短路的。
+      也就是说，如果发现当前求解的值的结果可以被确定了，那么我们会中止计算并直接返回结果。
+      例如第一个例子中，我们在求 true 和一个值的或。
+      事实上，我们清楚 true 和任何值的或，均为真，
+      因此，我们只需要完成对<emphasis level="moderate">或</emphasis>运算的左侧计算即可结束，右侧不会被计算。
+      即便我们在这里写了一个令程序中止的指令 abort，程序依然会正常运行，因为右侧根本没有被计算。
+      同理，如果我们求 false 和一个值的与。
+      我们清楚 false 和任何值的与，均为假，因此我们也不会计算<emphasis level="moderate">与</emphasis>运算的右侧。
+      回到我们刚才的树的遍历上来。
+      我们运用<emphasis level="moderate">或</emphasis>运算，任何一项条件满足，遍历即会立刻终止。
+      <break time="500ms" />
+    </p>
+    <p>
+      让我们继续学习广度优先遍历。
+      广度优先遍历，如刚才所说，是要对每一层<emphasis level="moderate">子</emphasis>树挨个访问。
+      这种情况下，为了能够记录我们将要访问的所有的树，我们需要一个全新的数据结构：队列。
+      <break time="500ms" />
+    </p>
+    <p>
+      队列，是一个先进先出的数据结构。
+      我们每次对队列中的树，取出一个进行判断，它的节点的值是否是我们所搜索的值。
+      如果不是，那么我们把它的非空<emphasis level="moderate">子</emphasis>树从左到右加到队尾，并且继续进行计算，直到队列为空。
+      <break time="500ms" />
+    </p>
+    <p>
+      我们具体看一下队列。
+      就像生活中排队一样，最先进入队伍的人最先获得服务，要讲究先来后到。
+      对于数据的插入和删除遵循同样的顺序，如下图所示。
+      我们按照顺序添加了0到5。可以看到，之后在添加6的时候，它是跟在5的后面；
+      而我们接下来要进行删除操作的话，则从最早加入队列的0开始。
+      <break time="500ms" />
+    </p>
+    <p>
+      我们在这里使用的队列通过以下的接口定义：
+      和 Option 类型一样，队列也是一个泛型类型，这意味着一个 Queue T 类型的队列可以包含类型为 T 的元素。
+      empty 构筑一个空的队列；
+      enqueue 往队列中添加元素，也就是往队尾添加；
+      pop 尝试取出一个元素，并且返回剩下的队列，如果队列已经为空，那么返回的值就会是None，以及一个空队列。
+      例如下方，我们在一个空列表中前后添加了1和2。
+      之后，当我们尝试取出一个元素，我们应该能获得 Some(1)，而剩下的应当等同于往一个空列表中加2。
+      <break time="500ms" />
+    </p>
+    <p>
+      我们回到我们的广度优先遍历的实现上来。
+      如果我们想要在树的节点中查找是否有特定的值，我们需要维护一个装有树的队列，通过参数可以看到这一点。
+      之后，我们判断当前队列是否为空。
+      通过 pop 操作后对队列头进行模式匹配，
+      如果为空，那么我们已经完成了所有的搜索，也就是没有找到，返回 false。
+      如果队列还有元素，那么我们对这个树进行操作。
+      如果这个树为空，那么我们直接对剩余队列进行操作；如果树不为空，那么和刚才一样，我们判断当前节点是否是我们要找的值。
+      如果是，那我们就返回真；
+      否则，我们把左右<emphasis level="moderate">子</emphasis>树 left 和 right 加入队列中，并且继续对队列进行搜索。
+      <break time="500ms" />
+    </p>
+    <p>
+      到这里为止，我们对于树的遍历的介绍就结束了。
+      当然我们会注意到，这样的搜索似乎不太高效，因为每一个<emphasis level="moderate">子</emphasis>树都可能有我们要找的值。
+      那有没有什么办法减少搜索的次数呢？这就是我们下节课要介绍的二叉搜索树。
+      <break time="500ms" />
+    </p>
+    <p>
+      大家好，欢迎来到由IDEA研究院基础软件中心为大家带来的现代编程思想公开课。
+      在上节课，我们介绍了树这一数据结构和树的遍历。
+      接下来，我们学习二叉搜索树。
+      <break time="500ms" />
+    </p>
+    <p>
+      我们之前提到，二叉树要查找树中的元素很可能要找遍整棵树。
+      例如下图中，我们尝试查找树中是否存在8这个元素。
+      对于左侧的二叉树，我们不得不找遍整棵树，最后得出结论：树中没有8。 
+      <break time="500ms" />
+    </p>
+    <p>
+      为了方便搜索，我们在二叉树的基础上对于树中的数据排列进行规定，从左到右的数据从小到大，于是我们便获得了基于二叉树的二叉搜索树。
+      我们规定，左<emphasis level="moderate">子</emphasis>树中的所有数据都应当小于节点的数据；
+      而节点的数据又应当小于右<emphasis level="moderate">子</emphasis>树的数据，如右下图所示。
+      我们可以注意到，如果我们进行一次中序遍历，我们可以从小到大依次遍历排序后的数据。
+      大家可以在课后练习中尝试实现二叉搜索树的判断。
+      而二叉搜索树的搜索操作十分简单，只需要对于每个节点判断当前值是小于、等于、还是大于我们要找的树，便可以判断我们要找的值应该在哪个<emphasis level="moderate">子</emphasis>树中。
+      例如在下图的例子当中，我们判断8大于5，因此应当向右查找。
+      而当我们找到7之后，我们发现它右侧没有<emphasis level="moderate">子</emphasis>树，也就意味着没有比7更大的数字了，因此我们可以得出结论，8不在树中。
+      可以看到，我们的查找效率有了很大的提升。
+      事实上，我们最多需要进行的查找次数，也就是最坏情况，等同于树的高度加一，而非元素总数。
+      当然，树的高度也可能会等于元素总数，我们将会在稍后看到。
+      <break time="500ms" />
+    </p>
+    <p>
+      为了维护这样的一棵树，我们需要特殊的插入与删除的算法，确保修改后的树依然保持着顺序。
+      我们分别来看这两个算法。
+      <break time="500ms" />
+    </p>
+    <p>
+      对于一棵树的插入操作，我们同样是利用结构化递归进行。
+      首先我们讨论基础情形，也就是树为空的情况。
+      那么这个时候，我们只需要把树替换为一棵只有一个节点的树，而节点的值，就是我们想要插入的值。之后我们讨论递归的情形。
+      如果一棵树非空，那么我们将想要插入的值，与节点的值进行比较。
+      如果小于它，那么我们将值插入左树，并且将左树替换为插入值后的<emphasis level="moderate">子</emphasis>树。
+      如果大于，那么就替换右<emphasis level="moderate">子</emphasis>树。
+      例如，我们想要插入3，那我们就需要与节点进行逐个判断。
+      例如，它小于5，那我们对左面的<emphasis level="moderate">子</emphasis>树进行操作。
+      之后，它大于2，那我们对右面的<emphasis level="moderate">子</emphasis>树进行操作。
+      我们将这个<emphasis level="moderate">子</emphasis>树放大。可以看到，3小于4，因此我们应该将它插入左面的<emphasis level="moderate">子</emphasis>树。
+      而这是一棵空的树，因此我们构建一个只有一个节点的树，并且将根为4的树的左<emphasis level="moderate">子</emphasis>树替换为它。
+      <break time="500ms" />
+    </p>
+    <p>
+      我们这里可以看到完整的插入代码。
+      第3行，如果原来的树是空的，我们重新构建一棵树；
+      第6第7行，如果我们需要“更新”<emphasis level="moderate">子</emphasis>树，我们在更新后的<emphasis level="moderate">子</emphasis>树的基础上重新利用 Node 构造器构建一棵树。
+      <break time="500ms" />
+    </p>
+    <p>
+      之后，我们讨论删除的操作。
+      同样的，我们利用结构化递归进行。
+      如果树为空，那么很简单，我们什么都不用做。
+      如果树非空，那么我们就需要和当前值进行比较，判断当前的值是否要进行删除操作。
+      如果要进行删除操作，那我们就删除它，这个我们之后再讨论；
+      如果不是我们要删除的值，那同样，我们要进行比较，找到值可能存在的<emphasis level="moderate">子</emphasis>树，在进行删除操作后重新创建新的树。
+      那么这个流程中最关键的就在于，如何删除一棵树的<emphasis level="moderate">根</emphasis>节点。
+      如果这棵树没有<emphasis level="moderate">子</emphasis>树或者只有一棵<emphasis level="moderate">子</emphasis>树，那么是最简单的，因为只需要替换为空树或者唯一的<emphasis level="moderate">子</emphasis>树即可。
+      比较棘手的是如果有两棵<emphasis level="moderate">子</emphasis>树。
+      这种情况下，我们要找一个新的值来做<emphasis level="moderate">根</emphasis>节点，并且这个节点需要依然大于左<emphasis level="moderate">子</emphasis>树中的所有值，小于右<emphasis level="moderate">子</emphasis>树中的所有值。
+      那么满足这个条件的值其实有两个：左<emphasis level="moderate">子</emphasis>树的最大值，右<emphasis level="moderate">子</emphasis>树的最小值。
+      我们在这里以左<emphasis level="moderate">子</emphasis>树的最大值为例。我们这里再看一下示意图。
+      如果没有<emphasis level="moderate">子</emphasis>树，直接替换为空树，如果有一棵<emphasis level="moderate">子</emphasis>树，替换为<emphasis level="moderate">子</emphasis>树。
+      如果有两棵<emphasis level="moderate">子</emphasis>树，那么我们需要将左<emphasis level="moderate">子</emphasis>树的最大值设为最新的<emphasis level="moderate">根</emphasis>节点的值，并且从左<emphasis level="moderate">子</emphasis>树中删除该值。
+      好消息是，这次这个值，至多只有一个<emphasis level="moderate">子</emphasis>树，因此操作比较简单。
+      <break time="500ms" />
+    </p>
+    <p>
+      我们在这里展示部分的二叉搜索树的删除操作。
+      我们定义了一个辅助函数，来从左<emphasis level="moderate">子</emphasis>树中查找并删除最大值。
+      我们一路向右找到没有右<emphasis level="moderate">子</emphasis>树的节点为止，因为没有右<emphasis level="moderate">子</emphasis>树意味着没有值比它更大了。
+      之后，基于此，我们定义一个删除操作，其中在删除两个<emphasis level="moderate">子</emphasis>树均非空的情况时，我们便可以利用这个辅助函数，获得新的左<emphasis level="moderate">子</emphasis>树和新的<emphasis level="moderate">根</emphasis>节点。
+      我们在这里省略具体的代码实现，留给大家作为课后练习。
+      <break time="500ms" />
+    </p>
+    <p>
+      最后，我们进入到二叉平衡树的学习中。
+      我们在解释二叉搜索树的时候提到过，二叉搜索树中的搜索次数的最坏情况取决于树的高度。
+      当我们在对二叉搜索树进行操作的时候，很可能会发生不平衡的现象，也就是一边的<emphasis level="moderate">子</emphasis>树高度远远高于另一边的<emphasis level="moderate">子</emphasis>树。
+      比如，如果我们按照1到5的次数进行插入的话，我们便会得到如左下图所示的一棵树。
+      我们可以看到，对于整棵树来说，左侧<emphasis level="moderate">子</emphasis>树高度为-1，因为是一颗空树；而右侧<emphasis level="moderate">子</emphasis>树高度为3。
+      在这种情况下，搜索次数的最坏情况等同于树的元素数量，也就是五次。
+      而如果树比较平衡，也就是两边<emphasis level="moderate">子</emphasis>树的高度差不多的话，例如右图，那节点的深度最多也就是2，大约只是log2n次，n为树的元素数量。
+      大家回忆一下对数函数的曲线便可知道，在树的元素数量较多的时候，这两种情况下查询的最坏时间差距会很大。
+      因此，我们希望能够避免这种最坏的情况的发生，来保证我们总是能有较好的查询性能。
+      为此，我们可以引入二叉平衡树这一类数据结构，使得任意节点的左右<emphasis level="moderate">子</emphasis>树的高度相差无几。
+      常见的二叉平衡树有AVL树、二三树或者红黑树等多种实现。
+      我们在这里讨论AVL树这种比较简单的树。
+      <break time="500ms" />
+    </p>
+    <p>
+      二叉平衡树保持平衡的关键点就在于，当树出现不平衡的现象之后，我们可以通过对树进行重新排列，来重新获得平衡。
+      AVL树的插入、删除都和标准的二叉搜索树相类似。
+      不同的是，AVL树在每次插入、删除后都会进行调整，以保证树的平衡。
+      为了方便维护，我们在之前的树的定义的基础上，在每个节点中添加当前树的高度属性。
+      我们定义一个创建方法，用于创建一颗新的AVL树而不用显式维护它的高度。
+      AVL树的插入、删除操作都类似于标准的二叉搜索树，因此我们按下不表。
+      <break time="500ms" />
+    </p>
+    <p>
+      我们在插入一个元素或者删除一个元素之后，从修改的地方向上返回，直到找到第一个出现不平衡的位置，我们称之为 <lang lang="en-US">z</lang>。
+      之后，我们用y表示z的<emphasis level="moderate">子</emphasis>树中更高的那一个。
+      而x则是y的<emphasis level="moderate">子</emphasis>树中更高的那个。
+      之后，我们对<emphasis level="moderate">再</emphasis>平衡进行讨论。
+      第一种情况，x在y和z中间。这种情况下，我们可以将x移到父亲和祖父的上方。
+      我们可以看到，x的两棵<emphasis level="moderate">子</emphasis>树所处的深度减小了1，从而整棵树的高度降低了。
+      而T4虽然深度增加了一，但是原本高度就比左<emphasis level="moderate">子</emphasis>树要低，因此依然是平衡的。
+      另一种情况则是x在y和z的同侧，那么我们可以通过让父亲y成为新的<emphasis level="moderate">根</emphasis>节点来降低树的高度，目的同样是降低最深的两棵<emphasis level="moderate">子</emphasis>树的深度，从而减小左<emphasis level="moderate">子</emphasis>树的高度。
+      <break time="500ms" />
+    </p>
+    <p>
+      大家看到的是平衡树的代码片段。大家只需要理解了我们刚才讨论的情况，就能简单的将算法转化为实际的代码。
+      我们对于一棵树，首先判断是否已经失衡、<emphasis level="moderate">如何</emphasis>失衡，也就是两个<emphasis level="moderate">子</emphasis>树的高度差是不是大于特定的值，以及哪边更高。
+      在判断之后，我们就会进行<emphasis level="moderate">再</emphasis>平衡操作。
+      此时我们传入的<emphasis level="moderate">根</emphasis>节点就是z，而更高的那边通过模式匹配分解以后，<emphasis level="moderate">根</emphasis>节点就是y。
+      这里我们不需要用到这个树自身的高度，因此我们使用两个点，忽略未匹配的负载值。
+      此时，我们再根据y的两边<emphasis level="moderate">子</emphasis>树的高度比较结果，进一步作出判断，看x是在y和z的同侧还是异侧，如第7行所示。
+      之后，我们再根据刚才讨论的情形进行重新的组合，如第8、10行所示。
+      <break time="500ms" />
+    </p>
+    <p>
+      以插入元素为例，我们在插入元素之后，直接对将要生成的树进行一个<emphasis level="moderate">再</emphasis>平衡操作。
+      <break time="500ms" />
+    </p>
+    <p>
+      总结一下，今天的课程中，我们介绍了树这一数据结构，包括树的定义以及相关的术语、二叉树的定义以及遍历的算法、二叉搜索树的定义以及增删操作、二叉平衡树AVL树的<emphasis level="moderate">再</emphasis>平衡操作。
+      我们推荐大家阅读《算法导论》第12、13章。
+      我们下节课再见。
+    </p>
+  </voice>
+</speak>
+          
