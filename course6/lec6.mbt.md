@@ -29,7 +29,7 @@ headingDivider: 1
 
 # 堆栈
 
-- 我们定义以下操作，以存储整数的堆栈`IntStack`为例
+- 我们定义以下操作，以存储整数的堆栈 `IntStack` 为例
 ```moonbit
 fn empty() -> IntStack { ... } // 创建新的堆栈
 fn push(e : Int, stack : IntStack) -> IntStack { ... } // 将新的元素加入栈顶
@@ -41,7 +41,9 @@ fn pop(stack : IntStack) -> (Option[Int], IntStack) { ... } // 从堆栈取出�
 # 整数堆栈
 
 - 我们实现整数堆栈的定义
-  - `self`关键字允许我们链式调用：`IntStack::empty().push(1).pop()`
+  - `类型名::方法名(参数1 : 参数类型1, 参数2 : 类型参数2, ...)`
+  - 当 `类型名` 和 `参数类型1` 相同时，可以用 `x.f()` 替代 `T::f(x)`
+  - 链式调用：`IntStack::empty().push(1).pop()`
 
 ```moonbit
 enum IntStack {
@@ -238,8 +240,8 @@ fn[A, B] func(list : List[A]) -> B {
 ```
 
 - 在之前的例子中
-  - 在求和中，`b`为0，`f`为`fn f(a, b) { a + b }`
-  - 在求长度中，`b`为0，`f`为`fn f(a, b) { 1 + b }`
+  - 在求和中，`b` 为0，`f` 为 `fn f(a, b) { a + b }`
+  - 在求长度中，`b` 为0，`f` 为 `fn f(a, b) { 1 + b }`
 - 如何重用这个结构呢？
 
 # 函数是一等公民
@@ -368,7 +370,7 @@ fn[T] delete(self : Tree[T], value : T, compare : (T, T) -> Int) -> Tree[T] { ..
 
 - 很多数据类型都包含可以按顺序访问的元素，例如列表、树（前/中/后序）、队列等
 - 统一的遍历接口，无需关心底层数据结构
-- 惰性，不会一次性访问所有数据，而是按需产生数据
+- 构造迭代器的过程是惰性的：不需为中间值分配内存、可以生成无穷的数据
 
 # 获取大于100的前十个完全平方数
 
@@ -376,7 +378,7 @@ fn[T] delete(self : Tree[T], value : T, compare : (T, T) -> Int) -> Tree[T] { ..
 test {
   let naturals = Iter::new(fn(yield_) {
     fn go(n) {
-      guard yield_(n) is IterContinue else { IterEnd }
+      guard yield_(n) is IterContinue else { return IterEnd }
       go(n + 1)
     }
 
@@ -443,15 +445,14 @@ test {
   }
   ```
 
-# 从数据结构生成迭代器
+# 从数据结构构造迭代器
 
-- 如何为数据结构生成迭代器呢？
-  本质上，迭代器类型 `Iter[T]` 即是 `((T) -> IterResult) -> IterResult` 
-- `IterResult` 有两种情形：
-  - `IterContinue` 代表继续迭代；
-  - `IterEnd` 代表迭代结束。
-- 第一个 `IterResult` 表示下游迭代过程是否结束，第二个 `IterResult` 表示自身迭代过程是否结束
-- 假设 `f` 的参数名为 `yield_`。迭代发生时，需要将元素一个个“喂”给 `yield_` 函数，并根据调用结果和内部状态决定继续迭代还是终止迭代
+- 本质上，迭代器类型 `Iter[T]` 即是 `((T) -> IterResult) -> IterResult`，参数通常称为 `yield_`
+- 第一个 `IterResult` 表示下游迭代过程是否中止，第二个 `IterResult` 表示自身迭代过程是否中止（`IterContinue` 继续迭代、`IterEnd` 中止迭代）
+- 迭代器运作过程：
+  - 迭代器通过调用 `yield_(elem)` 将元素“喂”给调用者，同时控制权交给调用者
+  - 调用者定义如何消费元素
+  - 调用者可以通过返回 `IterContinue` 来继续迭代，或者返回 `IterEnd` 来终止迭代
 
 # 列表迭代器
 
@@ -461,7 +462,7 @@ fn[T] List::iter(self : List[T]) -> Iter[T] {
     match list {
       Nil => IterContinue
       Cons(head, tail) => {
-        guard yield_(head) is IterContinue else { IterEnd }
+        guard yield_(head) is IterContinue else { return IterEnd }
         go(tail, yield_)
       }
     }
@@ -481,7 +482,7 @@ fn[T] List::iter(self : List[T]) -> Iter[T] {
   test {
     let naturals = Iter::new(fn(yield_) {
       fn go(n) {
-        guard yield_(n) is IterContinue else { IterEnd }
+        guard yield_(n) is IterContinue else { return IterEnd }
         go(n + 1)
       }
 
@@ -496,45 +497,45 @@ fn[T] List::iter(self : List[T]) -> Iter[T] {
 
 # 获取大于100的前十个完全平方数
 
+```moonbit 
+test {
+  let naturals = Iter::new(fn(yield_) {
+    fn go(n) {
+      guard yield_(n) is IterContinue else { return IterEnd }
+      go(n + 1)
+    }
+
+    go(0)
+  })
+  let n = naturals
+    .map(fn(x) { x * x })      // 所有自然数的平方的迭代器
+    .filter(fn(x) { x > 100 }) // 筛选出大于 100 的值
+    .take(10)                  // 取前 10 个结果
+  inspect(n, content="[121, 144, 169, 196, 225, 256, 289, 324, 361, 400]")
+}
+```
+
+# 获取大于100的前十个完全平方数
+
+![](../pics/iterator.drawio.svg)
+
+# 获取大于100的前十个完全平方数
+
 - 第 0 次迭代
 
-```moonbit 
-let n = naturals             // yield_(0), IterContinue
-
-  .map(fn(x) { x * x })      // yield_(0), IterContinue
-
-  .filter(fn(x) { x > 100 }) // IterContinue
-
-  .take(10)                  // 
-```
+![](../pics/iterator0.drawio.svg)
 
 # 获取大于100的前十个完全平方数
 
 - 第 11 次迭代
 
-```moonbit 
-let n = naturals             // yield_(11), IterContinue
-
-  .map(fn(x) { x * x })      // yield_(121), IterContinue
-
-  .filter(fn(x) { x > 100 }) // yield_(121), IterContinue
-
-  .take(10)                  // yield_(121), IterContinue
-```
+![](../pics/iterator11.drawio.svg)
 
 # 获取大于100的前十个完全平方数
 
 - 第 20 次迭代
 
-```moonbit 
-let n = naturals             // yield_(20), IterEnd
-
-  .map(fn(x) { x * x })      // yield_(400), IterEnd
-
-  .filter(fn(x) { x > 100 }) // yield_(400), IterEnd
-
-  .take(10)                  // yield_(400), IterEnd
-```
+![](../pics/iterator20.drawio.svg)
 
 # 总结
 
