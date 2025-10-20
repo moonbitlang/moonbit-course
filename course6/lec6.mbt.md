@@ -372,6 +372,17 @@ fn[T] delete(self : Tree[T], value : T, compare : (T, T) -> Int) -> Tree[T] { ..
 - 统一的遍历接口，无需关心底层数据结构
 - 构造迭代器的过程是惰性的：不需为中间值分配内存、可以生成无穷的数据
 
+# 内部迭代器和外部迭代器
+
+- 内部迭代器：
+  - 调用者提供回调函数，迭代过程由迭代器自身来执行
+  - 无法由调用者提前中止迭代
+  - `int_iter.each(fn(elem) { f(elem) })`
+- 外部迭代器：
+  - 调用者主动从迭代器一个个拉取元素
+  - 调用者可以随时停止来取元素来中止迭代
+  - `while ext_iter.next() is Some(elem) { f(elem) }`
+
 # 获取大于100的前十个完全平方数
 
 ```moonbit 
@@ -425,7 +436,6 @@ test {
     inspect(iter.nth(1), content="Some(2)")
   }
   ```
-- 迭代器是惰性的：不访问到某个元素时，不会为这个元素分配内存
 
 # 转换迭代器
 
@@ -475,7 +485,7 @@ fn[T] List::iter(self : List[T]) -> Iter[T] {
 - 迭代器的构造函数：
 `fn[T] Iter::new(f : ((T) -> IterResult) -> IterResult) -> Iter[T]`
 
-# 计数器和惰性
+# 无限数字计数器
 
 - 如下迭代器可以生成无穷的自然数
   ```moonbit 
