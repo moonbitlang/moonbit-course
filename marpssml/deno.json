@@ -1,0 +1,20 @@
+{
+  "imports": {
+    "@std/path": "jsr:@std/path@^1.0.8",
+    "@std/cli": "jsr:@std/cli@^1.0.20",
+    "@std/crypto": "jsr:@std/crypto@^1.0.3",
+    "@std/encoding": "jsr:@std/encoding@^1.0.5",
+    "azure-tts": "npm:microsoft-cognitiveservices-speech-sdk@^1.45.0"
+  },
+  "tasks": {
+    "dev": "deno run -A cli.ts",
+    "parse": "deno run -A parse.ts",
+    "tts": "deno run -A tts.ts",
+    "compose": "deno run -A compose.ts"
+  },
+  "lint": {
+    "exclude": [
+      "install.js"
+    ]
+  }
+}
