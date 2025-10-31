@@ -1,0 +1,44 @@
+{
+  "name": "mdcourse",
+  "version": "0.1.0",
+  "description": "Marp+SSML 视频生成工具 - 从 Markdown 幻灯片和 SSML 音频脚本生成配音视频",
+  "type": "module",
+  "bin": {
+    "mdcourse": "./bin/mdcourse"
+  },
+  "scripts": {
+    "build": "./build.sh",
+    "postinstall": "node install.js"
+  },
+  "keywords": [
+    "marp",
+    "ssml",
+    "video",
+    "presentation",
+    "tts",
+    "text-to-speech",
+    "slides"
+  ],
+  "author": "",
+  "license": "MIT",
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/mdcourse.git"
+  },
+  "dependencies": {
+    "@marp-team/marp-cli": "^3.4.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
