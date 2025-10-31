@@ -2,6 +2,7 @@
 marp: true
 math: mathjax
 paginate: true
+headingDivider: 1
 ---
 
 # 测试第一页
@@ -13,8 +14,6 @@ paginate: true
 - 内容1
 - 内容2
 
----
-
 # 测试第二页
 
 <!-- ssml
@@ -23,8 +22,6 @@ paginate: true
 -->
 
 测试内容
-
----
 
 # 测试第三页
 

@@ -34,7 +34,6 @@ export async function parse(inputFile: string, targetDir: string) {
 
   // 处理每一页
   const slides: SlideInfo[] = [];
-  const marpContent: string[] = [];
 
   for (let i = 0; i < pages.length; i++) {
     const pageNum = i + 1;
@@ -42,10 +41,7 @@ export async function parse(inputFile: string, targetDir: string) {
     const page = pages[i];
 
     // 提取 SSML 内容
-    const { marpPart, ssmlPart } = extractSSML(page);
-
-    // 添加到 Marp 内容
-    marpContent.push(marpPart);
+    const { ssmlPart } = extractSSML(page);
 
     // 计算 SSML 哈希
     const hasAudio = ssmlPart.trim().length > 0;
@@ -67,9 +63,13 @@ export async function parse(inputFile: string, targetDir: string) {
     }
   }
 
-  // 保存完整的 slides.md
+  // 提取 SSML 并生成 slides.md
+  // 策略：保持原始文档结构，只移除 <!-- ssml ... --> 注释
+  const ssmlRegex = /<!--\s*ssml\s*\n([\s\S]*?)\n-->/g;
+  const slidesContent = content.replace(ssmlRegex, "");
+
   const slidesFile = join(targetDir, "slides.md");
-  await Deno.writeTextFile(slidesFile, marpContent.join("\n\n---\n\n"));
+  await Deno.writeTextFile(slidesFile, slidesContent);
   console.log(`   ✓ 已保存 slides.md`);
 
   // 保存 manifest.json
