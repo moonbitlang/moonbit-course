@@ -13,10 +13,12 @@ interface Options {
   composeOnly?: boolean;
   slidesOnly?: boolean;
   forceAudio?: boolean;
+  keepTemp?: boolean;
   help?: boolean;
   voice?: string;
   fps?: number;
   defaultDuration?: number;
+  resolution?: string;
 }
 
 const HELP_TEXT = `
@@ -32,8 +34,11 @@ mdcourse - Marp+SSML 视频生成工具
   --audio-only              仅生成音频
   --compose-only            仅合成视频
   --force-audio             强制重新生成所有音频
+  --keep-temp               保留临时视频片段文件用于调试
   --voice <name>            指定 TTS 语音 (默认: zh-CN-YunyiMultilingualNeural)
   --fps <number>            视频帧率 (默认: 30)
+  --resolution <preset>     视频分辨率 (默认: 1080p)
+                            可选: 4k, 1440p, 1080p, 720p, 480p
   --default-duration <sec>  无音频幻灯片的默认时长 (默认: 3.0)
   -h, --help                显示帮助信息
 
@@ -63,10 +68,11 @@ async function main() {
       "compose-only",
       "slides-only",
       "force-audio",
+      "keep-temp",
       "help",
       "h",
     ],
-    string: ["output", "o", "voice", "fps", "default-duration"],
+    string: ["output", "o", "voice", "fps", "default-duration", "resolution"],
     alias: { h: "help", o: "output" },
   });
 
@@ -77,9 +83,11 @@ async function main() {
     composeOnly: args["compose-only"],
     slidesOnly: args["slides-only"],
     forceAudio: args["force-audio"],
+    keepTemp: args["keep-temp"],
     help: args.help,
     voice: args.voice,
     fps: args.fps ? parseInt(args.fps) : undefined,
+    resolution: args.resolution,
     defaultDuration: args["default-duration"]
       ? parseFloat(args["default-duration"])
       : undefined,
@@ -133,6 +141,8 @@ async function main() {
       await composeVideo(targetDir, {
         fps: options.fps,
         defaultDuration: options.defaultDuration,
+        keepTemp: options.keepTemp,
+        resolution: options.resolution,
       });
 
       // 如果指定了输出路径，移动文件

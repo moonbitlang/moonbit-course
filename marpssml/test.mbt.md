@@ -23,6 +23,12 @@ headingDivider: 1
 
 测试内容
 
+<!-- video insert.mov -->
+
+<!-- ssml
+这是一段插入的视频
+-->
+
 # 测试第三页
 
 这一页没有配音

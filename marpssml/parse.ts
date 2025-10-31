@@ -10,8 +10,16 @@ interface SlideInfo {
   hasAudio: boolean;
 }
 
+interface VideoSegment {
+  afterSlide: string; // 在哪一页之后插入
+  videoPath: string;  // 视频文件路径
+  ssmlHash: string;   // 视频配音的 SSML 哈希
+  hasAudio: boolean;  // 是否有配音
+}
+
 interface Manifest {
   slides: SlideInfo[];
+  videos: VideoSegment[];
 }
 
 /**
@@ -34,14 +42,47 @@ export async function parse(inputFile: string, targetDir: string) {
 
   // 处理每一页
   const slides: SlideInfo[] = [];
+  const videos: VideoSegment[] = [];
 
   for (let i = 0; i < pages.length; i++) {
     const pageNum = i + 1;
     const slideId = pageNum.toString().padStart(3, "0");
     const page = pages[i];
 
-    // 提取 SSML 内容
-    const { ssmlPart } = extractSSML(page);
+    // 检查是否有视频标记，以及视频后是否紧跟 SSML
+    const videoMatch = page.match(/<!--\s*video\s+(.+?)\s*-->\s*(<!--\s*ssml\s*\n([\s\S]*?)\n-->)?/);
+    let videoSSML = "";
+    let pageWithoutVideoSSML = page;
+
+    if (videoMatch) {
+      const videoPath = videoMatch[1].trim();
+      videoSSML = videoMatch[3] ? videoMatch[3].trim() : "";
+
+      // 从页面中移除 video 及其后的 SSML（如果有）
+      pageWithoutVideoSSML = page.replace(videoMatch[0], "");
+
+      const hasVideoAudio = videoSSML.length > 0;
+      const videoSSMLHash = hasVideoAudio ? await hashContent(videoSSML) : "";
+
+      videos.push({
+        afterSlide: slideId,
+        videoPath,
+        ssmlHash: videoSSMLHash,
+        hasAudio: hasVideoAudio,
+      });
+
+      // 保存视频的 SSML 文件
+      if (hasVideoAudio) {
+        const videoSSMLFile = join(targetDir, "audio", `video-after-${slideId}.ssml`);
+        await Deno.writeTextFile(videoSSMLFile, videoSSML);
+        console.log(`   📹 slide-${slideId} 后插入视频: ${videoPath} (有配音)`);
+      } else {
+        console.log(`   📹 slide-${slideId} 后插入视频: ${videoPath}`);
+      }
+    }
+
+    // 提取页面的 SSML 内容（不包括 video 后的 SSML）
+    const { ssmlPart } = extractSSML(pageWithoutVideoSSML);
 
     // 计算 SSML 哈希
     const hasAudio = ssmlPart.trim().length > 0;
@@ -63,17 +104,19 @@ export async function parse(inputFile: string, targetDir: string) {
     }
   }
 
-  // 提取 SSML 并生成 slides.md
-  // 策略：保持原始文档结构，只移除 <!-- ssml ... --> 注释
+  // 提取 SSML 和 video 注释，生成 slides.md
+  // 策略：保持原始文档结构，只移除特殊注释
   const ssmlRegex = /<!--\s*ssml\s*\n([\s\S]*?)\n-->/g;
-  const slidesContent = content.replace(ssmlRegex, "");
+  const videoRegex = /<!--\s*video\s+.+?\s*-->/g;
+  let slidesContent = content.replace(ssmlRegex, "");
+  slidesContent = slidesContent.replace(videoRegex, "");
 
   const slidesFile = join(targetDir, "slides.md");
   await Deno.writeTextFile(slidesFile, slidesContent);
   console.log(`   ✓ 已保存 slides.md`);
 
   // 保存 manifest.json
-  const manifest: Manifest = { slides };
+  const manifest: Manifest = { slides, videos };
   const manifestFile = join(targetDir, "manifest.json");
   await Deno.writeTextFile(manifestFile, JSON.stringify(manifest, null, 2));
   console.log(`   ✓ 已保存 manifest.json`);
@@ -82,7 +125,7 @@ export async function parse(inputFile: string, targetDir: string) {
 }
 
 /**
- * 按 --- 分割页面
+ * 按 --- 或 headingDivider 分割页面
  */
 function splitPages(content: string): string[] {
   // 先提取 frontmatter
@@ -95,8 +138,39 @@ function splitPages(content: string): string[] {
     mainContent = content.slice(frontmatterMatch[0].length);
   }
 
-  // 分割页面（--- 作为分隔符）
-  const pages = mainContent.split(/\n---\n+/);
+  // 检查是否使用了 headingDivider
+  let headingLevel: number | null = null;
+  if (frontmatter) {
+    const headingDividerMatch = frontmatter.match(/headingDivider:\s*(\d+)/);
+    if (headingDividerMatch) {
+      headingLevel = parseInt(headingDividerMatch[1]);
+    }
+  }
+
+  let pages: string[];
+
+  if (headingLevel !== null) {
+    // 使用 headingDivider 分割
+    const headingPattern = new RegExp(`^${"#".repeat(headingLevel)}\\s+`, "gm");
+    const parts = mainContent.split(headingPattern);
+
+    // 获取所有标题文本
+    const headings = Array.from(mainContent.matchAll(headingPattern)).map(m => m[0]);
+
+    // 重新组合（跳过第一个空部分）
+    pages = [];
+    for (let i = 1; i < parts.length; i++) {
+      pages.push(headings[i - 1] + parts[i]);
+    }
+
+    // 如果第一部分不为空，也加入
+    if (parts[0].trim()) {
+      pages.unshift(parts[0]);
+    }
+  } else {
+    // 按 --- 分割页面
+    pages = mainContent.split(/\n---\n+/);
+  }
 
   // 第一页加上 frontmatter
   if (pages.length > 0 && frontmatter) {
