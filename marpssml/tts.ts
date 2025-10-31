@@ -10,6 +10,12 @@ interface Manifest {
     ssmlHash: string;
     hasAudio: boolean;
   }>;
+  videos: Array<{
+    afterSlide: string;
+    videoPath: string;
+    ssmlHash: string;
+    hasAudio: boolean;
+  }>;
 }
 
 interface AudioMeta {
@@ -89,6 +95,54 @@ export async function generateAudio(
     await Deno.writeTextFile(metaFile, JSON.stringify(meta, null, 2));
 
     console.log(`   ✓ slide-${slide.id}: 已生成 (${duration.toFixed(2)}s)`);
+    generatedCount++;
+  }
+
+  // 处理视频配音
+  for (const video of manifest.videos) {
+    if (!video.hasAudio) {
+      console.log(`   ○ video-after-${video.afterSlide}: 跳过（无音频）`);
+      continue;
+    }
+
+    const audioDir = join(targetDir, "audio");
+    const ssmlFile = join(audioDir, `video-after-${video.afterSlide}.ssml`);
+    const audioFile = join(audioDir, `video-after-${video.afterSlide}.wav`);
+    const metaFile = join(audioDir, `video-after-${video.afterSlide}.meta.json`);
+
+    // 检查是否需要重新生成
+    const needRegenerate = force || !(await shouldSkip(metaFile, video.ssmlHash));
+
+    if (!needRegenerate) {
+      console.log(`   ○ video-after-${video.afterSlide}: 跳过（未修改）`);
+      skippedCount++;
+      continue;
+    }
+
+    // 读取 SSML 内容
+    const ssmlContent = await Deno.readTextFile(ssmlFile);
+
+    // 包装成完整的 SSML 文档
+    const fullSSML = wrapSSML(ssmlContent, voice);
+
+    console.log(`   🔊 video-after-${video.afterSlide}: 正在生成音频...`);
+
+    // 调用 TTS API
+    const duration = await synthesizeSpeech(
+      fullSSML,
+      audioFile,
+      subscriptionKey,
+      serviceRegion
+    );
+
+    // 保存元数据
+    const meta: AudioMeta = {
+      duration,
+      hash: video.ssmlHash,
+    };
+    await Deno.writeTextFile(metaFile, JSON.stringify(meta, null, 2));
+
+    console.log(`   ✓ video-after-${video.afterSlide}: 已生成 (${duration.toFixed(2)}s)`);
     generatedCount++;
   }
 
