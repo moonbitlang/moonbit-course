@@ -104,17 +104,6 @@ export async function parse(inputFile: string, targetDir: string) {
     }
   }
 
-  // 提取 SSML 和 video 注释，生成 slides.md
-  // 策略：保持原始文档结构，只移除特殊注释
-  const ssmlRegex = /<!--\s*ssml\s*\n([\s\S]*?)\n-->/g;
-  const videoRegex = /<!--\s*video\s+.+?\s*-->/g;
-  let slidesContent = content.replace(ssmlRegex, "");
-  slidesContent = slidesContent.replace(videoRegex, "");
-
-  const slidesFile = join(targetDir, "slides.md");
-  await Deno.writeTextFile(slidesFile, slidesContent);
-  console.log(`   ✓ 已保存 slides.md`);
-
   // 保存 manifest.json
   const manifest: Manifest = { slides, videos };
   const manifestFile = join(targetDir, "manifest.json");

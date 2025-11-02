@@ -35,7 +35,8 @@
     "url": "https://github.com/yourusername/mdcourse.git"
   },
   "dependencies": {
-    "@marp-team/marp-cli": "^3.4.0"
+    "@marp-team/marp-cli": "^3.4.0",
+    "shiki": "^1.0.0"
   },
   "devDependencies": {},
   "engines": {
