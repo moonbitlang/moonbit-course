@@ -19,6 +19,7 @@ interface Options {
   fps?: number;
   defaultDuration?: number;
   resolution?: string;
+  retry?: number;
 }
 
 const HELP_TEXT = `
@@ -39,6 +40,7 @@ mdcourse - Marp+SSML 视频生成工具
   --fps <number>            视频帧率 (默认: 30)
   --resolution <preset>     视频分辨率 (默认: 1080p)
                             可选: 4k, 1440p, 1080p, 720p, 480p
+  --retry <number>          TTS API 失败时的重试次数 (默认: 3)
   --default-duration <sec>  无音频幻灯片的默认时长 (默认: 3.0)
   -h, --help                显示帮助信息
 
@@ -72,7 +74,7 @@ async function main() {
       "help",
       "h",
     ],
-    string: ["output", "o", "voice", "fps", "default-duration", "resolution"],
+    string: ["output", "o", "voice", "fps", "default-duration", "resolution", "retry"],
     alias: { h: "help", o: "output" },
   });
 
@@ -88,6 +90,7 @@ async function main() {
     voice: args.voice,
     fps: args.fps ? parseInt(args.fps) : undefined,
     resolution: args.resolution,
+    retry: args.retry ? parseInt(args.retry) : undefined,
     defaultDuration: args["default-duration"]
       ? parseFloat(args["default-duration"])
       : undefined,
@@ -117,7 +120,7 @@ async function main() {
 
     // 2. 生成幻灯片图片（除非只生成音频或只合成视频）
     if (!options.audioOnly && !options.composeOnly) {
-      await generateSlides(targetDir);
+      await generateSlides(inputFile, targetDir);
       if (options.slidesOnly) {
         console.log("\n✅ 完成（仅生成幻灯片）");
         return;
@@ -129,6 +132,7 @@ async function main() {
       await generateAudio(targetDir, {
         force: options.forceAudio,
         voice: options.voice,
+        retry: options.retry,
       });
       if (options.audioOnly) {
         console.log("\n✅ 完成（仅生成音频）");
@@ -177,76 +181,175 @@ async function main() {
 /**
  * 使用 Marp CLI 生成幻灯片图片
  */
-async function generateSlides(targetDir: string) {
+async function generateSlides(inputFile: string, targetDir: string) {
   console.log(`🖼️  生成幻灯片图片`);
 
-  const slidesFile = join(targetDir, "slides.md");
   const slidesDir = join(targetDir, "slides");
 
   // 确保输出目录存在
   await Deno.mkdir(slidesDir, { recursive: true });
 
-  // 调用 marp (使用默认主题，不依赖外部文件)
-  const command = new Deno.Command("npx", {
+  // 查找自定义主题和引擎文件
+  // 优先从当前工作目录查找，如果不存在则从 npm 包目录查找
+  const customCSS = await findAsset("custom.css");
+  const engineJS = await findAsset("engine.mjs");
+
+  // 生成 PDF 文件路径
+  const pdfFile = join(targetDir, "slides.pdf");
+
+  // 步骤 1: 使用 Marp 生成 PDF
+  console.log(`   生成 PDF...`);
+  const marpCommand = new Deno.Command("npx", {
     args: [
       "@marp-team/marp-cli",
-      slidesFile,
-      "--images",
-      "png",
+      "--theme",
+      customCSS,
+      "--engine",
+      engineJS,
+      inputFile,
+      "--pdf",
       "--allow-local-files",
       "--html",
+      "-o",
+      pdfFile,
     ],
     cwd: Deno.cwd(),
     stdout: "inherit",
     stderr: "inherit",
   });
 
-  const { success } = await command.output();
+  const { success: marpSuccess } = await marpCommand.output();
 
-  if (!success) {
-    throw new Error("Marp 生成幻灯片失败");
+  if (!marpSuccess) {
+    throw new Error("Marp 生成 PDF 失败");
   }
 
-  // 移动和重命名文件（marp 生成的格式是 slides.001.png）
-  await moveAndRenameSlides(targetDir, slidesDir);
+  // 步骤 2: 使用 pdftoppm 将 PDF 转换为 PNG
+  console.log(`   转换 PDF 到 PNG...`);
+  const pdftoppmCommand = new Deno.Command("pdftoppm", {
+    args: [
+      "-png",
+      "-r", "300",  // 300 DPI 分辨率
+      pdfFile,
+      join(slidesDir, "slide"),
+    ],
+    stdout: "inherit",
+    stderr: "inherit",
+  });
+
+  const { success: pdfSuccess } = await pdftoppmCommand.output();
+
+  if (!pdfSuccess) {
+    throw new Error("pdftoppm 转换失败");
+  }
+
+  // 步骤 3: 重命名文件（pdftoppm 生成的格式是 slide-1.png, slide-2.png）
+  await renameSlides(slidesDir);
 
   console.log(`   ✓ 幻灯片已生成`);
 }
 
 /**
- * 移动和重命名幻灯片文件为统一格式 slide-NNN.png
+ * 重命名幻灯片文件为统一格式 slide-NNN.png
+ * pdftoppm 生成的格式是 slide-1.png, slide-2.png, ..., slide-10.png（无前导零）
  */
-async function moveAndRenameSlides(targetDir: string, slidesDir: string) {
-  const entries = [];
+async function renameSlides(slidesDir: string) {
+  const newEntries = [];  // pdftoppm 生成的文件（无前导零）
+  const oldEntries = [];  // 之前已有的文件（有前导零）
 
-  // 查找生成的图片文件（格式：slides.001.png, slides.002.png 等）
-  for await (const entry of Deno.readDir(targetDir)) {
-    if (entry.isFile && entry.name.match(/^slides\.\d+\.png$/)) {
-      entries.push(entry.name);
+  // 分类文件
+  for await (const entry of Deno.readDir(slidesDir)) {
+    if (!entry.isFile || !entry.name.endsWith('.png')) continue;
+
+    // pdftoppm 格式：slide-1.png (数字部分无前导零)
+    const newMatch = entry.name.match(/^slide-(\d{1,2})\.png$/);
+    if (newMatch) {
+      newEntries.push({ name: entry.name, num: parseInt(newMatch[1]) });
+      continue;
+    }
+
+    // 旧格式：slide-001.png (数字部分有前导零)
+    const oldMatch = entry.name.match(/^slide-(\d{3,})\.png$/);
+    if (oldMatch) {
+      oldEntries.push(entry.name);
     }
   }
 
-  if (entries.length === 0) {
-    console.warn("   ⚠️  警告: 没有找到生成的幻灯片图片");
+  if (newEntries.length === 0) {
+    console.warn("   ⚠️  警告: 没有找到 pdftoppm 生成的幻灯片图片");
     return;
   }
 
-  // 排序
-  entries.sort();
+  // 按数字排序
+  newEntries.sort((a, b) => a.num - b.num);
 
-  // 移动并重命名
-  for (let i = 0; i < entries.length; i++) {
-    const oldName = entries[i];
+  // 第一步：删除所有旧文件，避免冲突
+  for (const oldFile of oldEntries) {
+    await Deno.remove(join(slidesDir, oldFile));
+  }
+
+  // 第二步：重命名新文件为标准格式
+  for (let i = 0; i < newEntries.length; i++) {
+    const oldName = newEntries[i].name;
     const slideId = (i + 1).toString().padStart(3, "0");
     const newName = `slide-${slideId}.png`;
 
     await Deno.rename(
-      join(targetDir, oldName),
+      join(slidesDir, oldName),
       join(slidesDir, newName)
     );
   }
 
-  console.log(`   ✓ 已移动 ${entries.length} 张幻灯片图片`);
+  console.log(`   ✓ 已转换 ${newEntries.length} 张幻灯片图片`);
+}
+
+/**
+ * 查找资源文件（优先当前目录，其次 npm 包目录）
+ */
+async function findAsset(filename: string): Promise<string> {
+  // 1. 尝试当前工作目录
+  const cwdPath = join(Deno.cwd(), filename);
+  try {
+    await Deno.stat(cwdPath);
+    return cwdPath;
+  } catch {
+    // 文件不存在，继续尝试其他位置
+  }
+
+  // 2. 尝试可执行文件所在目录（适用于开发环境）
+  try {
+    const execPath = Deno.execPath();
+    const execDir = dirname(execPath);
+    const execDirPath = join(execDir, filename);
+    await Deno.stat(execDirPath);
+    return execDirPath;
+  } catch {
+    // 文件不存在，继续尝试其他位置
+  }
+
+  // 3. 尝试 npm 全局包目录
+  // 通过 npm root -g 获取全局包根目录
+  try {
+    const command = new Deno.Command("npm", {
+      args: ["root", "-g"],
+      stdout: "piped",
+      stderr: "piped",
+    });
+    const { success, stdout } = await command.output();
+    if (success) {
+      const npmRoot = new TextDecoder().decode(stdout).trim();
+      const npmPath = join(npmRoot, "mdcourse", filename);
+      await Deno.stat(npmPath);
+      return npmPath;
+    }
+  } catch {
+    // 无法获取 npm root 或文件不存在
+  }
+
+  // 4. 如果都找不到，返回当前目录的相对路径（让 marp 报错）
+  throw new Error(
+    `无法找到 ${filename}。请确保文件在当前目录，或 mdcourse 已通过 npm 正确安装。`
+  );
 }
 
 if (import.meta.main) {

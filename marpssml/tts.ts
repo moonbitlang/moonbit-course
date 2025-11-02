@@ -28,9 +28,9 @@ interface AudioMeta {
  */
 export async function generateAudio(
   targetDir: string,
-  options: { force?: boolean; voice?: string } = {}
+  options: { force?: boolean; voice?: string; retry?: number } = {}
 ) {
-  const { force = false, voice = "zh-CN-YunyiMultilingualNeural" } = options;
+  const { force = false, voice = "zh-CN-YunyiMultilingualNeural", retry = 3 } = options;
 
   console.log(`🎙️  生成音频: ${targetDir}`);
 
@@ -79,12 +79,13 @@ export async function generateAudio(
 
     console.log(`   🔊 slide-${slide.id}: 正在生成音频...`);
 
-    // 调用 TTS API
-    const duration = await synthesizeSpeech(
+    // 调用 TTS API（带重试）
+    const duration = await synthesizeSpeechWithRetry(
       fullSSML,
       audioFile,
       subscriptionKey,
-      serviceRegion
+      serviceRegion,
+      retry
     );
 
     // 保存元数据
@@ -127,12 +128,13 @@ export async function generateAudio(
 
     console.log(`   🔊 video-after-${video.afterSlide}: 正在生成音频...`);
 
-    // 调用 TTS API
-    const duration = await synthesizeSpeech(
+    // 调用 TTS API（带重试）
+    const duration = await synthesizeSpeechWithRetry(
       fullSSML,
       audioFile,
       subscriptionKey,
-      serviceRegion
+      serviceRegion,
+      retry
     );
 
     // 保存元数据
@@ -175,6 +177,41 @@ function wrapSSML(content: string, voice: string): string {
     </p>
   </voice>
 </speak>`;
+}
+
+/**
+ * 带重试的语音合成函数
+ */
+async function synthesizeSpeechWithRetry(
+  ssml: string,
+  outputFile: string,
+  subscriptionKey: string,
+  serviceRegion: string,
+  maxRetries: number
+): Promise<number> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const duration = await synthesizeSpeech(
+        ssml,
+        outputFile,
+        subscriptionKey,
+        serviceRegion
+      );
+      return duration;
+    } catch (error) {
+      lastError = error as Error;
+      if (attempt < maxRetries) {
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000); // 指数退避，最多10秒
+        console.log(`   ⚠️  尝试 ${attempt}/${maxRetries} 失败: ${lastError.message}`);
+        console.log(`   ⏳ ${delay}ms 后重试...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  throw new Error(`${maxRetries} 次尝试后仍失败: ${lastError?.message}`);
 }
 
 /**
