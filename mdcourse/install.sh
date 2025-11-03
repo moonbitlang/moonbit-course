@@ -26,11 +26,12 @@ if ! command -v moon &> /dev/null; then
     exit 1
 fi
 
-# Check if npx is installed
-if ! command -v npx &> /dev/null; then
-    echo -e "${YELLOW}Warning: npx not found${NC}"
-    echo "You'll need Node.js and npx to generate slides"
+# Check if npm is installed
+if ! command -v npm &> /dev/null; then
+    echo -e "${RED}Error: npm not found${NC}"
+    echo "You'll need Node.js and npm to install Marp CLI and dependencies"
     echo "Install from: https://nodejs.org/"
+    exit 1
 fi
 
 # Build the binary
@@ -81,12 +82,29 @@ for file in ../moonbit.tmLanguage.json ../abnf.tmLanguage.json; do
     fi
 done
 
+# Install npm dependencies (Marp CLI and engine.mjs dependencies)
+echo -e "${GREEN}Installing npm dependencies...${NC}"
+cat > "$INSTALL_DIR/package.json" << 'PACKAGE_JSON'
+{
+  "type": "module",
+  "dependencies": {
+    "@marp-team/marp-cli": "^3.4.0",
+    "shiki": "^1.1.7"
+  }
+}
+PACKAGE_JSON
+
+# Install npm packages in the resource directory
+cd "$INSTALL_DIR"
+npm install --silent 2>&1 | grep -v "npm WARN" || true
+cd - > /dev/null
+
 # Create wrapper script
 echo -e "${GREEN}[4/4]${NC} Creating wrapper script..."
 cat > "$BIN_DIR/mdcourse" << 'EOF'
 #!/bin/bash
 # mdcourse wrapper script
-# Sets MDCOURSE_DIR so the binary can find its resources
+# Sets MDCOURSE_DIR for resource location
 
 export MDCOURSE_DIR="$HOME/.mdcourse"
 
@@ -97,7 +115,7 @@ if [ ! -d "$MDCOURSE_DIR" ]; then
     exit 1
 fi
 
-# Execute the binary from the current working directory
+# Execute the binary directly (no cd needed - all paths are absolute)
 exec "$MDCOURSE_DIR/mdcourse-bin" "$@"
 EOF
 

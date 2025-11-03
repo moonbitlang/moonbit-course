@@ -112,6 +112,64 @@ fn video_ssml_path(target : String, slide_id : String) -> String {
 }
 
 ///|
+/// Build audio file path for video after a slide
+pub fn video_audio_path(target : String, slide_id : String) -> String {
+  path_join([audio_dir(target), "video-after-\{slide_id}.wav"])
+}
+
+///|
+/// Build audio metadata path for video after a slide
+pub fn video_meta_path(target : String, slide_id : String) -> String {
+  path_join([audio_dir(target), "video-after-\{slide_id}.meta.json"])
+}
+
+///|
+/// Check if video has an audio stream using ffprobe
+pub async fn has_audio_stream(video_path : String) -> Bool {
+  let args : Array[String] = [
+    "-v",
+    "error",
+    "-select_streams",
+    "a:0",
+    "-show_entries",
+    "stream=codec_type",
+    "-of",
+    "default=noprint_wrappers=1:nokey=1",
+    video_path,
+  ]
+
+  let (exit_code, stdout, _stderr) = @process.collect_output("ffprobe", args)
+  if exit_code != 0 {
+    return false
+  }
+
+  let output = stdout.text().trim(char_set=" \t\n")
+  output.to_string() == "audio"
+}
+
+///|
+/// Get video duration using ffprobe
+pub async fn get_video_duration(video_path : String) -> Double {
+  let args : Array[String] = [
+    "-v",
+    "error",
+    "-show_entries",
+    "format=duration",
+    "-of",
+    "default=noprint_wrappers=1:nokey=1",
+    video_path,
+  ]
+
+  let (exit_code, stdout, _stderr) = @process.collect_output("ffprobe", args)
+  if exit_code != 0 {
+    return 0.0
+  }
+
+  let duration_str = stdout.text().trim(char_set=" \t\n")
+  @strconv.parse_double(duration_str.to_string()) catch { _ => 0.0 }
+}
+
+///|
 /// Estimate video size in MB (rough approximation)
 /// Assumes H.264 with ~3 Mbps bitrate
 fn estimate_video_size(

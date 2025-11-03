@@ -49,20 +49,60 @@ async fn generate_pdf(
   pdf_file : String,
   options : Options,
 ) -> Unit {
-  let args : Array[String] = [
-    "@marp-team/marp-cli",
-    "--theme",
-    options.theme,
-    "--engine",
-    options.engine,
-    input_file,
-    "--pdf",
-    "--allow-local-files",
-    "--html",
-    "-o",
-    pdf_file,
-  ]
-  let (exit_code, _stdout, stderr) = @process.collect_output("npx", args)
+  // Get absolute paths for input and output
+  let abs_input = get_absolute_path(input_file)
+  let abs_pdf = get_absolute_path(pdf_file)
+
+  // Use local marp-cli if available (from ~/.mdcourse/node_modules)
+  // Otherwise fall back to global npx
+  let resource_dir = get_resource_dir()
+  let use_local_marp = resource_dir != "." && resource_dir.contains("/.mdcourse")
+
+  let args : Array[String] = if use_local_marp {
+    // Use local installation with absolute paths to engine and theme
+    [
+      resource_dir + "/node_modules/.bin/marp",
+      "--theme",
+      options.theme,  // Already absolute from types.mbt
+      "--engine",
+      options.engine, // Already absolute from types.mbt
+      abs_input,
+      "--pdf",
+      "--allow-local-files",
+      "--html",
+      "-o",
+      abs_pdf,
+    ]
+  } else {
+    // Use global npx (development mode)
+    [
+      "@marp-team/marp-cli",
+      "--theme",
+      options.theme,
+      "--engine",
+      options.engine,
+      abs_input,
+      "--pdf",
+      "--allow-local-files",
+      "--html",
+      "-o",
+      abs_pdf,
+    ]
+  }
+
+  let cmd = if use_local_marp { args[0] } else { "npx" }
+  let cmd_args : Array[String] = if use_local_marp {
+    // Skip the first element (the command itself) and use the rest as args
+    let result : Array[String] = []
+    for i = 1; i < args.length(); i = i + 1 {
+      result.push(args[i])
+    }
+    result
+  } else {
+    args
+  }
+
+  let (exit_code, _stdout, stderr) = @process.collect_output(cmd, cmd_args)
   if exit_code != 0 {
     println("   [ERROR] Marp CLI failed with exit code \{exit_code}")
     let error_text = stderr.text()
@@ -72,6 +112,25 @@ async fn generate_pdf(
     abort("Marp PDF generation failed")
   }
   println("   [+] PDF saved: \{pdf_file}")
+}
+
+///|
+/// Get absolute path from relative or absolute path
+async fn get_absolute_path(path : String) -> String {
+  if path.has_prefix("/") {
+    // Already absolute
+    path
+  } else {
+    // Get current working directory and join with path
+    let cwd = @process.collect_output("pwd", [])
+    match cwd {
+      (0, stdout, _) => {
+        let dir = stdout.text().trim(char_set=" \t\n").to_string()
+        dir + "/" + path
+      }
+      _ => path // Fallback to relative
+    }
+  }
 }
 
 ///|

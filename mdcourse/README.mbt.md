@@ -19,9 +19,10 @@ Generate educational videos from Marp markdown presentations with text-to-speech
    # Install poppler from https://blog.alivate.com.au/poppler-windows/
    ```
 
-2. **Node.js & Marp CLI**:
+2. **Node.js**:
    ```bash
-   npm install -g @marp-team/marp-cli
+   # Required for Marp CLI (will be installed locally by install.sh)
+   # Install from: https://nodejs.org/
    ```
 
 3. **MoonBit Toolchain**:
@@ -49,8 +50,11 @@ Run the installer script to install mdcourse to `~/.local/bin`:
 This will:
 - Build the native binary
 - Install to `~/.mdcourse/` with all resources (engine.mjs, custom.css, etc.)
+- Install npm dependencies (@marp-team/marp-cli, shiki) locally in `~/.mdcourse/`
 - Create a wrapper script in `~/.local/bin/mdcourse`
 - Make the `mdcourse` command available system-wide
+
+**Note**: Marp CLI and its dependencies are installed locally in `~/.mdcourse/`, so you don't need to install `@marp-team/marp-cli` globally.
 
 After installation, you can run:
 

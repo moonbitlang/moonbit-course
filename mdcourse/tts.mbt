@@ -55,12 +55,12 @@ pub async fn generate_audio(output_dir : String, options : Options) -> Unit {
   // 2. Parse manifest.json
   let manifest_path = manifest_path(output_dir)
   let manifest_json = @fs.read_file(manifest_path).text()
-  let slides = parse_manifest(manifest_json)
+  let manifest = parse_manifest_full(manifest_json)
 
   // 3. Prepare tasks for slides that need audio generation
   let tasks : Array[AudioGenTask] = []
   let mut skipped = 0
-  for slide in slides {
+  for slide in manifest.slides {
     if !slide.has_audio {
       println("   [ ] slide-\{slide.id}: Skip (no audio)")
       continue
@@ -80,7 +80,34 @@ pub async fn generate_audio(output_dir : String, options : Options) -> Unit {
     tasks.push({ slide, audio_file, meta_file, ssml_file })
   }
 
-  // 4. Generate audio concurrently using task group
+  // 4. Prepare tasks for videos that need audio generation
+  for video in manifest.videos {
+    if !video.has_audio {
+      continue
+    }
+
+    // Check if audio exists and unchanged
+    let meta_file = video_meta_path(output_dir, video.after_slide)
+    if !options.force_audio && should_skip(meta_file, video.ssml_hash) {
+      println(
+        "   [+] video-after-\{video.after_slide}: Skip (exists and unchanged)",
+      )
+      skipped = skipped + 1
+      continue
+    }
+
+    // Add to task list - convert VideoSegment to SlideInfo for compatibility
+    let video_as_slide : SlideInfo = {
+      id: "video-after-\{video.after_slide}",
+      ssml_hash: video.ssml_hash,
+      has_audio: video.has_audio,
+    }
+    let audio_file = video_audio_path(output_dir, video.after_slide)
+    let ssml_file = video_ssml_path(output_dir, video.after_slide)
+    tasks.push({ slide: video_as_slide, audio_file, meta_file, ssml_file })
+  }
+
+  // 5. Generate audio concurrently using task group
   if tasks.length() == 0 {
     println("Audio generation complete: 0 generated, \{skipped} skipped")
     return
@@ -267,24 +294,63 @@ fn pow(base : Int, exp : Int) -> Int {
 }
 
 ///|
-/// Parse manifest.json to extract slide info
-fn parse_manifest(json_str : String) -> Array[SlideInfo] {
+/// Parse manifest.json to extract slide and video info
+fn parse_manifest_full(json_str : String) -> Manifest {
   let json = @json5.parse(json_str) catch {
     e => abort("JSON parse error: \{e}")
   }
   match json {
-    Object(map) =>
-      match map.get("slides") {
+    Object(map) => {
+      let slides = match map.get("slides") {
         Some(Array(slide_array)) => {
-          let slides : Array[SlideInfo] = []
+          let slides_result : Array[SlideInfo] = []
           for slide_json in slide_array {
             let slide = parse_slide_info(slide_json)
-            slides.push(slide)
+            slides_result.push(slide)
           }
-          slides
+          slides_result
         }
-        _ => abort("manifest.slides is not an array")
+        _ => []
       }
+      let videos = match map.get("videos") {
+        Some(Array(video_array)) => {
+          let videos_result : Array[VideoSegment] = []
+          for video_json in video_array {
+            match video_json {
+              Object(video_map) => {
+                let after_slide = match video_map.get("afterSlide") {
+                  Some(String(s)) => s
+                  _ => continue
+                }
+                let video_path = match video_map.get("videoPath") {
+                  Some(String(s)) => s
+                  _ => continue
+                }
+                let ssml_hash = match video_map.get("ssmlHash") {
+                  Some(String(s)) => s
+                  _ => ""
+                }
+                let has_audio = match video_map.get("hasAudio") {
+                  Some(True) => true
+                  Some(False) => false
+                  _ => false
+                }
+                videos_result.push({
+                  after_slide,
+                  video_path,
+                  ssml_hash,
+                  has_audio,
+                })
+              }
+              _ => ()
+            }
+          }
+          videos_result
+        }
+        _ => []
+      }
+      { slides, videos }
+    }
     _ => abort("manifest.json is not a JSON object")
   }
 }
