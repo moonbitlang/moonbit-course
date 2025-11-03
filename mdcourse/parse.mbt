@@ -57,10 +57,10 @@ pub async fn parse_file(input_path : String, output_dir : String) -> Unit {
         let video_ssml_file = video_ssml_path(output_dir, slide_id)
         write_file(video_ssml_file, video_ssml)
         println(
-          "   [VIDEO] slide-\{slide_id} 后插入视频: \{video_path} (有配音, \{video_ssml.length()} chars)",
+          "   [VIDEO] Insert video after slide-\{slide_id}: \{video_path} (with audio, \{video_ssml.length()} chars)",
         )
       } else {
-        println("   [VIDEO] slide-\{slide_id} 后插入视频: \{video_path}")
+        println("   [VIDEO] Insert video after slide-\{slide_id}: \{video_path}")
       }
     }
   }
@@ -209,14 +209,13 @@ fn extract_video(page : String) -> (String, String, String) {
       let start = "<!-- video ".length()
       let end = trimmed.length() - " ssml".length()
       let slice_result = try? trimmed[start:end]
-      match slice_result {
-        Ok(slice) => {
-          let path_str = slice.to_string()
-          video_path = path_str.trim(char_set=" \t").to_string()
-          in_video_ssml = true
-        }
-        Err(_) => ()
+      guard slice_result is Ok(slice) else {
+        i += 1
+        continue
       }
+      let path_str = slice.to_string()
+      video_path = path_str.trim(char_set=" \t").to_string()
+      in_video_ssml = true
       i += 1
       continue
     }
@@ -227,13 +226,12 @@ fn extract_video(page : String) -> (String, String, String) {
       let start = "<!-- video ".length()
       let end = trimmed.length() - " -->".length()
       let slice_result = try? trimmed[start:end]
-      match slice_result {
-        Ok(slice) => {
-          let path_str = slice.to_string()
-          video_path = path_str.trim(char_set=" \t").to_string()
-        }
-        Err(_) => ()
+      guard slice_result is Ok(slice) else {
+        i += 1
+        continue
       }
+      let path_str = slice.to_string()
+      video_path = path_str.trim(char_set=" \t").to_string()
       i += 1
       continue
     }

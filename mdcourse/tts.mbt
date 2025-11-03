@@ -34,22 +34,16 @@ pub async fn generate_audio(output_dir : String, options : Options) -> Unit {
 
   // 1. Get environment variables
   let env_vars = @sys.get_env_vars()
-  let tts_key = match env_vars.get("TTS_KEY") {
-    Some(key) => key
-    None => {
-      println("   [ERROR] TTS_KEY environment variable not set")
-      println("   Please set TTS_KEY and TTS_REGION:")
-      println("     export TTS_KEY=\"your-azure-subscription-key\"")
-      println("     export TTS_REGION=\"eastus\"")
-      return
-    }
+  guard env_vars.get("TTS_KEY") is Some(tts_key) else {
+    println("   [ERROR] TTS_KEY environment variable not set")
+    println("   Please set TTS_KEY and TTS_REGION:")
+    println("     export TTS_KEY=\"your-azure-subscription-key\"")
+    println("     export TTS_REGION=\"eastus\"")
+    return
   }
-  let tts_region = match env_vars.get("TTS_REGION") {
-    Some(region) => region
-    None => {
-      println("   [ERROR] TTS_REGION environment variable not set")
-      return
-    }
+  guard env_vars.get("TTS_REGION") is Some(tts_region) else {
+    println("   [ERROR] TTS_REGION environment variable not set")
+    return
   }
 
   // 2. Parse manifest.json
@@ -299,84 +293,76 @@ fn parse_manifest_full(json_str : String) -> Manifest {
   let json = @json5.parse(json_str) catch {
     e => abort("JSON parse error: \{e}")
   }
-  match json {
-    Object(map) => {
-      let slides = match map.get("slides") {
-        Some(Array(slide_array)) => {
-          let slides_result : Array[SlideInfo] = []
-          for slide_json in slide_array {
-            let slide = parse_slide_info(slide_json)
-            slides_result.push(slide)
-          }
-          slides_result
-        }
-        _ => []
+  guard json is Object(map) else { abort("manifest.json is not a JSON object") }
+
+  let slides = match map.get("slides") {
+    Some(Array(slide_array)) => {
+      let slides_result : Array[SlideInfo] = []
+      for slide_json in slide_array {
+        let slide = parse_slide_info(slide_json)
+        slides_result.push(slide)
       }
-      let videos = match map.get("videos") {
-        Some(Array(video_array)) => {
-          let videos_result : Array[VideoSegment] = []
-          for video_json in video_array {
-            match video_json {
-              Object(video_map) => {
-                let after_slide = match video_map.get("afterSlide") {
-                  Some(String(s)) => s
-                  _ => continue
-                }
-                let video_path = match video_map.get("videoPath") {
-                  Some(String(s)) => s
-                  _ => continue
-                }
-                let ssml_hash = match video_map.get("ssmlHash") {
-                  Some(String(s)) => s
-                  _ => ""
-                }
-                let has_audio = match video_map.get("hasAudio") {
-                  Some(True) => true
-                  Some(False) => false
-                  _ => false
-                }
-                videos_result.push({
-                  after_slide,
-                  video_path,
-                  ssml_hash,
-                  has_audio,
-                })
-              }
-              _ => ()
-            }
-          }
-          videos_result
-        }
-        _ => []
-      }
-      { slides, videos }
+      slides_result
     }
-    _ => abort("manifest.json is not a JSON object")
+    _ => []
   }
+  let videos = match map.get("videos") {
+    Some(Array(video_array)) => {
+      let videos_result : Array[VideoSegment] = []
+      for video_json in video_array {
+        guard video_json is Object(video_map) else { continue }
+
+        guard video_map.get("afterSlide") is Some(String(after_slide)) else {
+          continue
+        }
+        guard video_map.get("videoPath") is Some(String(video_path)) else {
+          continue
+        }
+        let ssml_hash = if video_map.get("ssmlHash") is Some(String(s)) {
+          s
+        } else {
+          ""
+        }
+        let has_audio = if video_map.get("hasAudio") is Some(True) {
+          true
+        } else if video_map.get("hasAudio") is Some(False) {
+          false
+        } else {
+          false
+        }
+        videos_result.push({
+          after_slide,
+          video_path,
+          ssml_hash,
+          has_audio,
+        })
+      }
+      videos_result
+    }
+    _ => []
+  }
+  { slides, videos }
 }
 
 ///|
 /// Parse individual slide info from JSON
 fn parse_slide_info(json : Json) -> SlideInfo {
-  match json {
-    Object(map) => {
-      let id = match map.get("id") {
-        Some(String(s)) => s
-        _ => abort("slide.id missing or not a string")
-      }
-      let ssml_hash = match map.get("ssmlHash") {
-        Some(String(s)) => s
-        _ => abort("slide.ssmlHash missing or not a string")
-      }
-      let has_audio = match map.get("hasAudio") {
-        Some(True) => true
-        Some(False) => false
-        _ => abort("slide.hasAudio missing or not a boolean")
-      }
-      { id, ssml_hash, has_audio }
-    }
-    _ => abort("slide is not a JSON object")
+  guard json is Object(map) else { abort("slide is not a JSON object") }
+
+  guard map.get("id") is Some(String(id)) else {
+    abort("slide.id missing or not a string")
   }
+  guard map.get("ssmlHash") is Some(String(ssml_hash)) else {
+    abort("slide.ssmlHash missing or not a string")
+  }
+  let has_audio = if map.get("hasAudio") is Some(True) {
+    true
+  } else if map.get("hasAudio") is Some(False) {
+    false
+  } else {
+    abort("slide.hasAudio missing or not a boolean")
+  }
+  { id, ssml_hash, has_audio }
 }
 
 ///|
@@ -385,18 +371,13 @@ fn parse_audio_meta(json_str : String) -> AudioMeta {
   let json = @json5.parse(json_str) catch {
     e => abort("JSON parse error: \{e}")
   }
-  match json {
-    Object(map) => {
-      let duration = match map.get("duration") {
-        Some(Number(n, ..)) => n
-        _ => abort("duration missing or not a number")
-      }
-      let hash = match map.get("hash") {
-        Some(String(s)) => s
-        _ => abort("hash missing or not a string")
-      }
-      { duration, hash }
-    }
-    _ => abort("meta.json is not a JSON object")
+  guard json is Object(map) else { abort("meta.json is not a JSON object") }
+
+  guard map.get("duration") is Some(Number(duration, ..)) else {
+    abort("duration missing or not a number")
   }
+  guard map.get("hash") is Some(String(hash)) else {
+    abort("hash missing or not a string")
+  }
+  { duration, hash }
 }

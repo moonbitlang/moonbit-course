@@ -113,19 +113,19 @@ fn video_ssml_path(target : String, slide_id : String) -> String {
 
 ///|
 /// Build audio file path for video after a slide
-pub fn video_audio_path(target : String, slide_id : String) -> String {
+fn video_audio_path(target : String, slide_id : String) -> String {
   path_join([audio_dir(target), "video-after-\{slide_id}.wav"])
 }
 
 ///|
 /// Build audio metadata path for video after a slide
-pub fn video_meta_path(target : String, slide_id : String) -> String {
+fn video_meta_path(target : String, slide_id : String) -> String {
   path_join([audio_dir(target), "video-after-\{slide_id}.meta.json"])
 }
 
 ///|
 /// Check if video has an audio stream using ffprobe
-pub async fn has_audio_stream(video_path : String) -> Bool {
+async fn has_audio_stream(video_path : String) -> Bool {
   let args : Array[String] = [
     "-v",
     "error",

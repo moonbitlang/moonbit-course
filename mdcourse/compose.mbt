@@ -64,15 +64,12 @@ pub async fn compose_video(
     // Get duration from metadata or use default
     let duration = if slide.has_audio {
       let meta_file = slide_meta_path(output_dir, slide.id)
-      match parse_audio_metadata(meta_file) {
-        Some(meta) => meta.duration
-        None => {
-          println(
-            "   [WARN] Could not read duration for slide-\{slide.id}, using default",
-          )
-          options.default_duration
-        }
-      }
+      parse_audio_metadata(meta_file).map(fn(meta) { meta.duration }).unwrap_or_else(fn() {
+        println(
+          "   [WARN] Could not read duration for slide-\{slide.id}, using default",
+        )
+        options.default_duration
+      })
     } else {
       options.default_duration
     }
@@ -118,21 +115,19 @@ pub async fn compose_video(
           None
         }
 
-        let final_duration = match narration_audio {
-          Some(_audio_path) => {
-            let meta_file = video_meta_path(output_dir, slide.id)
-            match parse_audio_metadata(meta_file) {
-              Some(meta) => {
-                if meta.duration > video_duration {
-                  meta.duration
-                } else {
-                  video_duration
-                }
+        let final_duration = if video.has_audio {
+          let meta_file = video_meta_path(output_dir, slide.id)
+          parse_audio_metadata(meta_file)
+            .map(fn(meta) {
+              if meta.duration > video_duration {
+                meta.duration
+              } else {
+                video_duration
               }
-              None => video_duration
-            }
-          }
-          None => video_duration
+            })
+            .unwrap_or(video_duration)
+        } else {
+          video_duration
         }
 
         total_duration = total_duration + final_duration
@@ -167,10 +162,7 @@ pub async fn compose_video(
   let concat_list_file = path_join([segments_dir, "concat.txt"])
   let concat_content = generate_concat_list(segment_files)
   write_file(concat_list_file, concat_content)
-  let final_output = match output_file {
-    Some(path) => path
-    None => path_join([output_dir, "output.mp4"])
-  }
+  let final_output = output_file.unwrap_or(path_join([output_dir, "output.mp4"]))
   let concat_args : Array[String] = [
     "-f", "concat", "-safe", "0", "-i", concat_list_file, "-c", "copy", "-y", final_output,
   ]
@@ -292,10 +284,9 @@ async fn generate_video_segment_command(
 
       // Get narration duration from metadata by replacing .wav with .meta.json
       let meta_path = audio_path[0:audio_path.length() - 4].to_string() + ".meta.json"
-      let narration_duration = match parse_audio_metadata(meta_path) {
-        Some(meta) => meta.duration
-        None => video_duration  // Fallback to video duration if no metadata
-      }
+      let narration_duration = parse_audio_metadata(meta_path)
+        .map(fn(meta) { meta.duration })
+        .unwrap_or(video_duration)
 
       if narration_duration > video_duration {
         // Need to loop the video to match narration length
@@ -398,72 +389,67 @@ fn parse_manifest_for_compose(json_str : String) -> Manifest {
   let json = @json5.parse(json_str) catch {
     e => abort("JSON parse error: \{e}")
   }
-  match json {
-    Object(map) => {
-      let slides = match map.get("slides") {
-        Some(Array(slide_array)) => {
-          let slides_result : Array[SlideInfo] = []
-          for slide_json in slide_array {
-            match slide_json {
-              Object(slide_map) => {
-                let id = match slide_map.get("id") {
-                  Some(String(s)) => s
-                  _ => abort("slide.id missing")
-                }
-                let ssml_hash = match slide_map.get("ssmlHash") {
-                  Some(String(s)) => s
-                  _ => ""
-                }
-                let has_audio = match slide_map.get("hasAudio") {
-                  Some(True) => true
-                  Some(False) => false
-                  _ => false
-                }
-                slides_result.push({ id, ssml_hash, has_audio })
-              }
-              _ => ()
-            }
-          }
-          slides_result
+  guard json is Object(map) else { abort("manifest.json is not a JSON object") }
+
+  let slides = match map.get("slides") {
+    Some(Array(slide_array)) => {
+      let slides_result : Array[SlideInfo] = []
+      for slide_json in slide_array {
+        guard slide_json is Object(slide_map) else { continue }
+
+        guard slide_map.get("id") is Some(String(id)) else {
+          abort("slide.id missing")
         }
-        _ => []
-      }
-      let videos = match map.get("videos") {
-        Some(Array(video_array)) => {
-          let videos_result : Array[VideoSegment] = []
-          for video_json in video_array {
-            match video_json {
-              Object(video_map) => {
-                let after_slide = match video_map.get("afterSlide") {
-                  Some(String(s)) => s
-                  _ => continue
-                }
-                let video_path = match video_map.get("videoPath") {
-                  Some(String(s)) => s
-                  _ => continue
-                }
-                let ssml_hash = match video_map.get("ssmlHash") {
-                  Some(String(s)) => s
-                  _ => ""
-                }
-                let has_audio = match video_map.get("hasAudio") {
-                  Some(True) => true
-                  Some(False) => false
-                  _ => false
-                }
-                videos_result.push({ after_slide, video_path, ssml_hash, has_audio })
-              }
-              _ => ()
-            }
-          }
-          videos_result
+        let ssml_hash = if slide_map.get("ssmlHash") is Some(String(s)) {
+          s
+        } else {
+          ""
         }
-        _ => []
+        let has_audio = if slide_map.get("hasAudio") is Some(True) {
+          true
+        } else if slide_map.get("hasAudio") is Some(False) {
+          false
+        } else {
+          false
+        }
+        slides_result.push({ id, ssml_hash, has_audio })
       }
-      { slides, videos }
+      slides_result
     }
-    _ => abort("manifest.json is not a JSON object")
+    _ => []
   }
+
+  let videos = match map.get("videos") {
+    Some(Array(video_array)) => {
+      let videos_result : Array[VideoSegment] = []
+      for video_json in video_array {
+        guard video_json is Object(video_map) else { continue }
+
+        guard video_map.get("afterSlide") is Some(String(after_slide)) else {
+          continue
+        }
+        guard video_map.get("videoPath") is Some(String(video_path)) else {
+          continue
+        }
+        let ssml_hash = if video_map.get("ssmlHash") is Some(String(s)) {
+          s
+        } else {
+          ""
+        }
+        let has_audio = if video_map.get("hasAudio") is Some(True) {
+          true
+        } else if video_map.get("hasAudio") is Some(False) {
+          false
+        } else {
+          false
+        }
+        videos_result.push({ after_slide, video_path, ssml_hash, has_audio })
+      }
+      videos_result
+    }
+    _ => []
+  }
+  { slides, videos }
 }
 
 ///|
@@ -474,18 +460,12 @@ async fn parse_audio_metadata(meta_file : String) -> AudioMeta? {
   }
   let json_str = @fs.read_file(meta_file).text()
   let json = @json5.parse(json_str) catch { _ => return None }
-  match json {
-    Object(map) => {
-      let duration = match map.get("duration") {
-        Some(Number(n, ..)) => n
-        _ => return None
-      }
-      let hash = match map.get("hash") {
-        Some(String(s)) => s
-        _ => ""
-      }
-      Some({ duration, hash })
-    }
-    _ => None
+  guard json is Object(map) else { return None }
+
+  guard map.get("duration") is Some(Number(n, ..)) else { return None }
+  let hash = match map.get("hash") {
+    Some(String(s)) => s
+    _ => ""
   }
+  Some({ duration: n, hash })
 }
