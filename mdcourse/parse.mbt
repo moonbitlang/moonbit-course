@@ -185,8 +185,9 @@ fn extract_ssml_simple(page : String) -> String {
 /// Extract video marker and optional SSML from page
 /// Returns (video_path, video_ssml, page_without_video)
 fn extract_video(page : String) -> (String, String, String) {
-  // Look for: <!-- video path.mp4 -->
-  // Optionally followed by: <!-- ssml\n...\n-->
+  // Look for:
+  // - <!-- video path.mp4 --> (no SSML)
+  // - <!-- video path.mp4 ssml\n...\n--> (with SSML)
   let lines : Array[String] = []
   for view in page.split("\n") {
     lines.push(view.to_string())
@@ -202,7 +203,25 @@ fn extract_video(page : String) -> (String, String, String) {
     let line = lines[i]
     let trimmed = line.trim(char_set=" \t")
 
-    // Check for video marker
+    // Check for video marker with SSML: <!-- video path.mp4 ssml
+    if trimmed.has_prefix("<!-- video ") && trimmed.has_suffix(" ssml") {
+      // Extract video path from: <!-- video path.mp4 ssml
+      let start = "<!-- video ".length()
+      let end = trimmed.length() - " ssml".length()
+      let slice_result = try? trimmed[start:end]
+      match slice_result {
+        Ok(slice) => {
+          let path_str = slice.to_string()
+          video_path = path_str.trim(char_set=" \t").to_string()
+          in_video_ssml = true
+        }
+        Err(_) => ()
+      }
+      i += 1
+      continue
+    }
+
+    // Check for video marker without SSML: <!-- video path.mp4 -->
     if trimmed.has_prefix("<!-- video ") && trimmed.has_suffix(" -->") {
       // Extract video path: <!-- video path.mp4 -->
       let start = "<!-- video ".length()
@@ -213,20 +232,7 @@ fn extract_video(page : String) -> (String, String, String) {
           let path_str = slice.to_string()
           video_path = path_str.trim(char_set=" \t").to_string()
         }
-        Err(_) => {
-          i += 1
-          continue
-        }
-      }
-
-      // Check if next line starts video SSML
-      if i + 1 < lines.length() {
-        let next_line = lines[i + 1].trim(char_set=" \t")
-        if next_line == "<!-- ssml" {
-          in_video_ssml = true
-          i += 2  // Skip both video line and ssml opening
-          continue
-        }
+        Err(_) => ()
       }
       i += 1
       continue
