@@ -1,0 +1,9 @@
+{
+  "is-main": true,
+  "import": [
+    "Milky2018/mdcourse",
+    "moonbitlang/x/sys",
+    "moonbitlang/async",
+    "TheWaWaR/clap"
+  ]
+}
