@@ -1,6 +1,0 @@
-node_modules/
-target/
-bin/
-*.log
-deno.lock
-.DS_Store
