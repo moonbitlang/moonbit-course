@@ -10,9 +10,8 @@ async fn main {
     args={
       "output": @clap.Arg::named(
         short='o',
-        nargs=One,
-        help="Output video file path (default: ./output.mp4)",
-        defaults=["./output.mp4"],
+        nargs=AtMost(1),
+        help="Output video file path (default: <input-basename>.mp4)",
       ),
       "parse-only": @clap.Arg::flag(help="Only parse file"),
       "slides-only": @clap.Arg::flag(help="Only generate slide images"),
@@ -68,7 +67,7 @@ async fn main {
   }
 
   // Get input file (positional argument)
-  let input_file = value.get_positional()[0] catch {
+  let input_file : String = value.get_positional()[0] catch {
     e => {
       println("Error: \{e}")
       println("")
@@ -98,6 +97,28 @@ async fn main {
   }
   let output_file : String? = value.get_option("output") catch { _ => None }
 
+  // Compute default output filename from input if not specified
+  let final_output_file : String? = match output_file {
+    Some(path) => Some(path)
+    None => {
+      // Derive output filename from input: lec7-1.mbt.md -> lec7-1.mp4
+      let base = if input_file.has_suffix(".mbt.md") {
+        let len = input_file.length()
+        input_file[0:len - 7].to_string() catch {
+          _ => input_file
+        }
+      } else if input_file.has_suffix(".md") {
+        let len = input_file.length()
+        input_file[0:len - 3].to_string() catch {
+          _ => input_file
+        }
+      } else {
+        input_file
+      }
+      Some(base + ".mp4")
+    }
+  }
+
   // Parse numeric values
   let fps = @strconv.parse_int(fps_str) catch {
     _ => {
@@ -122,7 +143,7 @@ async fn main {
   let course_name = @mdcourse.get_course_name_from_path(input_file)
   let output_dir = @mdcourse.target_dir(course_name)
   let options = @mdcourse.Options::new(
-    voice, fps, resolution, retry, force_audio, keep_temp, default_duration, output_file,
+    voice, fps, resolution, retry, force_audio, keep_temp, default_duration, final_output_file,
   )
   println("mdcourse v0.1.0 - MoonBit Implementation")
   println("=========================================")
@@ -160,10 +181,8 @@ async fn main {
   if !parse_only && !audio_only && !slides_only {
     @mdcourse.compose_video(output_dir, options.output_file, options)
     println("\nAll done!")
-    if output_file is Some(path) {
+    if final_output_file is Some(path) {
       println("Video location: \{path}")
-    } else {
-      println("Video location: \{output_dir}/output.mp4")
     }
   }
 }
