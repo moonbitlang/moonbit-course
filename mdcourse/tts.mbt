@@ -294,7 +294,6 @@ fn parse_manifest_full(json_str : String) -> Manifest {
     e => abort("JSON parse error: \{e}")
   }
   guard json is Object(map) else { abort("manifest.json is not a JSON object") }
-
   let slides = match map.get("slides") {
     Some(Array(slide_array)) => {
       let slides_result : Array[SlideInfo] = []
@@ -311,7 +310,6 @@ fn parse_manifest_full(json_str : String) -> Manifest {
       let videos_result : Array[VideoSegment] = []
       for video_json in video_array {
         guard video_json is Object(video_map) else { continue }
-
         guard video_map.get("afterSlide") is Some(String(after_slide)) else {
           continue
         }
@@ -330,12 +328,7 @@ fn parse_manifest_full(json_str : String) -> Manifest {
         } else {
           false
         }
-        videos_result.push({
-          after_slide,
-          video_path,
-          ssml_hash,
-          has_audio,
-        })
+        videos_result.push({ after_slide, video_path, ssml_hash, has_audio })
       }
       videos_result
     }
@@ -348,7 +341,6 @@ fn parse_manifest_full(json_str : String) -> Manifest {
 /// Parse individual slide info from JSON
 fn parse_slide_info(json : Json) -> SlideInfo {
   guard json is Object(map) else { abort("slide is not a JSON object") }
-
   guard map.get("id") is Some(String(id)) else {
     abort("slide.id missing or not a string")
   }
@@ -372,7 +364,6 @@ fn parse_audio_meta(json_str : String) -> AudioMeta {
     e => abort("JSON parse error: \{e}")
   }
   guard json is Object(map) else { abort("meta.json is not a JSON object") }
-
   guard map.get("duration") is Some(Number(duration, ..)) else {
     abort("duration missing or not a number")
   }

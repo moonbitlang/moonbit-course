@@ -56,14 +56,14 @@ async fn generate_pdf(
   // Use local marp-cli if available (from ~/.mdcourse/node_modules)
   // Otherwise fall back to global npx
   let resource_dir = get_resource_dir()
-  let use_local_marp = resource_dir != "." && resource_dir.contains("/.mdcourse")
-
+  let use_local_marp = resource_dir != "." &&
+    resource_dir.contains("/.mdcourse")
   let args : Array[String] = if use_local_marp {
     // Use local installation with absolute paths to engine and theme
     [
       resource_dir + "/node_modules/.bin/marp",
       "--theme",
-      options.theme,  // Already absolute from types.mbt
+      options.theme, // Already absolute from types.mbt
       "--engine",
       options.engine, // Already absolute from types.mbt
       abs_input,
@@ -89,7 +89,6 @@ async fn generate_pdf(
       abs_pdf,
     ]
   }
-
   let cmd = if use_local_marp { args[0] } else { "npx" }
   let cmd_args : Array[String] = if use_local_marp {
     // Skip the first element (the command itself) and use the rest as args
@@ -101,7 +100,6 @@ async fn generate_pdf(
   } else {
     args
   }
-
   let (exit_code, _stdout, stderr) = @process.collect_output(cmd, cmd_args)
   if exit_code != 0 {
     println("   [ERROR] Marp CLI failed with exit code \{exit_code}")
@@ -144,7 +142,6 @@ async fn convert_pdf_to_png(pdf_file : String, slides_dir : String) -> Unit {
       @fs.remove(file_path)
     }
   }
-
   let args : Array[String] = [
     "-png",
     "-r",
@@ -213,7 +210,6 @@ async fn rename_slides(slides_dir : String) -> Unit {
     name : String
     num : Int
   }
-
   let new_entries : Array[SlideFile] = []
 
   // Read directory and find pdftoppm-generated files
@@ -233,7 +229,7 @@ async fn rename_slides(slides_dir : String) -> Unit {
     if parts.length() == 2 && parts[0] == "slide" {
       let num_part = parts[1]
       if num_part.has_suffix(".png") {
-        let num_str = try num_part[0:num_part.length() - 4].to_string() catch {
+        let num_str = num_part[0:num_part.length() - 4].to_string() catch {
           _ => continue
         }
         // Only accept 1-2 digit numbers (pdftoppm format)
@@ -249,7 +245,6 @@ async fn rename_slides(slides_dir : String) -> Unit {
       }
     }
   }
-
   if new_entries.length() == 0 {
     println("   [WARN] No pdftoppm-generated slide images found")
     return
@@ -271,6 +266,7 @@ async fn rename_slides(slides_dir : String) -> Unit {
       println("   [WARN] Failed to rename \{slide_file.name} to \{new_name}")
     }
   }
-
-  println("   [+] Renamed \{new_entries.length()} slide images to standard format")
+  println(
+    "   [+] Renamed \{new_entries.length()} slide images to standard format",
+  )
 }

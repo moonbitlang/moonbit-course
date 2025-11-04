@@ -43,6 +43,18 @@ priv struct AudioMeta {
 } derive(ToJson)
 
 ///|
+/// Segment metadata for caching (slide or video segment)
+priv struct SegmentMeta {
+  duration : Double
+  content_hash : String // Hash of slide image or video file
+  audio_hash : String // Hash of audio SSML (empty if no audio)
+} derive (
+  ToJson(
+    fields(content_hash(rename="contentHash"), audio_hash(rename="audioHash")),
+  ),
+)
+
+///|
 /// CLI options
 pub struct Options {
   input_file : String
