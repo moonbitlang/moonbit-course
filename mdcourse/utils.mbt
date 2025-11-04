@@ -127,22 +127,13 @@ fn video_meta_path(target : String, slide_id : String) -> String {
 /// Check if video has an audio stream using ffprobe
 async fn has_audio_stream(video_path : String) -> Bool {
   let args : Array[String] = [
-    "-v",
-    "error",
-    "-select_streams",
-    "a:0",
-    "-show_entries",
-    "stream=codec_type",
-    "-of",
-    "default=noprint_wrappers=1:nokey=1",
-    video_path,
+    "-v", "error", "-select_streams", "a:0", "-show_entries", "stream=codec_type",
+    "-of", "default=noprint_wrappers=1:nokey=1", video_path,
   ]
-
   let (exit_code, stdout, _stderr) = @process.collect_output("ffprobe", args)
   if exit_code != 0 {
     return false
   }
-
   let output = stdout.text().trim(char_set=" \t\n")
   output.to_string() == "audio"
 }
@@ -151,22 +142,17 @@ async fn has_audio_stream(video_path : String) -> Bool {
 /// Get video duration using ffprobe
 pub async fn get_video_duration(video_path : String) -> Double {
   let args : Array[String] = [
-    "-v",
-    "error",
-    "-show_entries",
-    "format=duration",
-    "-of",
-    "default=noprint_wrappers=1:nokey=1",
+    "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1",
     video_path,
   ]
-
   let (exit_code, stdout, _stderr) = @process.collect_output("ffprobe", args)
   if exit_code != 0 {
     return 0.0
   }
-
   let duration_str = stdout.text().trim(char_set=" \t\n")
-  @strconv.parse_double(duration_str.to_string()) catch { _ => 0.0 }
+  @strconv.parse_double(duration_str.to_string()) catch {
+    _ => 0.0
+  }
 }
 
 ///|
@@ -187,4 +173,30 @@ fn estimate_video_size(
 
   // MB = (bitrate in Mbps * duration in seconds) / 8
   base_bitrate * duration_seconds / 8.0
+}
+
+///|
+/// Get segment metadata file path for a slide segment
+fn slide_segment_meta_path(output_dir : String, slide_id : String) -> String {
+  path_join([output_dir, "segments", "slide-\{slide_id}.meta.json"])
+}
+
+///|
+/// Get segment metadata file path for a video segment
+fn video_segment_meta_path(output_dir : String, slide_id : String) -> String {
+  path_join([output_dir, "segments", "video-after-\{slide_id}.meta.json"])
+}
+
+///|
+/// Hash file contents using SHA256
+pub async fn hash_file(file_path : String) -> String {
+  if !@fs.exists(file_path) {
+    return ""
+  }
+  let bytes = @fs.read_file(file_path).binary()
+  let digest = @sha256.Digest::new()
+  for b in bytes {
+    digest.write(b)
+  }
+  digest.check_sum()
 }

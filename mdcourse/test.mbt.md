@@ -14,8 +14,6 @@ headingDivider: 1
 - 内容1
 - 内容2
 
-![](./support.jpeg)
-
 # 测试第二页
 
 <!-- ssml
@@ -30,5 +28,7 @@ headingDivider: 1
 -->
 
 # 测试第三页
+
+<img src="./support.jpeg" style="position: absolute; width: 250px; top: 40px; mix-blend-mode: multiply;" >
 
 这一页没有配音

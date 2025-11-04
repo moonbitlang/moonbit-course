@@ -43,8 +43,11 @@ pub async fn parse_file(input_path : String, output_dir : String) -> Unit {
     // Handle video insertion if present
     if !video_path.is_empty() {
       let has_video_audio = !video_ssml.is_empty()
-      let video_ssml_hash = if has_video_audio { hash_content(video_ssml) } else { "" }
-
+      let video_ssml_hash = if has_video_audio {
+        hash_content(video_ssml)
+      } else {
+        ""
+      }
       videos.push({
         after_slide: slide_id,
         video_path,
@@ -60,7 +63,9 @@ pub async fn parse_file(input_path : String, output_dir : String) -> Unit {
           "   [VIDEO] Insert video after slide-\{slide_id}: \{video_path} (with audio, \{video_ssml.length()} chars)",
         )
       } else {
-        println("   [VIDEO] Insert video after slide-\{slide_id}: \{video_path}")
+        println(
+          "   [VIDEO] Insert video after slide-\{slide_id}: \{video_path}",
+        )
       }
     }
   }
@@ -192,12 +197,10 @@ fn extract_video(page : String) -> (String, String, String) {
   for view in page.split("\n") {
     lines.push(view.to_string())
   }
-
   let mut video_path = ""
   let mut video_ssml = ""
   let mut in_video_ssml = false
   let result_lines : Array[String] = []
-
   let mut i = 0
   while i < lines.length() {
     let line = lines[i]
@@ -252,9 +255,12 @@ fn extract_video(page : String) -> (String, String, String) {
     result_lines.push(line)
     i += 1
   }
-
   let page_without_video = result_lines.join("\n")
-  (video_path, video_ssml.trim(char_set=" \t\n").to_string(), page_without_video)
+  (
+    video_path,
+    video_ssml.trim(char_set=" \t\n").to_string(),
+    page_without_video,
+  )
 }
 
 ///|
@@ -267,10 +273,10 @@ pub fn get_course_name_from_path(input_file : String) -> String {
   let mut base_name = file_name
   if base_name.has_suffix(".mbt.md") {
     let len = base_name.length()
-    base_name = try base_name[0:len - 7].to_string() catch { _ => base_name }
+    base_name = base_name[0:len - 7].to_string() catch { _ => base_name }
   } else if base_name.has_suffix(".md") {
     let len = base_name.length()
-    base_name = try base_name[0:len - 3].to_string() catch { _ => base_name }
+    base_name = base_name[0:len - 3].to_string() catch { _ => base_name }
   }
 
   // Use the base filename as the target directory name

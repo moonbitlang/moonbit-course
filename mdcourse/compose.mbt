@@ -61,10 +61,28 @@ pub async fn compose_video(
       None
     }
 
+    // Check if we can skip this segment (caching)
+    let (can_skip, cached_duration) = should_skip_slide_segment(
+      output_dir,
+      slide.id,
+      segment_file,
+      image_path,
+      slide,
+    )
+    if can_skip {
+      total_duration = total_duration + cached_duration
+      println(
+        "   [+] Skipping segment \{segment_counter - 1}/\{manifest.slides.length() + manifest.videos.length()}: slide-\{slide.id} (cached, \{cached_duration}s)",
+      )
+      continue // Skip to next slide
+    }
+
     // Get duration from metadata or use default
     let duration = if slide.has_audio {
       let meta_file = slide_meta_path(output_dir, slide.id)
-      parse_audio_metadata(meta_file).map(fn(meta) { meta.duration }).unwrap_or_else(fn() {
+      parse_audio_metadata(meta_file)
+      .map(fn(meta) { meta.duration })
+      .unwrap_or_else(fn() {
         println(
           "   [WARN] Could not read duration for slide-\{slide.id}, using default",
         )
@@ -97,6 +115,12 @@ pub async fn compose_video(
       return
     }
 
+    // Save segment metadata for caching
+    let image_hash = hash_file(image_path)
+    let audio_hash = if slide.has_audio { slide.ssml_hash } else { "" }
+    let segment_meta_file = slide_segment_meta_path(output_dir, slide.id)
+    save_segment_metadata(segment_meta_file, duration, image_hash, audio_hash)
+
     // Check if there's a video to insert after this slide
     for video in manifest.videos {
       if video.after_slide == slide.id {
@@ -107,6 +131,22 @@ pub async fn compose_video(
         segment_files.push(video_segment_file)
         segment_counter = segment_counter + 1
 
+        // Check if we can skip this video segment (caching)
+        let (can_skip_video, cached_video_duration) = should_skip_video_segment(
+          output_dir,
+          slide.id,
+          video_segment_file,
+          video.video_path,
+          video,
+        )
+        if can_skip_video {
+          total_duration = total_duration + cached_video_duration
+          println(
+            "   [+] Skipping segment \{segment_counter - 1}/\{manifest.slides.length() + manifest.videos.length()}: video after slide-\{slide.id} (cached, \{cached_video_duration}s)",
+          )
+          continue // Skip to next video
+        }
+
         // Process video with optional narration
         let video_duration = get_video_duration(video.video_path)
         let narration_audio : String? = if video.has_audio {
@@ -114,22 +154,20 @@ pub async fn compose_video(
         } else {
           None
         }
-
         let final_duration = if video.has_audio {
           let meta_file = video_meta_path(output_dir, slide.id)
           parse_audio_metadata(meta_file)
-            .map(fn(meta) {
-              if meta.duration > video_duration {
-                meta.duration
-              } else {
-                video_duration
-              }
-            })
-            .unwrap_or(video_duration)
+          .map(fn(meta) {
+            if meta.duration > video_duration {
+              meta.duration
+            } else {
+              video_duration
+            }
+          })
+          .unwrap_or(video_duration)
         } else {
           video_duration
         }
-
         total_duration = total_duration + final_duration
         println(
           "   [*] Generating segment \{segment_counter - 1}/\{manifest.slides.length() + manifest.videos.length()}: video after slide-\{slide.id} (\{final_duration}s)",
@@ -144,15 +182,31 @@ pub async fn compose_video(
           resolution,
           options.fps,
         )
-
         let (exit_code, _stdout, stderr) = @process.collect_output(
           "ffmpeg", video_args,
         )
         if exit_code != 0 {
-          println("   [ERROR] Failed to generate video segment \{segment_counter - 1}")
+          println(
+            "   [ERROR] Failed to generate video segment \{segment_counter - 1}",
+          )
           println("   ffmpeg error: \{stderr.text()}")
           return
         }
+
+        // Save video segment metadata for caching
+        let video_hash = hash_file(video.video_path)
+        let video_audio_hash = if video.has_audio {
+          video.ssml_hash
+        } else {
+          ""
+        }
+        let video_segment_meta_file = video_segment_meta_path(
+          output_dir,
+          slide.id,
+        )
+        save_segment_metadata(
+          video_segment_meta_file, final_duration, video_hash, video_audio_hash,
+        )
       }
     }
   }
@@ -162,7 +216,9 @@ pub async fn compose_video(
   let concat_list_file = path_join([segments_dir, "concat.txt"])
   let concat_content = generate_concat_list(segment_files)
   write_file(concat_list_file, concat_content)
-  let final_output = output_file.unwrap_or(path_join([output_dir, "output.mp4"]))
+  let final_output = output_file.unwrap_or(
+    path_join([output_dir, "output.mp4"]),
+  )
   let concat_args : Array[String] = [
     "-f", "concat", "-safe", "0", "-i", concat_list_file, "-c", "copy", "-y", final_output,
   ]
@@ -175,14 +231,12 @@ pub async fn compose_video(
     return
   }
 
-  // 5. Cleanup temp segments if not keeping
+  // 5. Cleanup temporary concat file
   if !options.keep_temp {
-    println("   [*] Cleaning up temporary segments...")
-    for segment in segment_files {
-      remove_file(segment)
-    }
+    println("   [*] Cleaning up temporary concat file...")
     remove_file(concat_list_file)
   }
+  // Note: Segment files are kept for caching - they will be reused on next run
   println("   [+] Video composed successfully!")
   println("   Duration: \{total_duration}s")
   println(
@@ -270,7 +324,6 @@ async fn generate_video_segment_command(
 
   // Check if video has its own audio stream
   let video_has_audio = has_audio_stream(video_path)
-
   match narration_audio {
     Some(audio_path) => {
       // Case 1 & 2: Video with narration (mix or replace audio)
@@ -283,11 +336,11 @@ async fn generate_video_segment_command(
       let scale_filter = "scale=\{resolution.width}:\{resolution.height}:force_original_aspect_ratio=decrease,pad=\{resolution.width}:\{resolution.height}:(ow-iw)/2:(oh-ih)/2"
 
       // Get narration duration from metadata by replacing .wav with .meta.json
-      let meta_path = audio_path[0:audio_path.length() - 4].to_string() + ".meta.json"
+      let meta_path = audio_path[0:audio_path.length() - 4].to_string() +
+        ".meta.json"
       let narration_duration = parse_audio_metadata(meta_path)
         .map(fn(meta) { meta.duration })
         .unwrap_or(video_duration)
-
       if narration_duration > video_duration {
         // Need to loop the video to match narration length
         let loop_count = (narration_duration / video_duration).ceil().to_int()
@@ -390,13 +443,11 @@ fn parse_manifest_for_compose(json_str : String) -> Manifest {
     e => abort("JSON parse error: \{e}")
   }
   guard json is Object(map) else { abort("manifest.json is not a JSON object") }
-
   let slides = match map.get("slides") {
     Some(Array(slide_array)) => {
       let slides_result : Array[SlideInfo] = []
       for slide_json in slide_array {
         guard slide_json is Object(slide_map) else { continue }
-
         guard slide_map.get("id") is Some(String(id)) else {
           abort("slide.id missing")
         }
@@ -418,13 +469,11 @@ fn parse_manifest_for_compose(json_str : String) -> Manifest {
     }
     _ => []
   }
-
   let videos = match map.get("videos") {
     Some(Array(video_array)) => {
       let videos_result : Array[VideoSegment] = []
       for video_json in video_array {
         guard video_json is Object(video_map) else { continue }
-
         guard video_map.get("afterSlide") is Some(String(after_slide)) else {
           continue
         }
@@ -461,11 +510,119 @@ async fn parse_audio_metadata(meta_file : String) -> AudioMeta? {
   let json_str = @fs.read_file(meta_file).text()
   let json = @json5.parse(json_str) catch { _ => return None }
   guard json is Object(map) else { return None }
-
   guard map.get("duration") is Some(Number(n, ..)) else { return None }
   let hash = match map.get("hash") {
     Some(String(s)) => s
     _ => ""
   }
   Some({ duration: n, hash })
+}
+
+///|
+/// Parse segment metadata file
+async fn parse_segment_metadata(meta_file : String) -> SegmentMeta? {
+  if !@fs.exists(meta_file) {
+    return None
+  }
+  let json_str = @fs.read_file(meta_file).text()
+  let json = @json5.parse(json_str) catch { _ => return None }
+  guard json is Object(map) else { return None }
+  guard map.get("duration") is Some(Number(duration, ..)) else { return None }
+  let content_hash = if map.get("contentHash") is Some(String(s)) {
+    s
+  } else {
+    ""
+  }
+  let audio_hash = if map.get("audioHash") is Some(String(s)) { s } else { "" }
+  Some({ duration, content_hash, audio_hash })
+}
+
+///|
+/// Check if a slide segment needs regeneration
+/// Returns (should_skip, duration)
+async fn should_skip_slide_segment(
+  output_dir : String,
+  slide_id : String,
+  segment_file : String,
+  image_path : String,
+  slide : SlideInfo,
+) -> (Bool, Double) {
+  let meta_file = slide_segment_meta_path(output_dir, slide_id)
+
+  // Check if segment file exists
+  if !@fs.exists(segment_file) {
+    return (false, 0.0)
+  }
+
+  // Parse metadata
+  guard parse_segment_metadata(meta_file) is Some(meta) else {
+    return (false, 0.0)
+  }
+
+  // Check if image hash matches
+  let current_image_hash = hash_file(image_path)
+  if current_image_hash != meta.content_hash {
+    return (false, 0.0)
+  }
+
+  // Check if audio hash matches (if has audio)
+  if slide.has_audio {
+    if slide.ssml_hash != meta.audio_hash {
+      return (false, 0.0)
+    }
+  }
+
+  // All checks passed - can skip
+  (true, meta.duration)
+}
+
+///|
+/// Check if a video segment needs regeneration
+/// Returns (should_skip, duration)
+async fn should_skip_video_segment(
+  output_dir : String,
+  slide_id : String,
+  segment_file : String,
+  video_path : String,
+  video : VideoSegment,
+) -> (Bool, Double) {
+  let meta_file = video_segment_meta_path(output_dir, slide_id)
+
+  // Check if segment file exists
+  if !@fs.exists(segment_file) {
+    return (false, 0.0)
+  }
+
+  // Parse metadata
+  guard parse_segment_metadata(meta_file) is Some(meta) else {
+    return (false, 0.0)
+  }
+
+  // Check if video hash matches
+  let current_video_hash = hash_file(video_path)
+  if current_video_hash != meta.content_hash {
+    return (false, 0.0)
+  }
+
+  // Check if audio hash matches (if has audio)
+  if video.has_audio {
+    if video.ssml_hash != meta.audio_hash {
+      return (false, 0.0)
+    }
+  }
+
+  // All checks passed - can skip
+  (true, meta.duration)
+}
+
+///|
+/// Save segment metadata after generation
+async fn save_segment_metadata(
+  meta_file : String,
+  duration : Double,
+  content_hash : String,
+  audio_hash : String,
+) -> Unit {
+  let meta : SegmentMeta = { duration, content_hash, audio_hash }
+  write_file(meta_file, Json::stringify(meta.to_json()))
 }
