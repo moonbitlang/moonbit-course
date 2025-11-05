@@ -16,7 +16,7 @@ pub async fn compose_video(
   output_dir : String,
   output_file : String?,
   options : Options,
-) -> Unit {
+) -> Bool {
   println("Composing video...")
 
   // Check if ffmpeg is installed
@@ -26,18 +26,21 @@ pub async fn compose_video(
     println("     macOS: brew install ffmpeg")
     println("     Ubuntu: sudo apt install ffmpeg")
     println("     Windows: https://ffmpeg.org/download.html")
-    return
+    return false
   }
 
   // 1. Parse manifest.json
   let manifest_path = manifest_path(output_dir)
   let manifest_json = @fs.read_file(manifest_path).text()
   let manifest : Manifest = (@json.parse(manifest_json) |> @json.from_json) catch {
-    e => abort("Invalid manifest json: \{e}")
+    e => {
+      println("   [ERROR] Invalid manifest json: \{e}")
+      return false
+    }
   }
   if manifest.slides.length() == 0 {
     println("   [ERROR] No slides found in manifest")
-    return
+    return false
   }
 
   // 2. Create temp directory for segments
@@ -115,7 +118,7 @@ pub async fn compose_video(
       if exit_code != 0 {
         println("   [ERROR] Failed to generate segment \{segment_counter - 1}")
         println("   ffmpeg error: \{stderr.text()}")
-        return
+        return false
       }
 
       // Save segment metadata for caching
@@ -202,7 +205,7 @@ pub async fn compose_video(
             "   [ERROR] Failed to generate video segment \{segment_counter - 1}",
           )
           println("   ffmpeg error: \{stderr.text()}")
-          return
+          return false
         }
 
         // Save video segment metadata for caching
@@ -242,7 +245,7 @@ pub async fn compose_video(
   if exit_code != 0 {
     println("   [ERROR] Failed to concatenate segments")
     println("   ffmpeg error: \{stderr.text()}")
-    return
+    return false
   }
 
   // 5. Cleanup temporary concat file
@@ -256,6 +259,7 @@ pub async fn compose_video(
   println(
     "   Size: ~\{estimate_video_size(total_duration, parse_resolution(options.resolution))}MB",
   )
+  true
 }
 
 ///|
@@ -452,9 +456,12 @@ async fn parse_audio_metadata(meta_file : String) -> AudioMeta? {
   if !@fs.exists(meta_file) {
     return None
   }
-  (@fs.read_file(meta_file).text() |> @json.parse |> @json.from_json) catch {
-    _ => None
+  let meta : AudioMeta = (@fs.read_file(meta_file).text()
+  |> @json.parse
+  |> @json.from_json) catch {
+    _ => return None
   }
+  Some(meta)
 }
 
 ///|
@@ -463,9 +470,12 @@ async fn parse_segment_metadata(meta_file : String) -> SegmentMeta? {
   if !@fs.exists(meta_file) {
     return None
   }
-  (@fs.read_file(meta_file).text() |> @json.parse |> @json.from_json) catch {
-    _ => None
+  let meta : SegmentMeta = (@fs.read_file(meta_file).text()
+  |> @json.parse
+  |> @json.from_json) catch {
+    _ => return None
   }
+  Some(meta)
 }
 
 ///|

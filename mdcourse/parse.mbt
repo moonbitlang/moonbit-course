@@ -2,7 +2,7 @@
 
 ///|
 /// Parse a markdown file and generate manifest
-pub async fn parse_file(input_path : String, output_dir : String) -> Unit {
+pub async fn parse_file(input_path : String, output_dir : String) -> Bool {
   println("Parsing file: \{input_path}")
 
   // Read the input file
@@ -84,6 +84,7 @@ pub async fn parse_file(input_path : String, output_dir : String) -> Unit {
   println("   [+] Saved manifest.json")
   println("\nParsing complete!")
   println("   Output: \{output_dir}")
+  true
 }
 
 ///|
