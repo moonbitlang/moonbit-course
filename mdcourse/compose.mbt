@@ -308,7 +308,9 @@ fn generate_slide_video_command(
       args.push("aac")
       args.push("-ar")
       args.push("44100")
-      args.push("-shortest")
+      // Use -t instead of -shortest for precise duration control
+      args.push("-t")
+      args.push(duration.to_string())
     }
     None => {
       args.push("-t")
@@ -346,7 +348,7 @@ async fn generate_video_segment_command(
       args.push("-i")
       args.push(audio_path)
 
-      // Video filter: scale + pad + loop if needed
+      // Video filter: scale + pad + adjust duration to match narration
       let scale_filter = "scale=\{resolution.width}:\{resolution.height}:force_original_aspect_ratio=decrease,pad=\{resolution.width}:\{resolution.height}:(ow-iw)/2:(oh-ih)/2"
 
       // Get narration duration from metadata file
@@ -354,20 +356,22 @@ async fn generate_video_segment_command(
         .map(fn(meta) { meta.duration })
         .unwrap_or(video_duration)
       if narration_duration > video_duration {
-        // Need to loop the video to match narration length
-        let loop_count = (narration_duration / video_duration).ceil().to_int()
+        // Freeze last frame to match narration length
+        let freeze_duration = narration_duration - video_duration
         args.push("-filter_complex")
         args.push(
-          "[0:v]loop=loop=\{loop_count}:size=1:start=0,\{scale_filter}[v]",
+          "[0:v]\{scale_filter},tpad=stop_mode=clone:stop_duration=\{freeze_duration}[v]",
         )
         args.push("-map")
         args.push("[v]")
       } else {
-        // No looping needed - just scale the video
-        args.push("-vf")
-        args.push(scale_filter)
+        // Trim video to match narration length
+        args.push("-filter_complex")
+        args.push(
+          "[0:v]\{scale_filter},trim=duration=\{narration_duration},setpts=PTS-STARTPTS[v]",
+        )
         args.push("-map")
-        args.push("0:v") // Map the video stream from input 0
+        args.push("[v]")
       }
 
       // Audio mixing
@@ -394,7 +398,7 @@ async fn generate_video_segment_command(
       args.push("aac")
       args.push("-ar")
       args.push("44100")
-      args.push("-shortest")
+      // Don't use -shortest - let narration audio control the duration
     }
     None => {
       // Case 3 & 4: Video without narration (keep or no audio)
