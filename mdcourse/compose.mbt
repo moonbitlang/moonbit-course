@@ -69,59 +69,63 @@ pub async fn compose_video(
       image_path,
       slide,
     )
+
+    // Parse resolution once (used for both slides and videos)
+    let resolution = parse_resolution(options.resolution)
+
     if can_skip {
       total_duration = total_duration + cached_duration
       println(
         "   [+] Skipping segment \{segment_counter - 1}/\{manifest.slides.length() + manifest.videos.length()}: slide-\{slide.id} (cached, \{cached_duration}s)",
       )
-      continue // Skip to next slide
-    }
-
-    // Get duration from metadata or use default
-    let duration = if slide.has_audio {
-      let meta_file = slide_meta_path(output_dir, slide.id)
-      parse_audio_metadata(meta_file)
-      .map(fn(meta) { meta.duration })
-      .unwrap_or_else(fn() {
-        println(
-          "   [WARN] Could not read duration for slide-\{slide.id}, using default",
-        )
-        options.default_duration
-      })
+      // Don't use continue here - we still need to check for video insertions
     } else {
-      options.default_duration
+      // Get duration from metadata or use default
+      let duration = if slide.has_audio {
+        let meta_file = slide_meta_path(output_dir, slide.id)
+        parse_audio_metadata(meta_file)
+        .map(fn(meta) { meta.duration })
+        .unwrap_or_else(fn() {
+          println(
+            "   [WARN] Could not read duration for slide-\{slide.id}, using default",
+          )
+          options.default_duration
+        })
+      } else {
+        options.default_duration
+      }
+      total_duration = total_duration + duration
+      println(
+        "   [*] Generating segment \{segment_counter - 1}/\{manifest.slides.length() + manifest.videos.length()}: slide-\{slide.id} (\{duration}s)",
+      )
+
+      // Generate ffmpeg command for slide
+      let args = generate_slide_video_command(
+        image_path,
+        audio_path,
+        duration,
+        segment_file,
+        resolution,
+        options.fps,
+      )
+
+      // Run ffmpeg
+      let (exit_code, _stdout, stderr) = @process.collect_output("ffmpeg", args)
+      if exit_code != 0 {
+        println("   [ERROR] Failed to generate segment \{segment_counter - 1}")
+        println("   ffmpeg error: \{stderr.text()}")
+        return
+      }
+
+      // Save segment metadata for caching
+      let image_hash = hash_file(image_path)
+      let audio_hash = if slide.has_audio { slide.ssml_hash } else { "" }
+      let segment_meta_file = slide_segment_meta_path(output_dir, slide.id)
+      save_segment_metadata(segment_meta_file, duration, image_hash, audio_hash)
     }
-    total_duration = total_duration + duration
-    println(
-      "   [*] Generating segment \{segment_counter - 1}/\{manifest.slides.length() + manifest.videos.length()}: slide-\{slide.id} (\{duration}s)",
-    )
-
-    // Generate ffmpeg command for slide
-    let resolution = parse_resolution(options.resolution)
-    let args = generate_slide_video_command(
-      image_path,
-      audio_path,
-      duration,
-      segment_file,
-      resolution,
-      options.fps,
-    )
-
-    // Run ffmpeg
-    let (exit_code, _stdout, stderr) = @process.collect_output("ffmpeg", args)
-    if exit_code != 0 {
-      println("   [ERROR] Failed to generate segment \{segment_counter - 1}")
-      println("   ffmpeg error: \{stderr.text()}")
-      return
-    }
-
-    // Save segment metadata for caching
-    let image_hash = hash_file(image_path)
-    let audio_hash = if slide.has_audio { slide.ssml_hash } else { "" }
-    let segment_meta_file = slide_segment_meta_path(output_dir, slide.id)
-    save_segment_metadata(segment_meta_file, duration, image_hash, audio_hash)
 
     // Check if there's a video to insert after this slide
+    let mut video_index = 1 // Track which video number this is (1st, 2nd, etc.)
     for video in manifest.videos {
       if video.after_slide == slide.id {
         let video_segment_file = path_join([
@@ -138,25 +142,29 @@ pub async fn compose_video(
           video_segment_file,
           video.video_path,
           video,
+          video_index,
         )
         if can_skip_video {
           total_duration = total_duration + cached_video_duration
           println(
             "   [+] Skipping segment \{segment_counter - 1}/\{manifest.slides.length() + manifest.videos.length()}: video after slide-\{slide.id} (cached, \{cached_video_duration}s)",
           )
+          video_index = video_index + 1 // Increment for next video
           continue // Skip to next video
         }
 
         // Process video with optional narration
         let video_duration = get_video_duration(video.video_path)
         let narration_audio : String? = if video.has_audio {
-          Some(video_audio_path(output_dir, slide.id))
+          Some(video_audio_path_indexed(output_dir, slide.id, video_index))
         } else {
           None
         }
+        let narration_meta_file = video_meta_path_indexed(
+          output_dir, slide.id, video_index,
+        )
         let final_duration = if video.has_audio {
-          let meta_file = video_meta_path(output_dir, slide.id)
-          parse_audio_metadata(meta_file)
+          parse_audio_metadata(narration_meta_file)
           .map(fn(meta) {
             if meta.duration > video_duration {
               meta.duration
@@ -177,11 +185,13 @@ pub async fn compose_video(
         let video_args = generate_video_segment_command(
           video.video_path,
           narration_audio,
+          narration_meta_file,
           video_duration,
           video_segment_file,
           resolution,
           options.fps,
         )
+
         let (exit_code, _stdout, stderr) = @process.collect_output(
           "ffmpeg", video_args,
         )
@@ -203,10 +213,13 @@ pub async fn compose_video(
         let video_segment_meta_file = video_segment_meta_path(
           output_dir,
           slide.id,
+          video_index,
         )
         save_segment_metadata(
           video_segment_meta_file, final_duration, video_hash, video_audio_hash,
         )
+
+        video_index = video_index + 1 // Increment for next video
       }
     }
   }
@@ -315,6 +328,7 @@ fn generate_slide_video_command(
 async fn generate_video_segment_command(
   video_path : String,
   narration_audio : String?,
+  narration_meta_file : String,
   video_duration : Double,
   output_path : String,
   resolution : Resolution,
@@ -335,10 +349,8 @@ async fn generate_video_segment_command(
       // Video filter: scale + pad + loop if needed
       let scale_filter = "scale=\{resolution.width}:\{resolution.height}:force_original_aspect_ratio=decrease,pad=\{resolution.width}:\{resolution.height}:(ow-iw)/2:(oh-ih)/2"
 
-      // Get narration duration from metadata by replacing .wav with .meta.json
-      let meta_path = audio_path[0:audio_path.length() - 4].to_string() +
-        ".meta.json"
-      let narration_duration = parse_audio_metadata(meta_path)
+      // Get narration duration from metadata file
+      let narration_duration = parse_audio_metadata(narration_meta_file)
         .map(fn(meta) { meta.duration })
         .unwrap_or(video_duration)
       if narration_duration > video_duration {
@@ -351,9 +363,11 @@ async fn generate_video_segment_command(
         args.push("-map")
         args.push("[v]")
       } else {
-        // No looping needed
+        // No looping needed - just scale the video
         args.push("-vf")
         args.push(scale_filter)
+        args.push("-map")
+        args.push("0:v") // Map the video stream from input 0
       }
 
       // Audio mixing
@@ -585,8 +599,9 @@ async fn should_skip_video_segment(
   segment_file : String,
   video_path : String,
   video : VideoSegment,
+  video_index : Int
 ) -> (Bool, Double) {
-  let meta_file = video_segment_meta_path(output_dir, slide_id)
+  let meta_file = video_segment_meta_path(output_dir, slide_id, video_index)
 
   // Check if segment file exists
   if !@fs.exists(segment_file) {

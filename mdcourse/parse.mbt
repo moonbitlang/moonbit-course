@@ -22,11 +22,11 @@ pub async fn parse_file(input_path : String, output_dir : String) -> Unit {
   for i, page in pages {
     let slide_id = pad_slide_id(i + 1)
 
-    // Extract video marker and its SSML (if any)
-    let (video_path, video_ssml, page_without_video) = extract_video(page)
+    // Extract video markers and their SSMLs (if any)
+    let (page_videos, page_without_videos) = extract_videos(page)
 
     // Extract slide SSML from the page (without video content)
-    let ssml = extract_ssml_simple(page_without_video)
+    let ssml = extract_ssml_simple(page_without_videos)
     let has_audio = !ssml.is_empty()
     let ssml_hash = if has_audio { hash_content(ssml) } else { "" }
     slides.push({ id: slide_id, ssml_hash, has_audio })
@@ -40,31 +40,33 @@ pub async fn parse_file(input_path : String, output_dir : String) -> Unit {
       println("   [ ] slide-\{slide_id}: No audio")
     }
 
-    // Handle video insertion if present
-    if !video_path.is_empty() {
-      let has_video_audio = !video_ssml.is_empty()
+    // Handle video insertions for this slide
+    for video_idx, video_info in page_videos {
+      let has_video_audio = !video_info.ssml.is_empty()
       let video_ssml_hash = if has_video_audio {
-        hash_content(video_ssml)
+        hash_content(video_info.ssml)
       } else {
         ""
       }
       videos.push({
         after_slide: slide_id,
-        video_path,
+        video_path: video_info.path,
         ssml_hash: video_ssml_hash,
         has_audio: has_video_audio,
       })
 
-      // Save video SSML if present
+      // Save video SSML if present (always use indexed naming)
       if has_video_audio {
-        let video_ssml_file = video_ssml_path(output_dir, slide_id)
-        write_file(video_ssml_file, video_ssml)
+        let video_ssml_file = video_ssml_path_indexed(
+          output_dir, slide_id, video_idx + 1,
+        )
+        write_file(video_ssml_file, video_info.ssml)
         println(
-          "   [VIDEO] Insert video after slide-\{slide_id}: \{video_path} (with audio, \{video_ssml.length()} chars)",
+          "   [VIDEO] Insert video after slide-\{slide_id}: \{video_info.path} (with audio, \{video_info.ssml.length()} chars)",
         )
       } else {
         println(
-          "   [VIDEO] Insert video after slide-\{slide_id}: \{video_path}",
+          "   [VIDEO] Insert video after slide-\{slide_id}: \{video_info.path}",
         )
       }
     }
@@ -187,9 +189,16 @@ fn extract_ssml_simple(page : String) -> String {
 }
 
 ///|
-/// Extract video marker and optional SSML from page
-/// Returns (video_path, video_ssml, page_without_video)
-fn extract_video(page : String) -> (String, String, String) {
+/// Video info extracted from a page
+priv struct VideoInfo {
+  path : String
+  ssml : String
+}
+
+///|
+/// Extract video markers and optional SSMLs from page
+/// Returns (videos, page_without_videos)
+fn extract_videos(page : String) -> (Array[VideoInfo], String) {
   // Look for:
   // - <!-- video path.mp4 --> (no SSML)
   // - <!-- video path.mp4 ssml\n...\n--> (with SSML)
@@ -197,8 +206,9 @@ fn extract_video(page : String) -> (String, String, String) {
   for view in page.split("\n") {
     lines.push(view.to_string())
   }
-  let mut video_path = ""
-  let mut video_ssml = ""
+  let videos : Array[VideoInfo] = []
+  let mut current_video_path = ""
+  let mut current_video_ssml = ""
   let mut in_video_ssml = false
   let result_lines : Array[String] = []
   let mut i = 0
@@ -217,7 +227,8 @@ fn extract_video(page : String) -> (String, String, String) {
         continue
       }
       let path_str = slice.to_string()
-      video_path = path_str.trim(char_set=" \t").to_string()
+      current_video_path = path_str.trim(char_set=" \t").to_string()
+      current_video_ssml = ""
       in_video_ssml = true
       i += 1
       continue
@@ -234,7 +245,8 @@ fn extract_video(page : String) -> (String, String, String) {
         continue
       }
       let path_str = slice.to_string()
-      video_path = path_str.trim(char_set=" \t").to_string()
+      let video_path = path_str.trim(char_set=" \t").to_string()
+      videos.push({ path: video_path, ssml: "" })
       i += 1
       continue
     }
@@ -242,11 +254,18 @@ fn extract_video(page : String) -> (String, String, String) {
     // If in video SSML block, collect until -->
     if in_video_ssml {
       if trimmed == "-->" {
+        // End of SSML block - save video
+        videos.push({
+          path: current_video_path,
+          ssml: current_video_ssml.trim(char_set=" \t\n").to_string(),
+        })
+        current_video_path = ""
+        current_video_ssml = ""
         in_video_ssml = false
         i += 1
         continue
       }
-      video_ssml = video_ssml + line + "\n"
+      current_video_ssml = current_video_ssml + line + "\n"
       i += 1
       continue
     }
@@ -255,12 +274,8 @@ fn extract_video(page : String) -> (String, String, String) {
     result_lines.push(line)
     i += 1
   }
-  let page_without_video = result_lines.join("\n")
-  (
-    video_path,
-    video_ssml.trim(char_set=" \t\n").to_string(),
-    page_without_video,
-  )
+  let page_without_videos = result_lines.join("\n")
+  (videos, page_without_videos)
 }
 
 ///|

@@ -75,30 +75,43 @@ pub async fn generate_audio(output_dir : String, options : Options) -> Unit {
   }
 
   // 4. Prepare tasks for videos that need audio generation
+  // Group videos by slide to track indices
+  let videos_by_slide : Map[String, Array[(Int, VideoSegment)]] = {}
   for video in manifest.videos {
     if !video.has_audio {
       continue
     }
+    let slide_videos = videos_by_slide.get_or_default(video.after_slide, [])
+    slide_videos.push((slide_videos.length() + 1, video)) // 1-based index
+    videos_by_slide[video.after_slide] = slide_videos
+  }
 
-    // Check if audio exists and unchanged
-    let meta_file = video_meta_path(output_dir, video.after_slide)
-    if !options.force_audio && should_skip(meta_file, video.ssml_hash) {
-      println(
-        "   [+] video-after-\{video.after_slide}: Skip (exists and unchanged)",
-      )
-      skipped = skipped + 1
-      continue
-    }
+  for entry in videos_by_slide {
+    let slide_id = entry.0
+    let indexed_videos = entry.1
+    for indexed_video in indexed_videos {
+      let video_index = indexed_video.0
+      let video = indexed_video.1
+      // Check if audio exists and unchanged
+      let meta_file = video_meta_path_indexed(output_dir, slide_id, video_index)
+      if !options.force_audio && should_skip(meta_file, video.ssml_hash) {
+        println(
+          "   [+] video-after-\{slide_id}-\{video_index}: Skip (exists and unchanged)",
+        )
+        skipped = skipped + 1
+        continue
+      }
 
-    // Add to task list - convert VideoSegment to SlideInfo for compatibility
-    let video_as_slide : SlideInfo = {
-      id: "video-after-\{video.after_slide}",
-      ssml_hash: video.ssml_hash,
-      has_audio: video.has_audio,
+      // Add to task list - convert VideoSegment to SlideInfo for compatibility
+      let video_as_slide : SlideInfo = {
+        id: "video-after-\{slide_id}-\{video_index}",
+        ssml_hash: video.ssml_hash,
+        has_audio: video.has_audio,
+      }
+      let audio_file = video_audio_path_indexed(output_dir, slide_id, video_index)
+      let ssml_file = video_ssml_path_indexed(output_dir, slide_id, video_index)
+      tasks.push({ slide: video_as_slide, audio_file, meta_file, ssml_file })
     }
-    let audio_file = video_audio_path(output_dir, video.after_slide)
-    let ssml_file = video_ssml_path(output_dir, video.after_slide)
-    tasks.push({ slide: video_as_slide, audio_file, meta_file, ssml_file })
   }
 
   // 5. Generate audio concurrently using task group

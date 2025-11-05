@@ -106,21 +106,36 @@ fn slide_ssml_path(target : String, slide_id : String) -> String {
 }
 
 ///|
-/// Build SSML file path for video after a slide
-fn video_ssml_path(target : String, slide_id : String) -> String {
-  path_join([audio_dir(target), "video-after-\{slide_id}.ssml"])
+/// Build SSML file path for video after a slide (with video index)
+fn video_ssml_path_indexed(
+  target : String,
+  slide_id : String,
+  video_index : Int
+) -> String {
+  path_join([audio_dir(target), "video-after-\{slide_id}-\{video_index}.ssml"])
 }
 
 ///|
-/// Build audio file path for video after a slide
-fn video_audio_path(target : String, slide_id : String) -> String {
-  path_join([audio_dir(target), "video-after-\{slide_id}.wav"])
+/// Build audio file path for video after a slide (with video index)
+fn video_audio_path_indexed(
+  target : String,
+  slide_id : String,
+  video_index : Int
+) -> String {
+  path_join([audio_dir(target), "video-after-\{slide_id}-\{video_index}.wav"])
 }
 
 ///|
-/// Build audio metadata path for video after a slide
-fn video_meta_path(target : String, slide_id : String) -> String {
-  path_join([audio_dir(target), "video-after-\{slide_id}.meta.json"])
+/// Build audio metadata path for video after a slide (with video index)
+fn video_meta_path_indexed(
+  target : String,
+  slide_id : String,
+  video_index : Int
+) -> String {
+  path_join([
+    audio_dir(target),
+    "video-after-\{slide_id}-\{video_index}.meta.json",
+  ])
 }
 
 ///|
@@ -183,8 +198,17 @@ fn slide_segment_meta_path(output_dir : String, slide_id : String) -> String {
 
 ///|
 /// Get segment metadata file path for a video segment
-fn video_segment_meta_path(output_dir : String, slide_id : String) -> String {
-  path_join([output_dir, "segments", "video-after-\{slide_id}.meta.json"])
+/// video_index: 1-based index for videos after the same slide (1st video, 2nd video, etc.)
+fn video_segment_meta_path(
+  output_dir : String,
+  slide_id : String,
+  video_index : Int
+) -> String {
+  path_join([
+    output_dir,
+    "segments",
+    "video-after-\{slide_id}-\{video_index}.meta.json",
+  ])
 }
 
 ///|
