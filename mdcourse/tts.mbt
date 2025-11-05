@@ -203,7 +203,9 @@ async fn should_skip(meta_file : String, current_hash : String) -> Bool {
     return false
   }
   let meta_json = @fs.read_file(meta_file).text()
-  let meta = parse_audio_meta(meta_json)
+  let meta : AudioMeta = (@json.parse(meta_json) |> @json.from_json) catch {
+    _ => return false
+  }
   meta.hash == current_hash
 }
 
@@ -304,85 +306,7 @@ fn pow(base : Int, exp : Int) -> Int {
 ///|
 /// Parse manifest.json to extract slide and video info
 fn parse_manifest_full(json_str : String) -> Manifest {
-  let json = @json5.parse(json_str) catch {
+  (@json.parse(json_str) |> @json.from_json) catch {
     e => abort("JSON parse error: \{e}")
   }
-  guard json is Object(map) else { abort("manifest.json is not a JSON object") }
-  let slides = match map.get("slides") {
-    Some(Array(slide_array)) => {
-      let slides_result : Array[SlideInfo] = []
-      for slide_json in slide_array {
-        let slide = parse_slide_info(slide_json)
-        slides_result.push(slide)
-      }
-      slides_result
-    }
-    _ => []
-  }
-  let videos = match map.get("videos") {
-    Some(Array(video_array)) => {
-      let videos_result : Array[VideoSegment] = []
-      for video_json in video_array {
-        guard video_json is Object(video_map) else { continue }
-        guard video_map.get("afterSlide") is Some(String(after_slide)) else {
-          continue
-        }
-        guard video_map.get("videoPath") is Some(String(video_path)) else {
-          continue
-        }
-        let ssml_hash = if video_map.get("ssmlHash") is Some(String(s)) {
-          s
-        } else {
-          ""
-        }
-        let has_audio = if video_map.get("hasAudio") is Some(True) {
-          true
-        } else if video_map.get("hasAudio") is Some(False) {
-          false
-        } else {
-          false
-        }
-        videos_result.push({ after_slide, video_path, ssml_hash, has_audio })
-      }
-      videos_result
-    }
-    _ => []
-  }
-  { slides, videos }
-}
-
-///|
-/// Parse individual slide info from JSON
-fn parse_slide_info(json : Json) -> SlideInfo {
-  guard json is Object(map) else { abort("slide is not a JSON object") }
-  guard map.get("id") is Some(String(id)) else {
-    abort("slide.id missing or not a string")
-  }
-  guard map.get("ssmlHash") is Some(String(ssml_hash)) else {
-    abort("slide.ssmlHash missing or not a string")
-  }
-  let has_audio = if map.get("hasAudio") is Some(True) {
-    true
-  } else if map.get("hasAudio") is Some(False) {
-    false
-  } else {
-    abort("slide.hasAudio missing or not a boolean")
-  }
-  { id, ssml_hash, has_audio }
-}
-
-///|
-/// Parse audio metadata from JSON
-fn parse_audio_meta(json_str : String) -> AudioMeta {
-  let json = @json5.parse(json_str) catch {
-    e => abort("JSON parse error: \{e}")
-  }
-  guard json is Object(map) else { abort("meta.json is not a JSON object") }
-  guard map.get("duration") is Some(Number(duration, ..)) else {
-    abort("duration missing or not a number")
-  }
-  guard map.get("hash") is Some(String(hash)) else {
-    abort("hash missing or not a string")
-  }
-  { duration, hash }
 }
