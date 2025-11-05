@@ -63,14 +63,14 @@ cp "$BINARY_PATH" "$INSTALL_DIR/mdcourse-bin"
 chmod +x "$INSTALL_DIR/mdcourse-bin"
 
 # Copy resources (from parent directory)
-if [ -f "../engine.mjs" ]; then
-    cp ../engine.mjs "$INSTALL_DIR/"
+if [ -f "./engine.mjs" ]; then
+    cp ./engine.mjs "$INSTALL_DIR/"
 else
     echo -e "${YELLOW}Warning: engine.mjs not found in parent directory${NC}"
 fi
 
-if [ -f "../custom.css" ]; then
-    cp ../custom.css "$INSTALL_DIR/"
+if [ -f "./custom.css" ]; then
+    cp ./custom.css "$INSTALL_DIR/"
 else
     echo -e "${YELLOW}Warning: custom.css not found in parent directory${NC}"
 fi
