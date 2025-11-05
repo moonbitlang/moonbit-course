@@ -110,7 +110,7 @@ fn slide_ssml_path(target : String, slide_id : String) -> String {
 fn video_ssml_path_indexed(
   target : String,
   slide_id : String,
-  video_index : Int
+  video_index : Int,
 ) -> String {
   path_join([audio_dir(target), "video-after-\{slide_id}-\{video_index}.ssml"])
 }
@@ -120,7 +120,7 @@ fn video_ssml_path_indexed(
 fn video_audio_path_indexed(
   target : String,
   slide_id : String,
-  video_index : Int
+  video_index : Int,
 ) -> String {
   path_join([audio_dir(target), "video-after-\{slide_id}-\{video_index}.wav"])
 }
@@ -130,7 +130,7 @@ fn video_audio_path_indexed(
 fn video_meta_path_indexed(
   target : String,
   slide_id : String,
-  video_index : Int
+  video_index : Int,
 ) -> String {
   path_join([
     audio_dir(target),
@@ -202,7 +202,7 @@ fn slide_segment_meta_path(output_dir : String, slide_id : String) -> String {
 fn video_segment_meta_path(
   output_dir : String,
   slide_id : String,
-  video_index : Int
+  video_index : Int,
 ) -> String {
   path_join([
     output_dir,

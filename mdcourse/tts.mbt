@@ -85,7 +85,6 @@ pub async fn generate_audio(output_dir : String, options : Options) -> Unit {
     slide_videos.push((slide_videos.length() + 1, video)) // 1-based index
     videos_by_slide[video.after_slide] = slide_videos
   }
-
   for entry in videos_by_slide {
     let slide_id = entry.0
     let indexed_videos = entry.1
@@ -108,7 +107,9 @@ pub async fn generate_audio(output_dir : String, options : Options) -> Unit {
         ssml_hash: video.ssml_hash,
         has_audio: video.has_audio,
       }
-      let audio_file = video_audio_path_indexed(output_dir, slide_id, video_index)
+      let audio_file = video_audio_path_indexed(
+        output_dir, slide_id, video_index,
+      )
       let ssml_file = video_ssml_path_indexed(output_dir, slide_id, video_index)
       tasks.push({ slide: video_as_slide, audio_file, meta_file, ssml_file })
     }

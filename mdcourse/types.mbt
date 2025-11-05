@@ -8,6 +8,7 @@ priv struct SlideInfo {
   has_audio : Bool
 } derive (
   ToJson(fields(ssml_hash(rename="ssmlHash"), has_audio(rename="hasAudio"))),
+  FromJson(fields(ssml_hash(rename="ssmlHash"), has_audio(rename="hasAudio"))),
 )
 
 ///|
@@ -26,6 +27,14 @@ priv struct VideoSegment {
       has_audio(rename="hasAudio"),
     ),
   ),
+  FromJson(
+    fields(
+      after_slide(rename="afterSlide"),
+      video_path(rename="videoPath"),
+      ssml_hash(rename="ssmlHash"),
+      has_audio(rename="hasAudio"),
+    ),
+  ),
 )
 
 ///|
@@ -33,14 +42,14 @@ priv struct VideoSegment {
 priv struct Manifest {
   slides : Array[SlideInfo]
   videos : Array[VideoSegment]
-} derive(ToJson)
+} derive(ToJson, FromJson)
 
 ///|
 /// Audio metadata
 priv struct AudioMeta {
   duration : Double
   hash : String
-} derive(ToJson)
+} derive(ToJson, FromJson)
 
 ///|
 /// Segment metadata for caching (slide or video segment)
@@ -50,6 +59,9 @@ priv struct SegmentMeta {
   audio_hash : String // Hash of audio SSML (empty if no audio)
 } derive (
   ToJson(
+    fields(content_hash(rename="contentHash"), audio_hash(rename="audioHash")),
+  ),
+  FromJson(
     fields(content_hash(rename="contentHash"), audio_hash(rename="audioHash")),
   ),
 )
