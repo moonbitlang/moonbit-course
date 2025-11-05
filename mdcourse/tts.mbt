@@ -133,7 +133,6 @@ pub async fn generate_audio(output_dir : String, options : Options) -> Bool {
           options.voice,
           tts_key,
           tts_region,
-          options.retry,
         )
         results.push(result)
       })
@@ -176,17 +175,13 @@ async fn generate_single_audio(
   voice : String,
   tts_key : String,
   tts_region : String,
-  max_retries : Int,
 ) -> Result[AudioGenResult, String] {
   println("   [*] slide-\{slide_id}: Generating audio...")
   let ssml_content = @fs.read_file(ssml_file).text()
   let full_ssml = wrap_ssml(ssml_content, voice)
 
-  // Call Azure TTS API with retry
-  match
-    synthesize_with_retry(
-      full_ssml, audio_file, tts_key, tts_region, max_retries,
-    ) {
+  // Call Azure TTS API
+  match synthesize_speech_simple(full_ssml, audio_file, tts_key, tts_region) {
     Ok(duration) => {
       // Save metadata
       let meta : AudioMeta = { duration, hash: ssml_hash }
@@ -217,38 +212,8 @@ async fn should_skip(meta_file : String, current_hash : String) -> Bool {
 }
 
 ///|
-/// Synthesize speech with retry logic
-async fn synthesize_with_retry(
-  ssml : String,
-  output_file : String,
-  tts_key : String,
-  tts_region : String,
-  max_retries : Int,
-) -> Result[Double, String] {
-  let mut last_error = ""
-  for attempt = 1; attempt <= max_retries; attempt = attempt + 1 {
-    match synthesize_speech(ssml, output_file, tts_key, tts_region) {
-      Ok(duration) => return Ok(duration)
-      Err(error) => {
-        last_error = error
-        if attempt < max_retries {
-          let delay = min(1000 * pow(2, attempt - 1), 10000)
-          println(
-            "   [WARN] Attempt \{attempt}/\{max_retries} failed: \{error}",
-          )
-          println("   [WAIT] Retrying in \{delay}ms...")
-          // TODO: Add sleep when available
-          // @async.sleep(delay)
-        }
-      }
-    }
-  }
-  Err("Failed after \{max_retries} attempts: \{last_error}")
-}
-
-///|
-/// Call Azure TTS API to synthesize speech
-async fn synthesize_speech(
+/// Synthesize speech (no retry)
+async fn synthesize_speech_simple(
   ssml : String,
   output_file : String,
   tts_key : String,
@@ -288,26 +253,6 @@ async fn synthesize_speech(
   // Calculate duration from WAV header
   let duration = get_wav_duration(audio_bytes)
   Ok(duration)
-}
-
-///|
-/// Helper: min of two integers
-fn min(a : Int, b : Int) -> Int {
-  if a < b {
-    a
-  } else {
-    b
-  }
-}
-
-///|
-/// Helper: power function for integers
-fn pow(base : Int, exp : Int) -> Int {
-  let mut result = 1
-  for _i = 0; _i < exp; _i = _i + 1 {
-    result = result * base
-  }
-  result
 }
 
 ///|
