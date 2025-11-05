@@ -58,7 +58,9 @@ pub async fn parse_file(input_path : String, output_dir : String) -> Unit {
       // Save video SSML if present (always use indexed naming)
       if has_video_audio {
         let video_ssml_file = video_ssml_path_indexed(
-          output_dir, slide_id, video_idx + 1,
+          output_dir,
+          slide_id,
+          video_idx + 1,
         )
         write_file(video_ssml_file, video_info.ssml)
         println(

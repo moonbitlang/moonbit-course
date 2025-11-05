@@ -32,7 +32,9 @@ pub async fn compose_video(
   // 1. Parse manifest.json
   let manifest_path = manifest_path(output_dir)
   let manifest_json = @fs.read_file(manifest_path).text()
-  let manifest = parse_manifest_for_compose(manifest_json)
+  let manifest : Manifest = (@json.parse(manifest_json) |> @json.from_json) catch {
+    e => abort("Invalid manifest json: \{e}")
+  }
   if manifest.slides.length() == 0 {
     println("   [ERROR] No slides found in manifest")
     return
@@ -72,7 +74,6 @@ pub async fn compose_video(
 
     // Parse resolution once (used for both slides and videos)
     let resolution = parse_resolution(options.resolution)
-
     if can_skip {
       total_duration = total_duration + cached_duration
       println(
@@ -161,7 +162,9 @@ pub async fn compose_video(
           None
         }
         let narration_meta_file = video_meta_path_indexed(
-          output_dir, slide.id, video_index,
+          output_dir,
+          slide.id,
+          video_index,
         )
         let final_duration = if video.has_audio {
           parse_audio_metadata(narration_meta_file)
@@ -191,7 +194,6 @@ pub async fn compose_video(
           resolution,
           options.fps,
         )
-
         let (exit_code, _stdout, stderr) = @process.collect_output(
           "ffmpeg", video_args,
         )
@@ -218,7 +220,6 @@ pub async fn compose_video(
         save_segment_metadata(
           video_segment_meta_file, final_duration, video_hash, video_audio_hash,
         )
-
         video_index = video_index + 1 // Increment for next video
       }
     }
@@ -278,12 +279,9 @@ fn generate_slide_video_command(
   let args : Array[String] = ["-loop", "1", "-i", image_path]
 
   // Add audio if available
-  match audio_path {
-    Some(path) => {
-      args.push("-i")
-      args.push(path)
-    }
-    None => ()
+  if audio_path is Some(path) {
+    args.push("-i")
+    args.push(path)
   }
 
   // Video encoding settings
@@ -302,23 +300,19 @@ fn generate_slide_video_command(
   args.push(scale_filter)
 
   // Audio settings or no audio
-  match audio_path {
-    Some(_) => {
-      args.push("-c:a")
-      args.push("aac")
-      args.push("-ar")
-      args.push("44100")
-      // Use -t instead of -shortest for precise duration control
-      args.push("-t")
-      args.push(duration.to_string())
-    }
-    None => {
-      args.push("-t")
-      args.push(duration.to_string())
-      args.push("-an")
-    }
+  if audio_path is Some(_) {
+    args.push("-c:a")
+    args.push("aac")
+    args.push("-ar")
+    args.push("44100")
+    // Use -t instead of -shortest for precise duration control
+    args.push("-t")
+    args.push(duration.to_string())
+  } else {
+    args.push("-t")
+    args.push(duration.to_string())
+    args.push("-an")
   }
-
   // Output
   args.push("-y")
   args.push(output_path)
@@ -340,91 +334,89 @@ async fn generate_video_segment_command(
 
   // Check if video has its own audio stream
   let video_has_audio = has_audio_stream(video_path)
-  match narration_audio {
-    Some(audio_path) => {
-      // Case 1 & 2: Video with narration (mix or replace audio)
-      args.push("-i")
-      args.push(video_path)
-      args.push("-i")
-      args.push(audio_path)
+  if narration_audio is Some(audio_path) {
 
-      // Video filter: scale + pad + adjust duration to match narration
-      let scale_filter = "scale=\{resolution.width}:\{resolution.height}:force_original_aspect_ratio=decrease,pad=\{resolution.width}:\{resolution.height}:(ow-iw)/2:(oh-ih)/2"
+    // Case 1 & 2: Video with narration (mix or replace audio)
+    args.push("-i")
+    args.push(video_path)
+    args.push("-i")
+    args.push(audio_path)
 
-      // Get narration duration from metadata file
-      let narration_duration = parse_audio_metadata(narration_meta_file)
-        .map(fn(meta) { meta.duration })
-        .unwrap_or(video_duration)
-      if narration_duration > video_duration {
-        // Freeze last frame to match narration length
-        let freeze_duration = narration_duration - video_duration
-        args.push("-filter_complex")
-        args.push(
-          "[0:v]\{scale_filter},tpad=stop_mode=clone:stop_duration=\{freeze_duration}[v]",
-        )
-        args.push("-map")
-        args.push("[v]")
-      } else {
-        // Trim video to match narration length
-        args.push("-filter_complex")
-        args.push(
-          "[0:v]\{scale_filter},trim=duration=\{narration_duration},setpts=PTS-STARTPTS[v]",
-        )
-        args.push("-map")
-        args.push("[v]")
-      }
+    // Video filter: scale + pad + adjust duration to match narration
+    let scale_filter = "scale=\{resolution.width}:\{resolution.height}:force_original_aspect_ratio=decrease,pad=\{resolution.width}:\{resolution.height}:(ow-iw)/2:(oh-ih)/2"
 
-      // Audio mixing
-      if video_has_audio {
-        // Mix video audio with narration - use shortest to end when narration ends
-        args.push("-filter_complex")
-        args.push("[0:a][1:a]amix=inputs=2:duration=shortest[a]")
-        args.push("-map")
-        args.push("[a]")
-      } else {
-        // Use narration audio only
-        args.push("-map")
-        args.push("1:a")
-      }
+    // Get narration duration from metadata file
+    let narration_duration = parse_audio_metadata(narration_meta_file)
+      .map(fn(meta) { meta.duration })
+      .unwrap_or(video_duration)
+    if narration_duration > video_duration {
+      // Freeze last frame to match narration length
+      let freeze_duration = narration_duration - video_duration
+      args.push("-filter_complex")
+      args.push(
+        "[0:v]\{scale_filter},tpad=stop_mode=clone:stop_duration=\{freeze_duration}[v]",
+      )
+      args.push("-map")
+      args.push("[v]")
+    } else {
+      // Trim video to match narration length
+      args.push("-filter_complex")
+      args.push(
+        "[0:v]\{scale_filter},trim=duration=\{narration_duration},setpts=PTS-STARTPTS[v]",
+      )
+      args.push("-map")
+      args.push("[v]")
+    }
 
-      // Video and audio encoding
-      args.push("-c:v")
-      args.push("libx264")
-      args.push("-pix_fmt")
-      args.push("yuv420p")
-      args.push("-r")
-      args.push(fps.to_string())
+    // Audio mixing
+    if video_has_audio {
+      // Mix video audio with narration - use shortest to end when narration ends
+      args.push("-filter_complex")
+      args.push("[0:a][1:a]amix=inputs=2:duration=shortest[a]")
+      args.push("-map")
+      args.push("[a]")
+    } else {
+      // Use narration audio only
+      args.push("-map")
+      args.push("1:a")
+    }
+
+    // Video and audio encoding
+    args.push("-c:v")
+    args.push("libx264")
+    args.push("-pix_fmt")
+    args.push("yuv420p")
+    args.push("-r")
+    args.push(fps.to_string())
+    args.push("-c:a")
+    args.push("aac")
+    args.push("-ar")
+    args.push("44100")
+    // Don't use -shortest - let narration audio control the duration
+  } else {
+    // Case 3 & 4: Video without narration (keep or no audio)
+    args.push("-i")
+    args.push(video_path)
+
+    // Video settings
+    let scale_filter = "scale=\{resolution.width}:\{resolution.height}:force_original_aspect_ratio=decrease,pad=\{resolution.width}:\{resolution.height}:(ow-iw)/2:(oh-ih)/2"
+    args.push("-vf")
+    args.push(scale_filter)
+    args.push("-c:v")
+    args.push("libx264")
+    args.push("-pix_fmt")
+    args.push("yuv420p")
+    args.push("-r")
+    args.push(fps.to_string())
+
+    // Audio settings
+    if video_has_audio {
       args.push("-c:a")
       args.push("aac")
       args.push("-ar")
       args.push("44100")
-      // Don't use -shortest - let narration audio control the duration
-    }
-    None => {
-      // Case 3 & 4: Video without narration (keep or no audio)
-      args.push("-i")
-      args.push(video_path)
-
-      // Video settings
-      let scale_filter = "scale=\{resolution.width}:\{resolution.height}:force_original_aspect_ratio=decrease,pad=\{resolution.width}:\{resolution.height}:(ow-iw)/2:(oh-ih)/2"
-      args.push("-vf")
-      args.push(scale_filter)
-      args.push("-c:v")
-      args.push("libx264")
-      args.push("-pix_fmt")
-      args.push("yuv420p")
-      args.push("-r")
-      args.push(fps.to_string())
-
-      // Audio settings
-      if video_has_audio {
-        args.push("-c:a")
-        args.push("aac")
-        args.push("-ar")
-        args.push("44100")
-      } else {
-        args.push("-an")
-      }
+    } else {
+      args.push("-an")
     }
   }
 
@@ -452,71 +444,6 @@ fn generate_concat_list(segment_files : Array[String]) -> String {
     content = content + "file '\{filename}'\n"
   }
   content
-}
-
-///|
-/// Parse manifest for video composition
-fn parse_manifest_for_compose(json_str : String) -> Manifest {
-  let json = @json5.parse(json_str) catch {
-    e => abort("JSON parse error: \{e}")
-  }
-  guard json is Object(map) else { abort("manifest.json is not a JSON object") }
-  let slides = match map.get("slides") {
-    Some(Array(slide_array)) => {
-      let slides_result : Array[SlideInfo] = []
-      for slide_json in slide_array {
-        guard slide_json is Object(slide_map) else { continue }
-        guard slide_map.get("id") is Some(String(id)) else {
-          abort("slide.id missing")
-        }
-        let ssml_hash = if slide_map.get("ssmlHash") is Some(String(s)) {
-          s
-        } else {
-          ""
-        }
-        let has_audio = if slide_map.get("hasAudio") is Some(True) {
-          true
-        } else if slide_map.get("hasAudio") is Some(False) {
-          false
-        } else {
-          false
-        }
-        slides_result.push({ id, ssml_hash, has_audio })
-      }
-      slides_result
-    }
-    _ => []
-  }
-  let videos = match map.get("videos") {
-    Some(Array(video_array)) => {
-      let videos_result : Array[VideoSegment] = []
-      for video_json in video_array {
-        guard video_json is Object(video_map) else { continue }
-        guard video_map.get("afterSlide") is Some(String(after_slide)) else {
-          continue
-        }
-        guard video_map.get("videoPath") is Some(String(video_path)) else {
-          continue
-        }
-        let ssml_hash = if video_map.get("ssmlHash") is Some(String(s)) {
-          s
-        } else {
-          ""
-        }
-        let has_audio = if video_map.get("hasAudio") is Some(True) {
-          true
-        } else if video_map.get("hasAudio") is Some(False) {
-          false
-        } else {
-          false
-        }
-        videos_result.push({ after_slide, video_path, ssml_hash, has_audio })
-      }
-      videos_result
-    }
-    _ => []
-  }
-  { slides, videos }
 }
 
 ///|
@@ -603,7 +530,7 @@ async fn should_skip_video_segment(
   segment_file : String,
   video_path : String,
   video : VideoSegment,
-  video_index : Int
+  video_index : Int,
 ) -> (Bool, Double) {
   let meta_file = video_segment_meta_path(output_dir, slide_id, video_index)
 
