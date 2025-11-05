@@ -452,15 +452,9 @@ async fn parse_audio_metadata(meta_file : String) -> AudioMeta? {
   if !@fs.exists(meta_file) {
     return None
   }
-  let json_str = @fs.read_file(meta_file).text()
-  let json = @json5.parse(json_str) catch { _ => return None }
-  guard json is Object(map) else { return None }
-  guard map.get("duration") is Some(Number(n, ..)) else { return None }
-  let hash = match map.get("hash") {
-    Some(String(s)) => s
-    _ => ""
+  (@fs.read_file(meta_file).text() |> @json.parse |> @json.from_json) catch {
+    _ => None
   }
-  Some({ duration: n, hash })
 }
 
 ///|
@@ -469,17 +463,9 @@ async fn parse_segment_metadata(meta_file : String) -> SegmentMeta? {
   if !@fs.exists(meta_file) {
     return None
   }
-  let json_str = @fs.read_file(meta_file).text()
-  let json = @json5.parse(json_str) catch { _ => return None }
-  guard json is Object(map) else { return None }
-  guard map.get("duration") is Some(Number(duration, ..)) else { return None }
-  let content_hash = if map.get("contentHash") is Some(String(s)) {
-    s
-  } else {
-    ""
+  (@fs.read_file(meta_file).text() |> @json.parse |> @json.from_json) catch {
+    _ => None
   }
-  let audio_hash = if map.get("audioHash") is Some(String(s)) { s } else { "" }
-  Some({ duration, content_hash, audio_hash })
 }
 
 ///|

@@ -6,7 +6,6 @@
     "moonbitlang/async/io",
     "moonbitlang/async/process",
     "moonbitlang/async/http",
-    "moonbitlang/x/sys",
-    "moonbitlang/x/json5"
+    "moonbitlang/x/sys"
   ]
 }
