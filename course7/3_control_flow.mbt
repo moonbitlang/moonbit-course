@@ -65,23 +65,25 @@ test "print first 3" {
 ///|
 test "print skip 3" {
   let mut i = 0
-  while i < 5 {
+  while i < 10 {
+    i = i + 1
     if i == 3 {
-      i = i + 1
       continue // skip 3 跳过 3
-    } else {
-      ()
     }
     println(i.to_string())
-    i = i + 1
   }
   inspect(
     buffer,
     content=(
-      #|0
       #|1
       #|2
       #|4
+      #|5
+      #|6
+      #|7
+      #|8
+      #|9
+      #|10
       #|
     ),
   )
