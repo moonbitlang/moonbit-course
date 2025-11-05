@@ -8,7 +8,7 @@ pub async fn generate_slides(
   input_file : String,
   output_dir : String,
   options : Options,
-) -> Unit {
+) -> Bool {
   println("Generating slides...")
   let slides_dir = slides_dir(output_dir)
   create_dir_all(slides_dir)
@@ -18,11 +18,15 @@ pub async fn generate_slides(
 
   // Step 1: Generate PDF using Marp CLI
   println("   Generating PDF...")
-  generate_pdf(input_file, pdf_file, options)
+  if !generate_pdf(input_file, pdf_file, options) {
+    return false
+  }
 
   // Step 2: Convert PDF to PNG images using pdftoppm
   println("   Converting PDF to PNG images...")
-  convert_pdf_to_png(pdf_file, slides_dir)
+  if !convert_pdf_to_png(pdf_file, slides_dir) {
+    return false
+  }
 
   // Count generated slides
   let slide_files = list_slide_files(slides_dir)
@@ -40,6 +44,7 @@ pub async fn generate_slides(
   if slide_files.length() > 3 {
     println("     ... and \{slide_files.length() - 3} more")
   }
+  true
 }
 
 ///|
@@ -48,7 +53,7 @@ async fn generate_pdf(
   input_file : String,
   pdf_file : String,
   options : Options,
-) -> Unit {
+) -> Bool {
   // Get absolute paths for input and output
   let abs_input = get_absolute_path(input_file)
   let abs_pdf = get_absolute_path(pdf_file)
@@ -107,9 +112,10 @@ async fn generate_pdf(
     if !error_text.is_empty() {
       println("   stderr: \{error_text}")
     }
-    abort("Marp PDF generation failed")
+    return false
   }
   println("   [+] PDF saved: \{pdf_file}")
+  true
 }
 
 ///|
@@ -133,7 +139,7 @@ async fn get_absolute_path(path : String) -> String {
 
 ///|
 /// Convert PDF to PNG images using pdftoppm
-async fn convert_pdf_to_png(pdf_file : String, slides_dir : String) -> Unit {
+async fn convert_pdf_to_png(pdf_file : String, slides_dir : String) -> Bool {
   // Remove all existing PNG files first to avoid conflicts
   let entries = @fs.readdir(slides_dir) catch { _ => [] }
   for entry in entries {
@@ -156,11 +162,12 @@ async fn convert_pdf_to_png(pdf_file : String, slides_dir : String) -> Unit {
     if !error_text.is_empty() {
       println("   stderr: \{error_text}")
     }
-    abort("PDF to PNG conversion failed")
+    return false
   }
 
   // Rename slides from pdftoppm format (slide-1.png, slide-2.png) to standard format (slide-001.png, slide-002.png)
   rename_slides(slides_dir)
+  true
 }
 
 ///|

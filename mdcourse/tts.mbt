@@ -29,7 +29,7 @@ priv struct AudioGenResult {
 ///    - Save WAV file
 ///    - Calculate duration from WAV header
 ///    - Save metadata (duration + hash)
-pub async fn generate_audio(output_dir : String, options : Options) -> Unit {
+pub async fn generate_audio(output_dir : String, options : Options) -> Bool {
   println("Generating audio...")
 
   // 1. Get environment variables
@@ -39,11 +39,11 @@ pub async fn generate_audio(output_dir : String, options : Options) -> Unit {
     println("   Please set TTS_KEY and TTS_REGION:")
     println("     export TTS_KEY=\"your-azure-subscription-key\"")
     println("     export TTS_REGION=\"eastus\"")
-    return
+    return false
   }
   guard env_vars.get("TTS_REGION") is Some(tts_region) else {
     println("   [ERROR] TTS_REGION environment variable not set")
-    return
+    return false
   }
 
   // 2. Parse manifest.json
@@ -118,7 +118,7 @@ pub async fn generate_audio(output_dir : String, options : Options) -> Unit {
   // 5. Generate audio concurrently using task group
   if tasks.length() == 0 {
     println("Audio generation complete: 0 generated, \{skipped} skipped")
-    return
+    return true
   }
   let results : Array[Result[AudioGenResult, String]] = []
   @async.with_task_group(fn(tg) {
@@ -142,6 +142,7 @@ pub async fn generate_audio(output_dir : String, options : Options) -> Unit {
 
   // 5. Report results (after all tasks complete)
   let mut generated = 0
+  let mut failed = 0
   for result in results {
     match result {
       Ok(audio_result) => {
@@ -150,12 +151,18 @@ pub async fn generate_audio(output_dir : String, options : Options) -> Unit {
         )
         generated = generated + 1
       }
-      Err(error) => println("   [ERROR] \{error}")
+      Err(error) => {
+        println("   [ERROR] \{error}")
+        failed = failed + 1
+      }
     }
   }
   println(
-    "Audio generation complete: \{generated} generated, \{skipped} skipped",
+    "Audio generation complete: \{generated} generated, \{skipped} skipped, \{failed} failed",
   )
+
+  // Return false if any generation failed
+  failed == 0
 }
 
 ///|

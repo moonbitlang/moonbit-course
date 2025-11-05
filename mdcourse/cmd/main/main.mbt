@@ -152,7 +152,11 @@ async fn main {
 
   // Step 1: Parse markdown and extract SSML (unless only composing)
   if !compose_only {
-    @mdcourse.parse_file(input_file, output_dir)
+    let parse_success = @mdcourse.parse_file(input_file, output_dir)
+    if !parse_success {
+      println("\n[ERROR] Parsing failed. Stopping workflow.")
+      return
+    }
     if parse_only {
       println("\nDone (parse only)")
       return
@@ -161,7 +165,13 @@ async fn main {
 
   // Step 2: Generate slide images (unless only audio or compose)
   if !audio_only && !compose_only {
-    @mdcourse.generate_slides(input_file, output_dir, options)
+    let slides_success = @mdcourse.generate_slides(
+      input_file, output_dir, options,
+    )
+    if !slides_success {
+      println("\n[ERROR] Slide generation failed. Stopping workflow.")
+      return
+    }
     if slides_only {
       println("\nDone (slides only)")
       return
@@ -170,7 +180,11 @@ async fn main {
 
   // Step 3: Generate audio (unless only composing or only slides)
   if !compose_only && !slides_only {
-    @mdcourse.generate_audio(output_dir, options)
+    let audio_success = @mdcourse.generate_audio(output_dir, options)
+    if !audio_success {
+      println("\n[ERROR] Audio generation failed. Stopping workflow.")
+      return
+    }
     if audio_only {
       println("\nDone (audio only)")
       return
@@ -179,7 +193,15 @@ async fn main {
 
   // Step 4: Compose video (unless parse-only, audio-only, or slides-only)
   if !parse_only && !audio_only && !slides_only {
-    @mdcourse.compose_video(output_dir, options.output_file, options)
+    let compose_success = @mdcourse.compose_video(
+      output_dir,
+      options.output_file,
+      options,
+    )
+    if !compose_success {
+      println("\n[ERROR] Video composition failed.")
+      return
+    }
     println("\nAll done!")
     if final_output_file is Some(path) {
       println("Video location: \{path}")
