@@ -77,8 +77,6 @@ cd mdcourse
 moon run cmd/main -- ../course7/lec7-1.mbt.md
 ```
 
-Make sure `engine.mjs` and `custom.css` are in the parent directory (`../`).
-
 ### Azure TTS Setup
 
 Set up environment variables for text-to-speech:
@@ -121,14 +119,18 @@ moon run cmd/main -- --compose-only input.mbt.md
 ### Options
 
 ```bash
--o, --output FILE          Output video file (default: ./output.mp4)
--v, --voice NAME           TTS voice (default: zh-CN-YunyiMultilingualNeural)
--p, --resolution PRESET    Video resolution: 4k, 1440p, 1080p, 720p, 480p (default: 1080p)
--f, --fps N                Frame rate (default: 30)
--r, --retry N              TTS retry count (default: 3)
--d, --default-duration S   Default slide duration in seconds (default: 3.0)
--F, --force-audio          Regenerate all audio files
--K, --keep-temp            Keep temporary video segments
+-o, --output <OUTPUT>                  Output video file path (default: <input-basename>.mp4)
+--parse-only                           Only parse file
+--slides-only                          Only generate slide images
+--audio-only                           Only generate audio
+--compose-only                         Only compose video
+--force-audio                          Force regenerate all audio
+--keep-temp                            Keep temporary video segments for debugging
+--voice <VOICE>                        Specify TTS voice
+--fps <FPS>                            Video frame rate
+--resolution <RESOLUTION>              Video resolution (4k, 1440p, 1080p, 720p, 480p)
+--retry <RETRY>                        Retry count on TTS API failure
+--default-duration <DEFAULT-DURATION>  Default duration for slides without audio (seconds)
 ```
 
 ### Example
@@ -203,8 +205,7 @@ More content.
 Add narration to videos (optional):
 
 ```markdown
-<!-- video path/to/video.mp4 -->
-<!-- ssml
+<!-- video path/to/video.mp4 ssml
 这是视频的配音。
 -->
 ```
