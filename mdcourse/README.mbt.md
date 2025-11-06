@@ -120,17 +120,16 @@ moon run cmd/main -- --compose-only input.mbt.md
 
 ```bash
 -o, --output <OUTPUT>                  Output video file path (default: <input-basename>.mp4)
---parse-only                           Only parse file
---slides-only                          Only generate slide images
---audio-only                           Only generate audio
---compose-only                         Only compose video
---force-audio                          Force regenerate all audio
---keep-temp                            Keep temporary video segments for debugging
---voice <VOICE>                        Specify TTS voice
---fps <FPS>                            Video frame rate
---resolution <RESOLUTION>              Video resolution (4k, 1440p, 1080p, 720p, 480p)
---retry <RETRY>                        Retry count on TTS API failure
---default-duration <DEFAULT-DURATION>  Default duration for slides without audio (seconds)
+    --parse-only                           Only parse file
+    --slides-only                          Only generate slide images
+    --audio-only                           Only generate audio
+    --compose-only                         Only compose video
+    --force-audio                          Force regenerate all audio
+    --keep-temp                            Keep temporary video segments for debugging
+    --voice <VOICE>                        Specify TTS voice
+    --fps <FPS>                            Video frame rate
+    --resolution <RESOLUTION>              Video resolution (4k, 1440p, 1080p, 720p, 480p)
+    --default-duration <DEFAULT-DURATION>  Default duration for slides without audio (seconds)
 ```
 
 ### Example

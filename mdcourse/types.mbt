@@ -80,7 +80,6 @@ pub struct Options {
   voice : String
   fps : Int
   resolution : String
-  retry : Int
   default_duration : Double
   theme : String
   engine : String
@@ -121,7 +120,6 @@ pub fn Options::new(
   voice : String,
   fps : Int,
   resolution : String,
-  retry : Int,
   force_audio : Bool,
   keep_temp : Bool,
   default_duration : Double,
@@ -150,7 +148,6 @@ pub fn Options::new(
     voice,
     fps,
     resolution,
-    retry,
     default_duration,
     theme: theme_path,
     engine: engine_path,

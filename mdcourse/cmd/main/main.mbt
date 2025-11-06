@@ -36,11 +36,6 @@ async fn main {
         defaults=["1080p"],
         help="Video resolution (4k, 1440p, 1080p, 720p, 480p)",
       ),
-      "retry": @clap.Arg::named(
-        nargs=One,
-        defaults=["3"],
-        help="Retry count on TTS API failure",
-      ),
       "default-duration": @clap.Arg::named(
         nargs=One,
         defaults=["3.0"],
@@ -91,7 +86,6 @@ async fn main {
   }
   let fps_str : String = value.get_one("fps") catch { _ => "30" }
   let resolution : String = value.get_one("resolution") catch { _ => "1080p" }
-  let retry_str : String = value.get_one("retry") catch { _ => "3" }
   let default_duration_str : String = value.get_one("default-duration") catch {
     _ => "3.0"
   }
@@ -126,12 +120,6 @@ async fn main {
       return
     }
   }
-  let retry = @strconv.parse_int(retry_str) catch {
-    _ => {
-      println("Error: Invalid retry value: \{retry_str}")
-      return
-    }
-  }
   let default_duration = @strconv.parse_double(default_duration_str) catch {
     _ => {
       println("Error: Invalid default-duration value: \{default_duration_str}")
@@ -143,7 +131,7 @@ async fn main {
   let course_name = @mdcourse.get_course_name_from_path(input_file)
   let output_dir = @mdcourse.target_dir(course_name)
   let options = @mdcourse.Options::new(
-    voice, fps, resolution, retry, force_audio, keep_temp, default_duration, final_output_file,
+    voice, fps, resolution, force_audio, keep_temp, default_duration, final_output_file,
   )
   println("mdcourse v0.1.0 - MoonBit Implementation")
   println("=========================================")

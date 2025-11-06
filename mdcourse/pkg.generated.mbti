@@ -33,12 +33,11 @@ pub struct Options {
   voice : String
   fps : Int
   resolution : String
-  retry : Int
   default_duration : Double
   theme : String
   engine : String
 }
-fn Options::new(String, Int, String, Int, Bool, Bool, Double, String?) -> Self
+fn Options::new(String, Int, String, Bool, Bool, Double, String?) -> Self
 
 // Type aliases
 
