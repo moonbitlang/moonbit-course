@@ -75,7 +75,7 @@ fn[T : Default] MyArray::realloc(self : MyArray[T]) -> Unit {
 }
 
 // fn[T : Default] MyArray::remove(self : MyArray[T]) -> Unit {
-  
+
 // }
 
 ///|
@@ -89,6 +89,7 @@ test "My array" {
   inspect(myarr, content="[10, 3, 2, 4]")
 }
 
+///|
 fn[T] MyArray::each(self : MyArray[T], f : (T) -> Unit) -> Unit {
   for i = 0; i < self.length; i = i + 1 {
     let elem = self.get(i)

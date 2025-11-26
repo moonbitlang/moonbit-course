@@ -26,7 +26,7 @@ headingDivider: 1
   - 曾利用两个堆栈进行实现
   - 基于定长数组
 - 变长数组
-  - 随机访问
+  - 随机存取
   - 可改变长度
   - 基于定长数组
 
@@ -41,8 +41,10 @@ headingDivider: 1
 
 # 定长数组
 
+<img src="../pics/random-access.drawio.svg" style="position: absolute; height: 80px; top: 170px; left: 450px;">
+
 - 长度在创建时固定
-- 可随机访问和随机修改
+- 可随机存取
   ```moonbit skip
   fn[T] FixedArray::make(len : Int, init : T) -> Self[T]
   fn[T] FixedArray::set(self : FixedArray[T], idx : Int, val : T) -> Unit
@@ -61,18 +63,21 @@ headingDivider: 1
 
 <!-- ssml 
 首先了解一下我们将会使用到的最基本的可变数据结构，定长数组。
-定长数组是一种长度在创建时固定，且可以随机访问和随机修改的数据结构。
+定长数组是一种长度在创建时固定，且可以随机存取的数据结构。
 在月兔中，定长数组即为 Fixed Array 这一泛型类型。
-什么叫作随机访问呢？
-随机访问指的是可以通过任何一个合法的索引，直接获取对应位置的值。
-也就是接口中的 get 函数。
-相应的，随机修改就是可以通过索引，修改任意位置的值，
+什么叫作随机存取呢？
+随机存取指的是可以通过任何一个合法的索引，直接获取或存放对应位置的值，并且该操作的时间和存取目标的位置无关。
+例如左图中，定长数组内的数字<phoneme alphabet="sapi" ph="yi 1">1</phoneme>、2、3连续存放在一起，可以直接访问数字3，
+这与访问数字<phoneme alphabet="sapi" ph="yi 1">1</phoneme>或者数字<phoneme alphabet="sapi" ph="er 4">2</phoneme>所需的时间是一样的。
+与之相对的，是顺序存取，例如右图是我们之前学过的列表，
+三个数字被存放在三个不同的地方，要想访问数字3，必须先访问数字<phoneme alphabet="sapi" ph="yi 1">1</phoneme>和数字<phoneme alphabet="sapi" ph="er 4">2</phoneme>. 
+访问数字3的时间明显<phoneme alphabet="sapi" ph="chang 2">长</phoneme>于访问数字<phoneme alphabet="sapi" ph="yi 1">1</phoneme>的时间。
 也就是接口中的 set 函数。
 举个例子，我们定义了一个元素为整数的定长数组，其长度为 5. 
 每个元素的初始值为0.
-接下来，我们将第 0 个元素设置为 1，
-将第 1 个元素设置为 2.
-于是我们得到了前两个元素分别为 1 和 2，剩下三个元素都为 0 的定长数组。
+接下来，我们将第 0 个元素设置为 <phoneme alphabet="sapi" ph="yi 1">1</phoneme>，
+将第一个元素设置为 2.
+于是我们得到了前两个元素分别为 <phoneme alphabet="sapi" ph="yi 1">1</phoneme> 和 2，剩下三个元素都为 0 的定长数组。
 <break time="500ms" />
 -->
 
@@ -94,16 +99,17 @@ headingDivider: 1
     inspect(Queue::new()..push(1)..push(2).length(), content="2")
   }
   ```
-- `a..f()` 等价于 `a.f(); a`
+- `x..f().g()` 等价于 `{ x.f(); x.g(); }`
 
 <!-- ssml
 在实现队列之前，我们定义队列的接口。
 由于队列是先进先出的结构，因此只能在尾部添加元素，并在头部取出元素。
 除了这两个基本操作，我们可能还需要一个 peek 操作，它可以让我们在不取出元素的情况下查看当前头部元素。
-最后，我们还有一个 length 函数，用于返回队列中元素的个数。
-注意到， push 和 pop 的第一个参数都是 self，这种情况下，我们可以使用 级联运算符 进行链式<phoneme alphabet="sapi" ph="diao 4">调</phoneme>用。
-例如，在创建完队列后，使用两个点加上 push 1 的方式，我们向队列中添加了一个新元素，忽略 push 操作的返回值，并获得 self，接下来就可以利用这个 self 继续后面的操作。
-再次用两个点加上 push 2，最后<phoneme alphabet="sapi" ph="diao 4">调</phoneme>用 length，得到队列的长度。
+最后，我们还有一个 <lang xml:lang="en-US">length</lang> 函数，用于返回队列中元素的个数。
+注意到，push 和 pop 是用 Queue 类型加上双冒号定义的，属于 Queue 类型的方法，
+并且第一个参数的类型刚好是 Queue，这种情况下，我们可以使用 级联运算符 进行链式<phoneme alphabet="sapi" ph="diao 4">调</phoneme>用。
+例如，在创建完队列后，使用两个点加上 push, <phoneme alphabet="sapi" ph="yi 1">1</phoneme> 的方式，我们向队列中添加了一个新元素，忽略 push 操作的返回值，并获得 self，接下来就可以利用这个 self 继续后面的操作。
+再次用两个点加上 push 2，最后<phoneme alphabet="sapi" ph="diao 4">调</phoneme>用 <lang xml:lang="en-US">length</lang>，得到队列的长度。
 由于我们向队列中添加了两个元素，因此队列的长度为2.
 也就是说，级联运算表达式相当于<phoneme alphabet="sapi" ph="diao 4">调</phoneme>用一个方法并返回原来的值，以用于下一次<phoneme alphabet="sapi" ph="diao 4">调</phoneme>用。
 <break time="500ms" />
@@ -134,7 +140,7 @@ headingDivider: 1
 
 ![](../pics/circle_list.drawio.svg)
 
-<img src="../pics/rect.drawio.png" style="position: absolute; width: 580px; height: 260px; top: 390px; left: 64px; mix-blend-mode: multiply;">
+<img src="../pics/rect.drawio.png" style="position: absolute; width: 580px; height: 260px; top: 130px; left: 644px; mix-blend-mode: multiply;">
 
 <!-- ssml
 之后，我们进行添加操作。我们将元素添加到 end 所指向的位置，也就是第一个元素处，并且修改列表的结束位置。
@@ -144,7 +150,7 @@ headingDivider: 1
 
 ![](../pics/circle_list.drawio.svg)
 
-<img src="../pics/rect.drawio.png" style="position: absolute; width: 580px; height: 260px; top: 130px; left: 644px; mix-blend-mode: multiply;">
+<img src="../pics/rect.drawio.png" style="position: absolute; width: 580px; height: 260px; top: 390px; left: 64px; mix-blend-mode: multiply;">
 
 <!-- ssml
 之后，我们重复同样的操作。
@@ -161,41 +167,43 @@ headingDivider: 1
 <break time="500ms" />
 -->
 
-# 使用定长数组是实现循环队列
+# 使用定长数组实现循环队列
 
 ![](../pics/circle_list_back.drawio.svg)
 
-<img src="../pics/rect.drawio.png" style="position: absolute; width: 70px; height: 250px; top: 150px; left: 540px; mix-blend-mode: multiply;">
+<img src="../pics/rect.drawio.png" style="position: absolute; width: 70px; height: 250px; top: 150px; left: 515px; mix-blend-mode: multiply;">
 
 <!-- ssml
 我们再看一下「接近」数组尾部位置时的情形。`end`此时指向最后一个元素的位置。
 -->
 
-# 使用定长数组是实现循环队列
+# 使用定长数组实现循环队列
 
 ![](../pics/circle_list_back.drawio.svg)
 
-<img src="../pics/rect.drawio.png" style="position: absolute; width: 70px; height: 250px; top: 420px; left: 230px; mix-blend-mode: multiply;">
+<img src="../pics/rect.drawio.png" style="position: absolute; width: 70px; height: 250px; top: 150px; left: 794px; mix-blend-mode: multiply;">
 
 <!-- ssml
 当我们添加元素后，`end`无法向后移动，因此我们将它移动到最前方，这也是为什么它叫循环队列。
 -->
 
-# 使用定长数组是实现循环队列
+# 使用定长数组实现循环队列
 
 ![](../pics/circle_list_back.drawio.svg)
 
-<img src="../pics/rect.drawio.png" style="position: absolute; width: 80px; height: 450px; top: 120px; left: 720px; mix-blend-mode: multiply;">
+<img src="../pics/rect.drawio.png" style="position: absolute; width: 80px; height: 180px; top: 400px; left: 700px; mix-blend-mode: multiply;">
+
+<img src="../pics/rect.drawio.png" style="position: absolute; width: 80px; height: 180px; top: 400px; left: 100px; mix-blend-mode: multiply;">
 
 <!-- ssml
 之后，我们进行两次取出操作。
 -->
 
-# 使用定长数组是实现循环队列
+# 使用定长数组实现循环队列
 
 ![](../pics/circle_list_back.drawio.svg)
 
-<img src="../pics/rect.drawio.png" style="position: absolute; width: 80px; height: 270px; top: 400px; left: 810px; mix-blend-mode: multiply;">
+<img src="../pics/rect.drawio.png" style="position: absolute; width: 80px; height: 270px; top: 400px; left: 790px; mix-blend-mode: multiply;">
 
 <!-- ssml
 同样地，`start`在超出列表长度之后，也再次回到列表的最初。
@@ -221,11 +229,15 @@ fn[T] Queue::length(self : Queue[T]) -> Int {
 <!-- ssml
 下面是一个简易的实现。
 我们记录了定长数组、列表的起始与结束以及列表的长度。
-length 函数的实现最容易，直接返回结构体内保存的 length 信息即可。
+<lang xml:lang="en-US">length</lang> 函数的实现最容易，直接返回结构体内保存的 <lang xml:lang="en-US">length</lang> 信息即可。
 <break time="500ms" />
 -->
 
 # 循环队列：泛型和默认值
+
+<img src="../pics/red_line.drawio.png" style="position: absolute; width: 190px; height: 5px; top: 290px; left: 190px;">
+
+<img src="../pics/blue_line.drawio.png" style="position: absolute; width: 180px; height: 5px; top: 350px; left: 615px;">
 
 - 使用 `Default` 特征为类型提供默认值
 ```moonbit
@@ -238,14 +250,16 @@ fn[T : Default] Queue::new() -> Queue[T] {
   }
 }
 ```
+- `Int`、`String`、`Bool` 等都实现了 `Default` 特征
+- 队列的长度此时为 0，而非 8
 
 <!-- ssml
 当使用 make 来创建空的定长数组时，我们需要<phoneme alphabet="sapi" ph="wei 4">为</phoneme>数组的每一个格子放一个初始值。
-一般情况下，这个初始值可以通过 new 函数的参数创建。
-但另一种更常见的方式是使用一个叫作 default 的特征。
+一种常见的方式是使用一个叫作 default 的特征。
 当某个类型实现了 default 特征，就意味着这个类型有一个用于创建默认值的 default 方法。
-可以看到，我们使用类型、冒号、特征名的方式，约束类型 T 必须实现 default 特征。
-并在 make 函数<phoneme alphabet="sapi" ph="diao 4">调</phoneme>用处<phoneme alphabet="sapi" ph="diao 4">调</phoneme>用了 T 类型的 default 方法，用于创建默认值。
+可以看到，在红线标注之处，我们使用类型、冒号、特征名的方式，约束类型 T 必须实现 default 特征。
+在蓝线标注之处，我们使用了 T 类型的 default 方法，创建了该类型的默认值。
+并在 make 函数<phoneme alphabet="sapi" ph="diao 4 yong 4">调用</phoneme>处 <phoneme alphabet="sapi" ph="diao 4 yong 4">调用</phoneme>了 T 类型的 default 方法，用于创建默认值。
 关于特征和特征约束，我们将在下个章节详细介绍。
 月兔的大多数内置类型都实现了 default 特征，例如整数类型的默认值就是 0.
 这里还有一处需要注意，虽然我们为空队列创建了一个长度为 8 的定长数组用来保存数据，但不意味着队列的长度就是8. 
@@ -255,8 +269,8 @@ fn[T : Default] Queue::new() -> Queue[T] {
 
 # 循环队列：添加元素
 
-```moonbit skip
-fn[T] Queue::push(self : Queue[T], val : T) -> Unit {
+```moonbit
+fn[T] Queue::naive_push(self : Queue[T], val : T) -> Unit {
   self.array.set(self.end, val)
   self.end = (self.end + 1) % self.array.length() // 超出队尾则转回队首
   self.length = self.length + 1
@@ -278,20 +292,16 @@ fn[T] Queue::push(self : Queue[T], val : T) -> Unit {
 ```moonbit
 fn[T : Default] Queue::push(self : Queue[T], val : T) -> Unit {
   if self.length == self.array.length() { // 判断是否需要扩容
-    let new_array = FixedArray::make(self.array.length() * 2, T::default())
+    let new_array = FixedArray::make(self.length * 2, T::default())
     for i = 0; i < self.array.length(); i = i + 1 {
-      new_array.set(
-        i,
+      new_array[i] = 
         self.array[(self.start + i) % self.array.length()]
-      )
     } // 将原数组的元素逐个复制到新的数组
     self.start = 0
     self.end = self.array.length()
     self.array = new_array
   }
-  self.array.set(self.end, val)
-  self.end = (self.end + 1) % self.array.length()
-  self.length = self.length + 1
+  self.naive_push(val)
 }
 ```
 
@@ -301,7 +311,8 @@ fn[T : Default] Queue::push(self : Queue[T], val : T) -> Unit {
 当需要扩容时，我们创建新的更长的数组，并将原有的数据复制过去，如代码所示。
 这里我们创建了一个新的定长数组，它的容量为旧数组的两倍。
 其中，在遍历数组的时候，我们同样利用取模操作保证指向数组范围内的元素。
-在代码的第七行，我们还用到了方括号取出定长数组中的元素，相比于返回可选值的 get 函数，方括号会在索引值非法时让程序产生崩溃，而不是返回 None。
+在代码的第五行，我们用了方括号加上等号的方式，在定长数组的适当位置写入一个值，它和 set 函数是一样的，只是看起来更简洁。
+在代码的第六行，还用了方括号取出定长数组中的元素，相比于返回可选值的 get 函数，方括号会在索引值非法时让程序产生崩溃，而不是返回 None。
 最后，我们用新的数组替换原来结构体中的数组。在此之后，我们再次利用常规的添加操作。
 <break time="500ms" />
 -->
@@ -330,9 +341,10 @@ fn[T] Queue::peek(self : Queue[T]) -> T? {
   else { self.array.get(self.start) }
 }
 
-fn[T] Queue::pop(self : Queue[T]) -> T? {
+fn[T : Default] Queue::pop(self : Queue[T]) -> T? {
   let val = self.peek()
   if val is Some(_) {
+    self.array[self.start] = T::default()
     self.start = (self.start + 1) % self.array.length()
     self.length = self.length - 1
   }
@@ -389,13 +401,13 @@ fn[T] MyArray::length(self : MyArray[T]) -> Int {
 ```
 
 <!-- ssml
-和循环队列一样，我们用一个定长数组来保存数据，用整数 length 来维护数组长度。
+和循环队列一样，我们用一个定长数组来保存数据，用整数 <lang xml:lang="en-US">length</lang> 来维护数组长度。
 在构建一个变长数组时，需要传入初始长度和初始值。
 值得注意的是，变长数组的初始长度并不一定是0，而是传入的预设长度。
 <break time="500ms" />
 -->
 
-# 变长数组：随机读写
+# 变长数组：随机存取
 
 - 在 `[0, length)` 区间外的写入是非法的
 ```moonbit 
@@ -411,8 +423,9 @@ fn[T] MyArray::get(self : MyArray[T], idx : Int) -> T? {
 ```
 
 <!-- ssml
-数组最重要的特性是随机读写。这个特性在介绍定长数组时已经说过。
-要为变长数组实现随机读写非常容易，只需在 set 和 get 方法中对索引值进行区间判断，当确认索引值在区间内时，<phoneme alphabet="sapi" ph="diao 4">调</phoneme>用内部定长数组的 set 和 get 方法即可。
+数组最重要的特性是随机存取。这个特性在介绍定长数组时已经说过。
+要为变长数组实现随机存取非常容易，因为定长数组的内容就是连续排布的，我们只需保证变长数组的元素实际上存放在一个定长数组即可。
+我们定义 set 和 get，在方法中对索引值进行区间判断，当确认索引值在区间内时，<phoneme alphabet="sapi" ph="diao 4">调</phoneme>用内部定长数组的 set 和 get 方法即可。
 <break time="500ms" />
 -->
 
@@ -446,7 +459,7 @@ fn[T] MyArray::get(self : MyArray[T], idx : Int) -> T? {
 <!-- ssml
 代码实现如下，我们仍然借助 default 特征来<phoneme alphabet="sapi" ph="wei 4">为</phoneme>新的数组创建默认值。
 生成新的定长数组后，将旧数组的内容复制过去，并且更新定长数组的字段。
-要注意的是，尽管新的定长数组比旧的容量大，但此时变长数组的长度仍然没有发生变化，也就是说，此时越界访问超过 length 的元素仍然是非法的。
+要注意的是，尽管新的定长数组比旧的容量大，但此时变长数组的长度仍然没有发生变化，也就是说，此时越界访问超过 <lang xml:lang="en-US">length</lang> 的元素仍然是非法的。
 <break time="500ms" />
 -->
 
@@ -465,23 +478,23 @@ fn[T] MyArray::get(self : MyArray[T], idx : Int) -> T? {
 
 <!-- ssml
 有了扩容操作，我们就可以简单地实现 push 操作了。
-将 length 所指向的元素修改为给定值，并更新数组长度即可。
+将 <lang xml:lang="en-US">length</lang> 所指向的元素修改为给定值，并更新数组长度即可。
 <break time="500ms" />
 -->
 
-# 变长数组：随机插入元素
+# 变长数组：插入元素
 
 ![](../pics/myarray_insert.drawio.svg)
 
 <!-- ssml
-对于随机插入元素的操作，在插入前，我们需要对被插入位置往后的所有元素进行集体迁移。
+对于插入元素的操作，在插入前，我们需要对被插入位置往后的所有元素进行集体迁移。
 例如，这里要在 1 和 2 之间插入一个 10。
 我们需要把 2 和 3 都向右移动一格，然后把原来 2 所在的位置修改为 10。
-从这里可以看出，对于变长数组来说，随机插入这一操作是相当昂贵的。
+从这里可以看出，对于变长数组来说，在任意位置插入元素这一操作 是相当昂贵的。
 <break time="500ms" />
 -->
 
-# 变长数组：随机插入元素
+# 变长数组：插入元素
 
 - 将原定长数组的部分元素集体后移一位
   ```moonbit 
@@ -518,7 +531,7 @@ fn[T] MyArray::each(self : MyArray[T], f : (T) -> Unit) -> Unit {
 test {
   let arr1 = MyArray::make(5, 0)
   let arr2 = MyArray::make(5, 0)
-  arr1..push(1)..push(2)..push(3)
+  arr1..push(1)..push(2).push(3)
   arr1.each(fn(elem) { arr2.insert(0, elem)} )
   inspect(arr2.get(0), content="Some(3)")
   inspect(arr2.get(1), content="Some(2)")
