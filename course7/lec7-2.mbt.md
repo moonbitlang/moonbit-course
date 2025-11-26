@@ -206,9 +206,9 @@ recurse(0)
   <break time="500ms" />
 -->
 
-# 循环流的控制
+# 循环的控制
 
-- 循环的时候，可以提前中止循环，或是跳过后续命令的执行
+- 循环执行的时候，可以提前中止循环，或是跳过后续命令的执行
   - `break` 指令可以中止循环
   - `continue` 指令可以跳过后续运行，直接进入下一次循环
   ```moonbit
@@ -222,19 +222,20 @@ recurse(0)
       }
       i = i + 1
     }
-  }
+  } // 打印 0, 1, 2
   ```
 
 <!-- ssml
   我们有的时候并不希望循环一直进行下去。
   例如，如果我们在查找某个值，当我们找到之后，我们会提前中止循环。
-  那么这个时候，我们就有其他的选项来改变我们的循环流。
+  那么这个时候，我们就有其他的选项来改变我们的控制流。
   break 可以被用来提前中止我们的循环。
   例如在下面的例子中，我们可以跳过从 3 开始的情况。
+  这个循环在计数器到达3时终止，因此会打印 0, 1, 2.
   <break time="500ms" /> 
 -->
 
-# 循环流的控制
+# 循环的控制
 
 - 循环的时候，可以提前中止循环，或是跳过后续命令的执行
   - `break` 指令可以中止循环
@@ -243,18 +244,20 @@ recurse(0)
   fn print_skip_3() -> Unit {
     let mut i = 0
     while i < 10 {
-      if i == 3 {
-        continue // 跳过3
-      } else { () }
-      println(i.to_string())
       i = i + 1
+      if i == 4 {
+        continue // 跳过3
+      }
+      println(i - 1)
     }
-  }
+  } // 打印 0, 1, 2, 4, 5, 6, 7, 8, 9
   ```
 
 <!-- ssml
   continue 则可以被用来跳过当前循环中剩下的内容，在复杂的结构中会比较好用。
-  例如在下面的例子中，我们直接跳过了当前计数器为 3 的情况。
+  例如在下面的例子中，我们在循环体开头更新了计数器 i，在循环体末尾打印 i 减 1.
+  当计数器为 4 时，continue 会跳过 print line 语句，直接进入下一轮循环。
+  这个循环会打印除了3以外的，剩下9个整数。
   <break time="500ms" /> 
 -->
 
@@ -289,26 +292,29 @@ while <判断是否继续循环> {
 
 # for 循环
 
-```moonbit expr 
-for i = 0; i < 3; i = i + 1 {
-  println("hello")
-}
-```
+- for 循环例子：
+  ```moonbit expr 
+  for i = 0; i < 3; i = i + 1 {
+    println("hello")
+  }
+  ```
 
 - for 循环的变量定义无需用 `let mut` 
 - for 循环限制了对循环变量的修改
-
-```moonbit expr 
-for i = 0; i < 3; i = i + 1 {
-  println("hello")
-  i = i + 1 // 不合法！循环变量不可在此处修改
-}
-```
+- 变量 `i` 在循环体外不可见
+  ```moonbit expr 
+  for i = 0; i < 3; i = i + 1 {
+    println("hello")
+    i = i + 1 // 不合法！循环变量不可在此处修改
+  }
+  ```
 
 <!-- ssml
   例如，上面这段代码同样打印三次 hello。
-  和 while 循环不同的有两点，第一，定义循环变量 i 的语句，不需要用 let <lang xml:lang="en-US"><phoneme alphabet="ipa" ph="mjuːt">mut</phoneme></lang>. 
+  和 while 循环有三个不同点，
+  第一，定义循环变量 i 的语句，不需要用 let <lang xml:lang="en-US"><phoneme alphabet="ipa" ph="mjuːt">mut</phoneme></lang>. 
   第二，循环变量无法在其它的位置进行更改，例如，我们无法在循环体内修改 i 的值。
+  第三，变量 i 仅在循环体内可见，不会对循环体外的后续代码环境造成污染。
   因为通常情况下，我们仅仅应该在循环变量更新处，来修改循环变量，这个特性可以防止我们写出错误或者过于复杂的循环。
   <break time="500ms" />
 -->
@@ -360,11 +366,11 @@ for i = 0; i < 3; i = i + 1 {
 
 ```moonbit 
 fn fact(n : Int) -> Int {
-  for i = n, res = 1 {        // 初始化循环变量
+  for i = n, result = 1 {        // 初始化循环变量
     if i == 0 {
-      break res               // 将 res 作为整个循环的值
+      break result               // 将 result 作为整个循环的值
     } else {
-      continue i - 1, res * i // 带着更新后的循环变量进入下一轮循环
+      continue i - 1, result * i // 带着更新后的循环变量进入下一轮循环
     }
   }
 }
@@ -377,12 +383,12 @@ test {
 <!-- ssml
   下面我们看一个更复杂的例子。
   这个例子中，我们使用函数式的 <phoneme alphabet="sapi" ph="fo 4">for</phoneme> 循环来计算阶乘。
-  在代码的第二行，我们定义了两个循环变量，i 和 <lang xml:lang="en-US">res</lang>。
+  在代码的第二行，我们定义了两个循环变量，i 和 <lang xml:lang="en-US">result</lang>。
   并分别为它们赋予初始值，n 和 1.
   其中，i 代表我们正在处理的数字，它会从 n 开始，反复减 1，直到为0. 
-  而在这个过程中，我们不断更新计算的结果，每经历依次循环，计算结果 <lang xml:lang="en-US">res</lang> 就会乘上 i。
-  当 i 等于 0 时，意味着我们的阶乘计算已经结束，这时使用 break <lang xml:lang="en-US">res</lang> 来退出循环，并把 <lang xml:lang="en-US">res</lang> 当做循环的返回值。
-  由于这个循环是 fact 函数内唯一的表达式，所以 <lang xml:lang="en-US">res</lang> 同时也是 fact 函数的返回值。
+  而在这个过程中，我们不断更新计算的结果，每经历依次循环，计算结果 <lang xml:lang="en-US">result</lang> 就会乘上 i。
+  当 i 等于 0 时，意味着我们的阶乘计算已经结束，这时使用 break <lang xml:lang="en-US">result</lang> 来退出循环，并把 <lang xml:lang="en-US">result</lang> 当做循环的返回值。
+  由于这个循环是 fact 函数内唯一的表达式，所以 <lang xml:lang="en-US">result</lang> 同时也是 fact 函数的返回值。
   在测试代码中，我们验证 5 的阶乘，为一百二十。
   <break time="500ms" />
 -->
@@ -404,8 +410,8 @@ loop <初始值> {
 ```moonbit no-check 
 for <变量> = <初始值> {
   match <变量> {
-    <模式1> => <表达式1>
-    <模式2> => <表达式2>
+    <模式1> => break <表达式1>
+    <模式2> => break <表达式2>
     ...
   }
 }
@@ -414,7 +420,8 @@ for <变量> = <初始值> {
 <!-- ssml
   当我们在循环体内，需要对循环变量进行模式匹配时，可以使用 loop 循环。
   loop 循环无需定义循环变量，只需要定义初始值。在循环体内，直接对循环变量进行模式匹配。
-  它相当于用 <phoneme alphabet="sapi" ph="fo 4">for</phoneme> 循环定义一个循环变量，并且循环体内只有一个模式匹配语句，匹配的对象刚好也是循环变量。
+  除非使用 continue，否则 loop 循环的默认行为是跳出循环。并 以模式匹配右侧的表达式 作为整个循环的返回值。
+  loop 循环相当于用 <phoneme alphabet="sapi" ph="fo 4">for</phoneme> 循环定义一个循环变量，并且循环体内只有一个模式匹配语句，匹配的对象刚好也是循环变量。
   <break time="500ms" />
 -->
 
@@ -422,9 +429,11 @@ for <变量> = <初始值> {
 
 ```moonbit 
 fn fact_with_loop(n : Int) -> Int {
-  loop (n, 1) {                           // 初始化循环变量
-    (0, res) => break res                 // 将 res 作为整个循环的值
-    (i, res) => continue (i - 1, res * i) // 带着更新后的循环变量进入下一轮循环
+  loop (n, 1) { // 初始化循环变量
+    // 将 result 作为整个循环的值
+    (0, result) => result                 
+    // 带着更新后的循环变量进入下一轮循环
+    (i, result) => continue (i - 1, result * i) 
   }
 }
 
@@ -435,9 +444,13 @@ test {
 
 <!-- ssml
   仍然是阶乘函数的例子，这一次，我们使用 loop 循环来实现。
-  我们把两个循环变量打包成一个二元组，分别赋予初始值 n 和 1. 
-  接下来，当第一个循环变量匹配到 0 时，跳出循环，并返回第二个循环变量作为结果。
-  否则，进入下一轮循环，并把循环变量更新为 i 减 1 和 <lang xml:lang="en-US">res</lang> 乘 i。
+  我们把两个循环变量打包成一个二元组，分别赋予初始值 n 和 1.
+  接下来对这个二元组进行模式匹配。
+  我们之前学过，0 作为一个值，同时也是一个模式；而 result 是一个标识符，作为模式可以将任何值绑定到该标识符。
+  因此，由这两个模式构成的二元组，也是一个可以用于匹配二元组的模式，这叫作嵌套模式匹配。
+  在例子中，当第一个循环变量匹配到 0 时，第二个变量会被绑定到 result。
+  此时，跳出循环，并返回 result 作为结果。
+  否则，进入下一轮循环，并把循环变量更新为 i 减 1 和 <lang xml:lang="en-US">result</lang> 乘 i。
   <break time="500ms" />
 -->
 
@@ -464,19 +477,19 @@ test {
 - 使用场景广泛
   - 直接操作程序外环境，如硬件等
   - 一些情况下性能更好，如随机访问数组等
-  - 可以构建部分复杂数据结构，如图
+  - 可以构建部分复杂数据结构
   - 重复利用空间（原地修改）
 - 可变数据并不总是与引用透明性冲突
-```moonbit
-fn fib_mut(n : Int) -> Int { // 对于相同输入，总是有相同输出
-  let mut acc1 = 0; let mut acc2 = 1; let mut i = 0
-  while i < n {
-    let t = acc1 + acc2; acc1 = acc2;  acc2 = t
-    i = i + 1
+  ```moonbit
+  fn fib_mut(n : Int) -> Int { // 对于相同输入，总是有相同输出
+    let mut acc1 = 0; let mut acc2 = 1; let mut i = 0
+    while i < n {
+      let t = acc1 + acc2; acc1 = acc2; acc2 = t
+      i = i + 1
+    }
+    acc1
   }
-  acc1
-}
-```
+  ```
 
 <!-- ssml
   可变数据虽然在理解计算模型上会比函数式的替换化简更加困难，并且可能会引入很多潜在的问题，但是应用场景更广泛。
@@ -489,7 +502,7 @@ fn fib_mut(n : Int) -> Int { // 对于相同输入，总是有相同输出
   例如在这里，我们定义了一个简单的利用了可变数据的斐波那契数列。
   我们利用动态规划，从 0 开始向上更新计算我们所寻找的项数。
   在这个过程中，和递归版本不同的是，我们通过循环和修改变量来进行数据的更新。
-  但不论如何，对于各处使用了 fib <lang xml:lang="en-US"><phoneme alphabet="ipa" ph="mjuːt">mut</phoneme></lang> 进行计算的地方，我们可以直接把 fib <lang xml:lang="en-US"><phoneme alphabet="ipa" ph="mjuːt">mut</phoneme></lang> 给替换为最终的计算结果，例如 fib <lang xml:lang="en-US"><phoneme alphabet="ipa" ph="mjuːt">mut</phoneme></lang><phoneme alphabet="sapi" ph="yi 1">1</phoneme> 可以替换为 1，而运行的结果都是相同的，因为我们并没有产生任何的副作用。
+  但不论如何，对于每一处使用了 fib<lang xml:lang="en-US"><phoneme alphabet="ipa" ph="mjuːt">mut</phoneme></lang> 进行计算的地方，我们可以直接把 fib <lang xml:lang="en-US"><phoneme alphabet="ipa" ph="mjuːt">mut</phoneme></lang> 给替换为最终的计算结果，例如 fib <lang xml:lang="en-US"><phoneme alphabet="ipa" ph="mjuːt">mut</phoneme></lang><phoneme alphabet="sapi" ph="yi 1">1</phoneme> 可以替换为 1，而运行的结果都是相同的，因为可变性全部被封装到了 fib<lang xml:lang="en-US"><phoneme alphabet="ipa" ph="mjuːt">mut</phoneme></lang> 函数内部，并没有改变外部环境。
   <break time="500ms" />
 -->
 

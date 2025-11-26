@@ -116,3 +116,30 @@ fn println(x : String) -> Unit {
   buffer.write_string(x)
   buffer.write_string("\n")
 }
+
+fn fact_with_loop(n : Int) -> Int {
+  loop (n, 1) { // 初始化循环变量
+    // 将 result 作为整个循环的值
+    (0, result) => result                 
+    // 带着更新后的循环变量进入下一轮循环
+    (i, result) => continue (i - 1, result * i) 
+  }
+}
+
+test {
+  inspect(fact_with_loop(5), content="120")
+}
+
+fn fact(n : Int) -> Int {
+  for i = n, result = 1 {
+    if i == 0 {
+      break result
+    } else {
+      continue i - 1, result * i
+    }
+  }
+}
+
+test " " {
+  inspect(fact(5), content="120")
+}
