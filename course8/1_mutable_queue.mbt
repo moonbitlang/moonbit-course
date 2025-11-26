@@ -47,7 +47,7 @@ fn[T : Default] Queue::new() -> Queue[T] {
 ///|
 fn[T : Default] Queue::push(self : Queue[T], val : T) -> Unit {
   if self.length == self.array.length() {
-    let new_array = FixedArray::make(self.array.length() * 2, T::default())
+    let new_array = FixedArray::make(self.length * 2, T::default())
     for i = 0; i < self.array.length(); i = i + 1 {
       new_array.set(i, self.array[(self.start + i) % self.array.length()])
     }
@@ -66,9 +66,10 @@ fn[T] Queue::length(self : Queue[T]) -> Int {
 }
 
 ///|
-fn[T] Queue::pop(self : Queue[T]) -> T? {
+fn[T : Default] Queue::pop(self : Queue[T]) -> T? {
   let val = self.peek()
   if val is Some(_) {
+    self.array[self.start] = T::default()
     self.start = (self.start + 1) % self.array.length()
     self.length = self.length - 1
   }
