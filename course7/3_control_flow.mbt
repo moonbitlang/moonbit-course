@@ -65,23 +65,25 @@ test "print first 3" {
 ///|
 test "print skip 3" {
   let mut i = 0
-  while i < 5 {
+  while i < 10 {
+    i = i + 1
     if i == 3 {
-      i = i + 1
       continue // skip 3 跳过 3
-    } else {
-      ()
     }
     println(i.to_string())
-    i = i + 1
   }
   inspect(
     buffer,
     content=(
-      #|0
       #|1
       #|2
       #|4
+      #|5
+      #|6
+      #|7
+      #|8
+      #|9
+      #|10
       #|
     ),
   )
@@ -113,4 +115,31 @@ let buffer : StringBuilder = StringBuilder::new()
 fn println(x : String) -> Unit {
   buffer.write_string(x)
   buffer.write_string("\n")
+}
+
+fn fact_with_loop(n : Int) -> Int {
+  loop (n, 1) { // 初始化循环变量
+    // 将 result 作为整个循环的值
+    (0, result) => result                 
+    // 带着更新后的循环变量进入下一轮循环
+    (i, result) => continue (i - 1, result * i) 
+  }
+}
+
+test {
+  inspect(fact_with_loop(5), content="120")
+}
+
+fn fact(n : Int) -> Int {
+  for i = n, result = 1 {
+    if i == 0 {
+      break result
+    } else {
+      continue i - 1, result * i
+    }
+  }
+}
+
+test " " {
+  inspect(fact(5), content="120")
 }

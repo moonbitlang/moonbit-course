@@ -1,0 +1,45 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Milky2018/mdcourse"
+
+// Values
+async fn compose_video(String, String?, Options) -> Bool
+
+async fn generate_audio(String, Options) -> Bool
+
+async fn generate_slides(String, String, Options) -> Bool
+
+fn get_course_name_from_path(String) -> String
+
+async fn get_video_duration(String) -> Double
+
+async fn hash_file(String) -> String
+
+async fn parse_file(String, String) -> Bool
+
+fn target_dir(String) -> String
+
+// Errors
+
+// Types and methods
+pub struct Options {
+  input_file : String
+  output_file : String?
+  parse_only : Bool
+  slides_only : Bool
+  audio_only : Bool
+  compose_only : Bool
+  force_audio : Bool
+  keep_temp : Bool
+  voice : String
+  fps : Int
+  resolution : String
+  default_duration : Double
+  theme : String
+  engine : String
+}
+fn Options::new(String, Int, String, Bool, Bool, Double, String?) -> Self
+
+// Type aliases
+
+// Traits
+

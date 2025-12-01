@@ -1,0 +1,11 @@
+{
+  "import": [
+    "gmlewis/sha256",
+    "moonbitlang/async",
+    "moonbitlang/async/fs",
+    "moonbitlang/async/io",
+    "moonbitlang/async/process",
+    "moonbitlang/async/http",
+    "moonbitlang/x/sys"
+  ]
+}
