@@ -98,7 +98,7 @@ headingDivider: 1
   特征是一系列方法的集合。
   特征定义的关键字为 trait,我们在内部定义一系列的方法的类型签名。
   其中,如果参数或返回值类型为实现该特征的类型,则用 Self 进行指代。
-  例如这里的比较特征,<phoneme alphabet="ipa" ph="kəmˈpeə">compare</phoneme> 方法比较的是两个该类型的数据,那么我们用 Self 来声明参数类型。
+  例如这里的比较特征,<lang xml:lang="en-US"><phoneme alphabet='x-sampa' ph='k@ m "pE r'>compare</phoneme></lang> 方法比较的是两个该类型的数据,那么我们用 Self 来声明参数类型。
   在定义中，我们还可以指定该特征在哪些超特征上进行扩展，也可以不指定。
   例如，这里定义的比较特征在 Eq 特征上进行扩展。
   关于扩展特征的含义，我们后面再详细介绍。
@@ -178,8 +178,8 @@ fn[T : Compare] insert(tree : Tree[T], value : T) -> Tree[T] {
   我们来看一个稍微复杂一些的特征使用例子。
   前面我们提到可以通过传入一个比较函数作为参数，向二叉搜索树中插入新的值。
   现在利用特征重新实现树的插入方法。
-  我们声明类型参数 T 应当满足 <phoneme alphabet="ipa" ph="kəmˈpeə">compare</phoneme> 特征，只有这样，二叉搜索树才有意义。
-  之后,我们在函数中使用 value 的 compare 方法 来进行比较。
+  我们声明类型参数 T 应当满足<lang xml:lang="en-US"><phoneme alphabet='x-sampa' ph='k@ m "pE r'>compare</phoneme></lang>特征，只有这样，二叉搜索树才有意义。
+  之后,我们在函数中使用 value 的<lang xml:lang="en-US"><phoneme alphabet='x-sampa' ph='k@ m "pE r'>compare</phoneme></lang>方法 来进行比较。
   我们可以使用这个方法,是因为我们知道 T 满足比较特征,因此它必定拥有比较函数。
 <break time="500ms" />
 -->
@@ -277,7 +277,7 @@ fn[T : Compare] insert(tree : Tree[T], value : T) -> Tree[T] {
 
 # 特征实现
 
-- 不包含无默认实现方法的特征，也需要显式声明实现
+- 所有方法都有默认实现的特征，也需要显式声明实现
   
   ```moonbit check 
   trait Animal {
@@ -291,7 +291,7 @@ fn[T : Compare] insert(tree : Tree[T], value : T) -> Tree[T] {
 
 <!-- ssml
   另外，在月兔中，
-  对于不包含无默认实现方法的特征，比如例子中的 Animal 特征，
+  对于所有方法都有默认实现的特征，比如例子中的 Animal 特征，
   也需要显式声明某个类型实现了该特征，语法是，imple、特征名、<phoneme alphabet="sapi" ph="fo 4">for</phoneme>、类型名，不包含 with 和方法定义。
   例子中的 Dog 类型，我们为它实现了 Animal 特征，尽管没有任何方法定义。
   但如果不进行该声明，Dog 类型就不会被认为实现了这个特征。
@@ -428,7 +428,7 @@ fn[K : Eq, V] Map::get(self : Map[K, V], key : K) -> Option[V] {
 
 <!-- ssml
   一些情况下，某个特征是对另一些特征的扩展。
-  比如我们之前见过的，<phoneme alphabet="ipa" ph="kəmˈpeə">compare</phoneme> 特征是对 Eq 特征的扩展。我们将它们的关系称作 子特征 与 超特征。
+  比如我们之前见过的，<lang xml:lang="en-US"><phoneme alphabet='x-sampa' ph='k@ m "pE r'>compare</phoneme></lang>特征是对 Eq 特征的扩展。我们将它们的关系称作 子特征 与 超特征。
   一个子特征可以有多个超特征。
   在定义特征时，如果该特征在其它超特征上进行扩展，则使用冒号的语法进行声明。
   当有多个超特征时，用加号进行分隔。
@@ -610,8 +610,8 @@ test {
   为了更深刻理解对象安全，我们假设没有上述限制，看看会发生什么。
   首先，如果参数中没有 Self 类型，比如 Default 特征。
   假设我们可以构造 Default 特征对象 x，现在如何获取默认值呢？
-  答案是没有任何办法做到这一点，因为 default 函数没有一个 self 参数，
-  无法将特定的 default 方法实现绑定到一个值上。
+  答案是没有任何办法做到这一点，因为 default 函数没有 self 参数，
+  由于 x 的类型被擦除，我们不知道 x 的具体类型是什么，到底应该调用哪个具体函数。
 <break time="500ms" />
 -->
 
@@ -625,18 +625,20 @@ test {
   }
 
   test {
-    let x : &Compare = ... 
-    let y : &Compare = ...
-    x.compare(y) // 无从得知 x 和 y 是同一个类型，
+    let x : &Compare = 10
+    let y : &Compare = [1, 2, 3]
+    x.compare(y) // x 和 y 是不同类型，不应该可以比较
   }
   ```
 
 <!-- ssml
-  在 <phoneme alphabet="ipa" ph="kəmˈpeə">compare</phoneme> 特征中，compare 方法的两个参数都是 Self，
+  在<lang xml:lang="en-US"><phoneme alphabet='x-sampa' ph='k@ m "pE r'>compare</phoneme></lang>特征中，<lang xml:lang="en-US"><phoneme alphabet='x-sampa' ph='k@ m "pE r'>compare</phoneme></lang>方法的两个参数都是 Self，
   这也违反了对象安全。
   假设我们可以构造两个特征对象 x 和 y，并试图进行比较。
-  由于 <phoneme alphabet="ipa" ph="kəmˈpeə">compare</phoneme> 方法要求两个参数是同一个类型，
-  而此时 x 和 y 都已经失去了原本的类型信息，我们无从得知这两个变量是否为同一个类型，
+  其中 x 是一个整数，y 是一个整数数组，显然这两个类型都实现了<lang xml:lang="en-US"><phoneme alphabet='x-sampa' ph='k@ m "pE r'>compare</phoneme></lang>特征。
+  然而，由于<lang xml:lang="en-US"><phoneme alphabet='x-sampa' ph='k@ m "pE r'>compare</phoneme></lang>方法要求两个参数是同一个类型，
+  x 和 y 不应该可以比较。
+  而由于类型擦除，此时 x 和 y 都已经失去了原本的类型信息，我们无从得知这两个变量是否为同一个类型，
   所以这行代码无法通过类型检查。
 <break time="500ms" />
 -->
@@ -726,7 +728,7 @@ test {
 
 <!-- ssml
   再来看第二个例子。
-  自动派生 <phoneme alphabet="ipa" ph="kəmˈpeə">compare</phoneme> 特征时，
+  自动派生<lang xml:lang="en-US"><phoneme alphabet='x-sampa' ph='k@ m "pE r'>compare</phoneme></lang>特征时，
   需要保证该类型已经实现了 Eq 特征。
   对于枚举类型，会按照不同情形定义的先后顺序 来定义从小到大的顺序。
   也就是说，由于星期<phoneme alphabet="sapi" ph="yi 1">一</phoneme>定义在最前面，因此它比其它的值都要小，而星期天定义在最后，它比所有其它值都要大。
