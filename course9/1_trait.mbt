@@ -23,14 +23,16 @@ enum Tree[T] {
 fn[T : Compare] insert(tree : Tree[T], value : T) -> Tree[T] {
   match tree {
     Empty => Node(value, Empty, Empty)
-    Node(v, left, right) =>
-      if T::compare(value, v) == 0 { // compare can be used 可以使用比较方法
+    Node(v, left, right) => {
+      let result = value.compare(v) // 可以使用比较方法
+      if result == 0 { 
         tree
-      } else if T::compare(value, v) < 0 { // compare can be used 可以使用比较方法
+      } else if result < 0 { 
         Node(v, insert(left, value), right)
       } else {
         Node(v, left, insert(right, value))
       }
+    }
   }
 }
 

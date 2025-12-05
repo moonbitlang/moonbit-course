@@ -22,7 +22,7 @@ headingDivider: 1
 
 - 第六课：定义平衡二叉树
   - 定义一个更一般的二叉搜索树，允许存放任意类型的数据
-    ```moonbit no-check
+    ```moonbit
     enum Tree[T] {
       Empty
       Node(T, Tree[T], Tree[T])
@@ -35,7 +35,7 @@ headingDivider: 1
 
 - 第八课：定义循环队列
   - 我们需要类型的默认值来初始化数组
-    ```moonbit no-check
+    ```moonbit
     fn[T] make(default : T) -> Queue[T] {
       { array: Array::make(5, default), start: 0, end: 0, length: 0 }
     }
@@ -53,7 +53,7 @@ headingDivider: 1
   一种方式则是根据类型来提供默认值，将默认值作为参数传进来。
   另一种方式，就是我们已经用过的，使用 Default 特征。
   第一种方式的问题在于，当我们对类型有较为复杂的需求时，参数的传递可能变得十分不便。
-  更为重要的是,我们注意到一些函数其实是与类型相关联的，它的存在本身，反应了某些类型具有某些性质。
+  更为重要的是,我们注意到一些函数其实是与类型相关联的，它的存在本身，反映了某些类型具有某些性质。
 <break time="500ms" />
 -->
 
@@ -63,7 +63,7 @@ headingDivider: 1
   - `fn T::method(self : T, ...) -> ...`
   - `fn T::new() -> T`
 - 允许方法调用语法、级联运算语法、链式调用：`x..f().g()`
-- 对于某个类型，我们需要它天然支持一些方法：
+- 我们需要某个类型支持一些方法：
   - 类型的比较：`fn T::compare(self : T, other : T) -> Int`
   - 类型的默认值：`fn T::default() -> T`
   - 类型的输出：`fn T::to_string(self : T) -> String`
@@ -73,9 +73,9 @@ headingDivider: 1
   在前面的课程中，我们已经见识过方法。
   例如在定义各种数据结构时，我们使用类型名、两个冒号、方法名的方式定义数据结构的各种操作。
   并且，当第一个参数的类型刚好是方法关联的类型时，可以使用方法调用语法、级联运算语法和链式调用。
-  还有一些情况下，对于某些类型，我们需要它天然支持一些方法。
+  有些情况下，对于某个类型，我们需要它支持一些方法。
   例如，我们需要某个类型中的值能够进行比较；
-  又例如，我们希望某个类型总是可以直接构造一个默认值；
+  又例如，我们需要某个类型总是可以直接构造一个默认值；
   或者，该类型的值 都能够被转换成字符串，等等。
 <break time="500ms" />
 -->
@@ -84,7 +84,7 @@ headingDivider: 1
 
 - 特征的定义：`trait <特征名> [ : <超特征 + ...> ] { <方法类型签名>; ... }` 
   
-  ```moonbit no-check
+  ```moonbit
   trait Compare : Eq {
     compare(Self, Self) -> Int // Self代表实现该特征的类型
   }
@@ -94,7 +94,7 @@ headingDivider: 1
   ```
 
 <!-- ssml
-  此时，为了表达我们对于类型所具有的方法的期望，我们可以定义特征。
+  此时，为了表达我们对于类型所具有的方法的需要，我们可以定义特征。
   特征是一系列方法的集合。
   特征定义的关键字为 trait,我们在内部定义一系列的方法的类型签名。
   其中,如果参数或返回值类型为实现该特征的类型,则用 Self 进行指代。
@@ -136,7 +136,7 @@ headingDivider: 1
 
 - 特征可以尽早发现使用不存在方法的错误
 - 错误例子：
-  ```moonbit no-check
+  ```moonbit
   struct BoxedInt { 
     value : Int 
   }
@@ -156,19 +156,20 @@ headingDivider: 1
 
 # 特征 Trait
 
-```moonbit no-check
+```moonbit
 fn[T : Compare] insert(tree : Tree[T], value : T) -> Tree[T] {
-  // 类型参数T应当满足比较特征
   match tree {
     Empty => Node(value, Empty, Empty)
-    Node(v, left, right) =>
-      if T::compare(value, v) == 0 { // 可以使用比较方法
+    Node(v, left, right) => {
+      let result = value.compare(v) // 可以使用比较方法
+      if result == 0 { 
         tree
-      } else if T::compare(value, v) < 0 { // 可以使用比较方法
+      } else if result < 0 { 
         Node(v, insert(left, value), right)
       } else {
         Node(v, left, insert(right, value))
       }
+    }
   }
 }
 ```
@@ -178,7 +179,7 @@ fn[T : Compare] insert(tree : Tree[T], value : T) -> Tree[T] {
   前面我们提到可以通过传入一个比较函数作为参数，向二叉搜索树中插入新的值。
   现在利用特征重新实现树的插入方法。
   我们声明类型参数 T 应当满足 <phoneme alphabet="ipa" ph="kəmˈpeə">compare</phoneme> 特征，只有这样，二叉搜索树才有意义。
-  之后,我们在函数中使用 T 两个冒号 <phoneme alphabet="ipa" ph="kəmˈpeə">compare</phoneme> 方法，来进行比较。
+  之后,我们在函数中使用 value 的 compare 方法 来进行比较。
   我们可以使用这个方法,是因为我们知道 T 满足比较特征,因此它必定拥有比较函数。
 <break time="500ms" />
 -->
@@ -188,7 +189,7 @@ fn[T : Compare] insert(tree : Tree[T], value : T) -> Tree[T] {
 - 为类型实现某个特征：`impl <特征名> for <类型名> with <方法定义>`
 - 特证实现需要实现特征中**所有**的方法
 - 方法定义中的参数和返回值类型可以省略
-  ```moonbit no-check
+  ```moonbit
   struct BoxedInt { value : Int }
 
   impl Default for BoxedInt with default() { // 可以省略类型标注
@@ -216,7 +217,7 @@ fn[T : Compare] insert(tree : Tree[T], value : T) -> Tree[T] {
 # 特征实现
 
 - 使用类型参数实现特征
-  ```moonbit no-check
+  ```moonbit
   struct Boxed[T] { value : T }
 
   impl[T : Default] Default for Boxed[T] with default() { 
@@ -240,7 +241,7 @@ fn[T : Compare] insert(tree : Tree[T], value : T) -> Tree[T] {
 # 特征实现
 
 - 特征可以提供默认实现
-  ```moonbit no-check 
+  ```moonbit 
   trait Eq {
     equal(Self, Self) -> Bool 
     not_equal(Self, Self) -> Bool = _ // 这个方法有默认实现
@@ -255,7 +256,7 @@ fn[T : Compare] insert(tree : Tree[T], value : T) -> Tree[T] {
   }
   ```
 - 手动实现会覆盖默认实现
-  ```moonbit no-check 
+  ```moonbit 
   impl[T : Eq] Eq for Boxed[T] with not_equal(self, other) {
     self.value.not_equal(other.value)
   }
@@ -276,26 +277,24 @@ fn[T : Compare] insert(tree : Tree[T], value : T) -> Tree[T] {
 
 # 特征实现
 
-- 空特征或不包含无默认实现方法的特征，也需要显式声明实现
+- 不包含无默认实现方法的特征，也需要显式声明实现
   
   ```moonbit check 
-  trait EmptyTrait {}
   trait Animal {
     speak() -> String = _
   }
   impl Animal with speak() { "hi" }
 
   struct Dog {}
-  impl EmptyTrait for Dog // 显式声明实现
   impl Animal for Dog     // 显式声明实现
   ```
 
 <!-- ssml
   另外，在月兔中，
-  对于空特征 和 不包含无默认实现方法的特征，比如例子中的 Empty Trait 和 Animal 特征，
+  对于不包含无默认实现方法的特征，比如例子中的 Animal 特征，
   也需要显式声明某个类型实现了该特征，语法是，imple、特征名、<phoneme alphabet="sapi" ph="fo 4">for</phoneme>、类型名，不包含 with 和方法定义。
-  例子中的 Dog 类型，我们为它实现了上述两个特征，尽管没有任何方法定义。
-  但如果不进行该声明，Dog 类型就不会被认为实现了这两个特征。
+  例子中的 Dog 类型，我们为它实现了 Animal 特征，尽管没有任何方法定义。
+  但如果不进行该声明，Dog 类型就不会被认为实现了这个特征。
   <break time="500ms" />
 -->
 
@@ -305,7 +304,7 @@ fn[T : Compare] insert(tree : Tree[T], value : T) -> Tree[T] {
   - 对于每一个 **键** 存在一个对应 **值**
   - 例：`{ 0 -> "a", 5 -> "Hello", 7 -> "a"}`
 
-```moonbit no-check
+```moonbit
 type Map[K, V]
 
 // 创建表
@@ -320,8 +319,8 @@ fn[K, V] Map::get(map : Map[K, V], key : K) -> Option[V] { ... }
 
 <!-- ssml
   我们现在来看一个例子,利用特征来实现一个简单的表。
-  表是键值对的集合。
-  例如在这个键值对中,0对应字符串a,5对应字符串Hello,7对应字符串a。
+  表是 键 到 值 的映射。
+  例如在这个映射中,0对应字符串a,5对应字符串Hello,7对应字符串a。
   其中对于每一个键存在一个值,值可以重复,键不能重复，一个键不能同时对应两个值。
   我们对于它定义操作如下：我们应当可以创建表；
   可以添加键值对或更新键对应的值；
@@ -338,7 +337,7 @@ fn[K, V] Map::get(map : Map[K, V], key : K) -> Option[V] { ... }
   - 查询时从数组开始遍历，找到键即返回
 - 简易实现需要判断存储的键值对是否为搜索的键
   - 键应当满足 `Eq` 特征
-  ```moonbit no-check
+  ```moonbit
   fn[K : Eq, V] Map::put(map : Map[K, V], key : K, value : V) -> Unit { ... }
   fn[K : Eq, V] Map::get(map : Map[K, V], key : K) -> Option[V] { ... }
   ```
@@ -408,7 +407,6 @@ fn[K : Eq, V] Map::get(self : Map[K, V], key : K) -> Option[V] {
 # 扩展特征
 
 - 子特征可以在超特征上进行扩展：`trait Sub: Super1 + Super2 + ...`
-
   ```moonbit check 
   trait Position {
     pos(Self) -> (Int, Int)
@@ -422,7 +420,11 @@ fn[K : Eq, V] Map::get(self : Map[K, V], key : K) -> Option[V] {
   ```
 
 - 实现子特征必须先实现超特征
-- 所有满足子特征约束的类型，同样满足超特征约束
+  ```moonbit
+  impl Position for T with pos(...) { ... }
+  impl Draw for T with draw(...) { ... }
+  impl Object for T
+  ```
 
 <!-- ssml
   一些情况下，某个特征是对另一些特征的扩展。
@@ -431,8 +433,7 @@ fn[K : Eq, V] Map::get(self : Map[K, V], key : K) -> Option[V] {
   在定义特征时，如果该特征在其它超特征上进行扩展，则使用冒号的语法进行声明。
   当有多个超特征时，用加号进行分隔。
   在例子中，我们先定义了两个特征，Position 和 Draw，然后定义了一个新的特征 Object。
-  这个 Object 为 Position 和 Draw 的子特征，这意味着，如果一个类型需要实现 Object 特征，首先它需要实现 Position 和 Draw 特征。
-  另一方面，当一个类型实现了 Object 特征，意味着它一定实现了 Position 和 Draw，因此，需要一个类型满足 Position 或者 Draw 的地方，传入一个满足 Object 特征的类型也是可以的。
+  它是 Position 和 Draw 的子特征，这意味着，如果一个类型需要实现 Object 特征，首先它需要实现 Position 和 Draw 特征。
 <break time="500ms" />
 -->
 
@@ -445,7 +446,7 @@ fn[K : Eq, V] Map::get(self : Map[K, V], key : K) -> Option[V] {
   - 比较运算：`< Compare`
   - 位运算：`| BitOr`, `& BitAnd`, `^ BitXOr`, `<< Shl`, `>> Shr`
 - 实现特定的运算符方法：
-  ```moonbit no-check 
+  ```moonbit 
   pub trait Add {
     add(Self, Self) -> Self
   }
@@ -468,7 +469,7 @@ fn[K : Eq, V] Map::get(self : Map[K, V], key : K) -> Option[V] {
 
 # 运算符重载
 
-```moonbit no-check
+```moonbit
 impl Eq for BoxedInt with equal(i : BoxedInt, j : BoxedInt) -> Bool {
   i.value == j.value
 }
@@ -491,7 +492,7 @@ test {
 
 # 下标运算符
 
-- 下标运算符不通过特征实现，而是通过定义特定名称的方法并使用 `#alias` 注解
+- 下标运算符不通过特征实现，而是通过 `#alias` 注解
   - 取值运算符：`#alias("_[_]")`
   - 设值运算符：`#alias("_[_]=_")`
 
@@ -526,7 +527,7 @@ test {
 - 特征对象允许在运行时实现多态
 - 使用 `value as &TraitName` 语法将值转换为特征对象（类型擦除）
 
-  ```moonbit no-check
+  ```moonbit
   trait Animal {
     speak(Self) -> String
   }
@@ -562,9 +563,10 @@ test {
 # 特征对象和对象安全
 
 - 并非所有的特征都可以创建特征对象
-- 必须满足特征安全，所有的方法：
+- 必须满足对象安全，所有的方法：
   - 第一个参数是 `Self` 
   - 方法的类型中只能出现一个 `Self` 
+
   ```moonbit check 
   trait TraitA {
     f(Self) -> Unit 
@@ -578,11 +580,64 @@ test {
 
 <!-- ssml
   并非所有的特征都可以使用特征对象。
-  可以创建特征对象的特征必须满足特征安全。
+  可以创建特征对象的特征必须满足对象安全。
   所谓特征安全，指的是这个特征的所有方法类型都必须包含一个 Self 类型，而且这个 Self 必须是第一个参数的类型。
   例子中的 trait A 是对象安全的，它的方法 f 满足上述性质。
   而 trait B 不是对象安全的，因为它的方法 h 的第一个参数不是 Self，而且返回值包含了 Self 类型。
   对于 trait B，就无法使用特征对象。
+  为什么特征对象会有这样的限制呢？
+  这是因为特征对象的实现原理，是将方法的具体实现 绑定到了一个值上。
+  在月兔中，这个值就是方法的第一个参数。
+<break time="500ms" />
+-->
+
+# 特征对象和对象安全
+
+- 反例：第一个参数不是 `Self`
+
+  ```moonbit
+  trait Default {
+    default() -> Self // 第一个参数不是 Self，不安全
+  }
+
+  test {
+    let x : &Default = ...
+    // 没有任何方式构造默认值
+  }
+  ```
+
+<!-- ssml
+  为了更深刻理解对象安全，我们假设没有上述限制，看看会发生什么。
+  首先，如果参数中没有 Self 类型，比如 Default 特征。
+  假设我们可以构造 Default 特征对象 x，现在如何获取默认值呢？
+  答案是没有任何办法做到这一点，因为 default 函数没有一个 self 参数，
+  无法将特定的 default 方法实现绑定到一个值上。
+<break time="500ms" />
+-->
+
+# 特征对象和对象安全
+
+- 反例：多个 `Self` 参数
+
+  ```moonbit
+  trait Compare {
+    compare(Self, Self) -> Int // Self 出现了多次，不安全
+  }
+
+  test {
+    let x : &Compare = ... 
+    let y : &Compare = ...
+    x.compare(y) // 无从得知 x 和 y 是同一个类型，
+  }
+  ```
+
+<!-- ssml
+  在 <phoneme alphabet="ipa" ph="kəmˈpeə">compare</phoneme> 特征中，compare 方法的两个参数都是 Self，
+  这也违反了对象安全。
+  假设我们可以构造两个特征对象 x 和 y，并试图进行比较。
+  由于 <phoneme alphabet="ipa" ph="kəmˈpeə">compare</phoneme> 方法要求两个参数是同一个类型，
+  而此时 x 和 y 都已经失去了原本的类型信息，我们无从得知这两个变量是否为同一个类型，
+  所以这行代码无法通过类型检查。
 <break time="500ms" />
 -->
 
@@ -591,7 +646,7 @@ test {
 - 对于一些常用的特征，月兔可以自动生成实现
 - 使用 `derive` 关键字在类型定义后声明
 
-  ```moonbit no-check
+  ```moonbit
   struct Point { x : Int; y : Int } derive(Eq, Show)
 
   enum Status { Active; Inactive } derive(Eq, Show, Default)
@@ -674,7 +729,7 @@ test {
   自动派生 <phoneme alphabet="ipa" ph="kəmˈpeə">compare</phoneme> 特征时，
   需要保证该类型已经实现了 Eq 特征。
   对于枚举类型，会按照不同情形定义的先后顺序 来定义从小到大的顺序。
-  也就是说，由于星期医定义在最前面，因此它比其它的值都要小，而星期天定义在最后，它比所有其它值都要大。
+  也就是说，由于星期<phoneme alphabet="sapi" ph="yi 1">一</phoneme>定义在最前面，因此它比其它的值都要小，而星期天定义在最后，它比所有其它值都要大。
 <break time="500ms" />
 -->
 
