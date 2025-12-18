@@ -6,26 +6,17 @@
 // Status enum for tracking slot states
 
 ///|
-priv enum Status {
+priv enum Status[K, V] {
   Empty
   Deleted // Tombstone marker
-  Occupied
+  Occupied(K, V)
 }
-
-// Entry structure for open addressing
-
-///|
-priv struct Entry_open[K, V] {
-  key : K
-  mut value : V
-} derive(Default)
 
 // Hash table with tombstone deletion
 
 ///|
 priv struct HT_open_tombstone[K, V] {
-  mut values : Array[Entry_open[K, V]]
-  mut occupied : Array[Status] // Empty, Deleted, or Occupied
+  mut values : Array[Status[K, V]] // Empty, Deleted, or Occupied
   mut length : Int
   mut size : Int
 }
@@ -33,12 +24,11 @@ priv struct HT_open_tombstone[K, V] {
 // Create new hash table
 
 ///|
-fn[K : Default, V : Default] HT_open_tombstone::make(
+fn[K, V] HT_open_tombstone::make(
   initial_capacity : Int,
 ) -> HT_open_tombstone[K, V] {
   {
-    values: Array::make(initial_capacity, Default::default()),
-    occupied: Array::make(initial_capacity, Empty),
+    values: Array::make(initial_capacity, Empty),
     length: initial_capacity,
     size: 0,
   }
@@ -52,34 +42,35 @@ fn[K : Hash + Eq, V] HT_open_tombstone::find_slot(
   key : K,
 ) -> Int {
   let index = key.hash().abs() % self.length
-  loop (self.occupied[index], index, -1) { // 第一个空位默认为 -1
+  loop (self.values[index], index, -1) { // 第一个空位默认为 -1
     (Empty, i, -1) => i // 找到第一个空位
     (Empty, _i, empty) => empty // 找到空位，返回第一个空位
     (Deleted, i, empty) => {
       let new_i = (i + 1).abs() % self.length
       let empty = if empty == -1 { empty } else { i } // 更新空位索引
-      continue (self.occupied[new_i], new_i, empty) // 继续查找
+      continue (self.values[new_i], new_i, empty) // 继续查找
     }
-    (Occupied, i, _empty) if self.values[i].key == key => i // 键存在
-    (Occupied, i, empty) =>
-      continue (self.occupied[index], (i + 1).abs() % self.length, empty)
+    (Occupied(k, _v), i, _empty) if k == key => i // 键存在
+    (Occupied(_), i, empty) => {
+      let new_i = (i + 1).abs() % self.length
+      continue (self.values[new_i], new_i, empty)
+    }
   }
 }
 
 // Put operation
 
 ///|
-fn[K : Hash + Eq + Default, V : Default] HT_open_tombstone::put(
+fn[K : Hash + Eq, V] HT_open_tombstone::put(
   self : HT_open_tombstone[K, V],
   key : K,
   value : V,
 ) -> Unit {
   let index = self.find_slot(key)
-  match self.occupied[index] {
-    Occupied => self.values[index].value = value // Update existing key
+  match self.values[index] {
+    Occupied(_) => self.values[index] = Occupied(key, value)
     _ => { // Insert new key (slot is Empty or Deleted)
-      self.occupied[index] = Occupied
-      self.values[index] = { key, value }
+      self.values[index] = Occupied(key, value)
       self.size = self.size + 1
     }
   }
@@ -96,8 +87,8 @@ fn[K : Hash + Eq, V] HT_open_tombstone::get(
   key : K,
 ) -> V? {
   let index = self.find_slot(key)
-  match self.occupied[index] {
-    Occupied => Some(self.values[index].value)
+  match self.values[index] {
+    Occupied(_k, v) => Some(v)
     _ => None
   }
 }
@@ -105,50 +96,39 @@ fn[K : Hash + Eq, V] HT_open_tombstone::get(
 // Remove operation
 
 ///|
-fn[K : Hash + Eq + Default, V : Default] HT_open_tombstone::remove(
+fn[K : Hash + Eq, V] HT_open_tombstone::remove(
   self : HT_open_tombstone[K, V],
   key : K,
 ) -> Unit {
   let index = self.find_slot(key)
-  match self.occupied[index] {
-    Occupied => {
-      self.values[index] = Default::default()
-      self.occupied[index] = Deleted // Mark as tombstone
-      self.size = self.size - 1
-    }
-    _ => () // Key not found
+  if self.values[index] is Occupied(_) {
+    self.values[index] = Deleted
+    self.size = self.size - 1
   }
 }
 
 // Resize operation
 
 ///|
-fn[K : Hash + Default, V : Default] HT_open_tombstone::resize(
+fn[K : Hash, V] HT_open_tombstone::resize(
   self : HT_open_tombstone[K, V],
 ) -> Unit {
   let new_length = self.length * 2
-  let new_values : Array[Entry_open[K, V]] = Array::make(
-    new_length,
-    Default::default(),
-  )
-  let new_occupied = Array::make(new_length, Empty)
+  let new_values = Array::make(new_length, Empty)
   for i = 0; i < self.length; i = i + 1 {
-    match self.occupied[i] {
-      Occupied => {
-        let entry = self.values[i]
-        let hash = entry.key.hash()
+    match self.values[i] {
+      Occupied(key, v) => {
+        let hash = key.hash()
         let mut j = hash.abs() % new_length
-        while new_occupied[j] is Occupied {
+        while new_values[j] is Occupied(_) {
           j = (j + 1).abs() % new_length
         }
-        new_values[j] = entry
-        new_occupied[j] = Occupied
+        new_values[j] = Occupied(key, v)
       }
       _ => ()
     }
   }
   self.values = new_values
-  self.occupied = new_occupied
   self.length = new_length
 }
 
@@ -294,6 +274,17 @@ fn[K : Hash + Eq, V] Map::hash_bucket() -> Map[K, V] {
   }
 
   { get, put, remove, size }
+}
+
+///|
+fn[K : Hash + Eq, V] Map::hash_open() -> Map[K, V] {
+  let map = HT_open_tombstone::make(8)
+  {
+    get: v => map.get(v),
+    put: (k, v) => map.put(k, v),
+    remove: k => map.remove(k),
+    size: () => map.size,
+  } // 返回包含闭包的结构体
 }
 
 // Extension methods for Map
