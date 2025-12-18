@@ -25,13 +25,6 @@ priv struct HT_bucket[K, V] {
   mut size : Int // Number of key-value pairs
 }
 
-// Helper function for modulo operation
-
-///|
-fn Int::mod_u(a : Int, b : Int) -> Int {
-  (a.reinterpret_as_uint() % b.reinterpret_as_uint()).reinterpret_as_int()
-}
-
 ///|
 test {
   inspect(
@@ -62,7 +55,7 @@ fn[K : Hash + Eq, V] HT_bucket::put(
   key : K,
   value : V,
 ) -> Unit {
-  let index = key.hash().mod_u(self.length) // Compute index
+  let index = key.hash().abs() % self.length // Compute index
   let mut bucket = self.values[index] // Find corresponding bucket
 
   // Traverse the bucket to find the key
@@ -96,7 +89,7 @@ fn[K : Hash + Eq, V] HT_bucket::put(
 
 ///|
 fn[K : Hash + Eq, V] HT_bucket::get(self : HT_bucket[K, V], key : K) -> V? {
-  let index = key.hash().mod_u(self.length)
+  let index = key.hash().abs() % self.length
   let mut bucket = self.values[index]
   for {
     match bucket.val {
@@ -116,7 +109,7 @@ fn[K : Hash + Eq, V] HT_bucket::get(self : HT_bucket[K, V], key : K) -> V? {
 
 ///|
 fn[K : Hash + Eq, V] HT_bucket::remove(self : HT_bucket[K, V], key : K) -> Unit {
-  let index = key.hash().mod_u(self.length)
+  let index = key.hash().abs() % self.length
   let mut bucket = self.values[index]
   for {
     match bucket.val {
@@ -154,7 +147,7 @@ fn[K : Hash, V] HT_bucket::resize(self : HT_bucket[K, V]) -> Unit {
     for {
       match bucket.val {
         Some((entry, rest)) => {
-          let new_index = entry.key.hash().mod_u(new_length)
+          let new_index = entry.key.hash().abs() % self.length
           let old_head = new_values[new_index].val
           new_values[new_index].val = Some((entry, { val: old_head }))
           bucket = rest

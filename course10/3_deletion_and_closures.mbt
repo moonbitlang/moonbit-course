@@ -3,11 +3,6 @@
 
 // Helper function for modulo operation
 
-///|
-fn Int::mod_u(a : Int, b : Int) -> Int {
-  (a.reinterpret_as_uint() % b.reinterpret_as_uint()).reinterpret_as_int()
-}
-
 // Status enum for tracking slot states
 
 ///|
@@ -56,18 +51,18 @@ fn[K : Hash + Eq, V] HT_open_tombstone::find_slot(
   self : HT_open_tombstone[K, V],
   key : K,
 ) -> Int {
-  let index = key.hash().mod_u(self.length)
+  let index = key.hash().abs() % self.length
   loop (self.occupied[index], index, -1) { // 第一个空位默认为 -1
     (Empty, i, -1) => i // 找到第一个空位
     (Empty, _i, empty) => empty // 找到空位，返回第一个空位
     (Deleted, i, empty) => {
-      let new_i = (i + 1).mod_u(self.length)
+      let new_i = (i + 1).abs() % self.length
       let empty = if empty == -1 { empty } else { i } // 更新空位索引
       continue (self.occupied[new_i], new_i, empty) // 继续查找
     }
     (Occupied, i, _empty) if self.values[i].key == key => i // 键存在
     (Occupied, i, empty) =>
-      continue (self.occupied[index], (i + 1).mod_u(self.length), empty)
+      continue (self.occupied[index], (i + 1).abs() % self.length, empty)
   }
 }
 
@@ -142,9 +137,9 @@ fn[K : Hash + Default, V : Default] HT_open_tombstone::resize(
       Occupied => {
         let entry = self.values[i]
         let hash = entry.key.hash()
-        let mut j = hash.mod_u(new_length)
+        let mut j = hash.abs() % new_length
         while new_occupied[j] is Occupied {
-          j = (j + 1).mod_u(new_length)
+          j = (j + 1).abs() % new_length
         }
         new_values[j] = entry
         new_occupied[j] = Occupied
@@ -239,7 +234,7 @@ fn[K : Hash + Eq, V] Map::hash_bucket() -> Map[K, V] {
   let mut size_count = 0
   let length = initial_length
   fn get(key : K) -> V? {
-    let index = key.hash().mod_u(length)
+    let index = key.hash().abs() % length
     let mut bucket = values[index]
     for {
       match bucket.val {
@@ -256,7 +251,7 @@ fn[K : Hash + Eq, V] Map::hash_bucket() -> Map[K, V] {
   }
 
   fn put(key : K, value : V) -> Unit {
-    let index = key.hash().mod_u(length)
+    let index = key.hash().abs() % length
     let mut bucket = values[index]
     for {
       match bucket.val {
@@ -277,7 +272,7 @@ fn[K : Hash + Eq, V] Map::hash_bucket() -> Map[K, V] {
   }
 
   fn remove(key : K) -> Unit {
-    let index = key.hash().mod_u(length)
+    let index = key.hash().abs() % length
     let mut bucket = values[index]
     for {
       match bucket.val {

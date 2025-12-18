@@ -32,13 +32,13 @@ fn[K : Default, V : Default] HT_open::make(initial_capacity : Int) -> HT_open[K,
 ///|
 fn[K : Hash + Eq, V] HT_open::find_slot(self : HT_open[K, V], key : K) -> Int {
   let hash = key.hash()
-  let mut i = hash.mod_u(self.length)
+  let mut i = hash.abs() % self.length
 
   while self.occupied[i] {
     if self.values[i].key == key {
       return i // Found the key
     } else {
-      i = (i + 1).mod_u(self.length) // Linear probing
+      i = (i + 1).abs() % self.length // Linear probing
     }
   }
   return i // Found empty slot
@@ -93,11 +93,11 @@ fn[K : Hash + Default, V : Default] HT_open::resize(self : HT_open[K, V]) -> Uni
     if self.occupied[i] {
       let entry = self.values[i]
       let hash = entry.key.hash()
-      let mut j = hash.mod_u(new_length)
+      let mut j = hash.abs() % self.length
 
       // Find empty slot in new array
       while new_occupied[j] {
-        j = (j + 1).mod_u(new_length)
+        j = (j + 1).abs() % self.length
       }
 
       new_values[j] = entry
