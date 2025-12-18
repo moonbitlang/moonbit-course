@@ -2,6 +2,7 @@
 // Code separator: ///|
 
 // Entry structure for open addressing
+
 ///|
 priv struct Entry_open[K, V] {
   key : K
@@ -9,6 +10,7 @@ priv struct Entry_open[K, V] {
 } derive(Default)
 
 // Hash table with open addressing (linear probing)
+
 ///|
 priv struct HT_open[K, V] {
   mut values : Array[Entry_open[K, V]] // Array of entries
@@ -18,10 +20,13 @@ priv struct HT_open[K, V] {
 }
 
 // Create a new hash table with open addressing
+
 ///|
-fn[K : Default, V : Default] HT_open::make(initial_capacity : Int) -> HT_open[K, V] {
+fn[K : Default, V : Default] HT_open::make(
+  initial_capacity : Int,
+) -> HT_open[K, V] {
   {
-    values: Array::make(initial_capacity, Default::default()),
+    values: Array::makei(initial_capacity, _ => Default::default()),
     occupied: Array::make(initial_capacity, false),
     length: initial_capacity,
     size: 0,
@@ -29,30 +34,30 @@ fn[K : Default, V : Default] HT_open::make(initial_capacity : Int) -> HT_open[K,
 }
 
 // Find slot for a key (returns key index if found, or first empty slot)
+
 ///|
 fn[K : Hash + Eq, V] HT_open::find_slot(self : HT_open[K, V], key : K) -> Int {
   let hash = key.hash()
   let mut i = hash.abs() % self.length
-
   while self.occupied[i] {
     if self.values[i].key == key {
       return i // Found the key
     } else {
-      i = (i + 1).abs() % self.length // Linear probing
+      i = (i + 1) % self.length // Linear probing
     }
   }
   return i // Found empty slot
 }
 
 // Put (insert or update) a key-value pair
+
 ///|
 fn[K : Hash + Eq + Default, V : Default] HT_open::put(
   self : HT_open[K, V],
   key : K,
-  value : V
+  value : V,
 ) -> Unit {
   let index = self.find_slot(key)
-
   if self.occupied[index] {
     // Key exists, update value
     self.values[index].value = value
@@ -70,10 +75,10 @@ fn[K : Hash + Eq + Default, V : Default] HT_open::put(
 }
 
 // Get value by key
-///|
-fn[K : Hash + Eq, V] HT_open::get(self : HT_open[K, V], key : K) -> Option[V] {
-  let index = self.find_slot(key)
 
+///|
+fn[K : Hash + Eq, V] HT_open::get(self : HT_open[K, V], key : K) -> V? {
+  let index = self.find_slot(key)
   if self.occupied[index] {
     Some(self.values[index].value)
   } else {
@@ -82,10 +87,13 @@ fn[K : Hash + Eq, V] HT_open::get(self : HT_open[K, V], key : K) -> Option[V] {
 }
 
 // Resize the hash table (double the capacity)
+
 ///|
-fn[K : Hash + Default, V : Default] HT_open::resize(self : HT_open[K, V]) -> Unit {
+fn[K : Hash + Default, V : Default] HT_open::resize(
+  self : HT_open[K, V],
+) -> Unit {
   let new_length = self.length * 2
-  let new_values : Array[Entry_open[K, V]] = Array::make(new_length, Default::default())
+  let new_values : Array[Entry_open[K, V]] = Array::makei(new_length, _ => Default::default())
   let new_occupied = Array::make(new_length, false)
 
   // Rehash all existing entries
@@ -93,24 +101,23 @@ fn[K : Hash + Default, V : Default] HT_open::resize(self : HT_open[K, V]) -> Uni
     if self.occupied[i] {
       let entry = self.values[i]
       let hash = entry.key.hash()
-      let mut j = hash.abs() % self.length
+      let mut j = hash.abs() % new_length
 
       // Find empty slot in new array
       while new_occupied[j] {
-        j = (j + 1).abs() % self.length
+        j = (j + 1) % new_length
       }
-
       new_values[j] = entry
       new_occupied[j] = true
     }
   }
-
   self.values = new_values
   self.occupied = new_occupied
   self.length = new_length
 }
 
 // Tests for open addressing hash table
+
 ///|
 test "hash table open addressing: basic operations" {
   let ht : HT_open[Int, String] = HT_open::make(10)
@@ -119,7 +126,6 @@ test "hash table open addressing: basic operations" {
   ht.put(1, "one")
   ht.put(2, "two")
   ht.put(3, "three")
-
   assert_eq(ht.get(1), Some("one"))
   assert_eq(ht.get(2), Some("two"))
   assert_eq(ht.get(3), Some("three"))
@@ -127,17 +133,17 @@ test "hash table open addressing: basic operations" {
   assert_eq(ht.size, 3)
 }
 
+///|
 test "hash table open addressing: update existing key" {
   let ht : HT_open[Int, Int] = HT_open::make(10)
-
   ht.put(1, 100)
   assert_eq(ht.get(1), Some(100))
-
   ht.put(1, 200) // Update
   assert_eq(ht.get(1), Some(200))
   assert_eq(ht.size, 1) // Size should not change
 }
 
+///|
 test "hash table open addressing: linear probing" {
   let ht : HT_open[Int, String] = HT_open::make(5)
 
@@ -153,6 +159,7 @@ test "hash table open addressing: linear probing" {
   assert_eq(ht.size, 3)
 }
 
+///|
 test "hash table open addressing: resize" {
   let ht : HT_open[Int, Int] = HT_open::make(4)
 
@@ -174,13 +181,13 @@ test "hash table open addressing: resize" {
   assert_eq(ht.size, 5)
 }
 
+///|
 test "hash table open addressing: wraparound" {
   let ht : HT_open[Int, String] = HT_open::make(5)
 
   // Fill the table in a way that requires wraparound
-  ht.put(4, "four")  // Goes to index 4
-  ht.put(9, "nine")  // 9 % 5 = 4, conflicts, goes to 0 (wraparound)
-
+  ht.put(4, "four") // Goes to index 4
+  ht.put(9, "nine") // 9 % 5 = 4, conflicts, goes to 0 (wraparound)
   assert_eq(ht.get(4), Some("four"))
   assert_eq(ht.get(9), Some("nine"))
 }

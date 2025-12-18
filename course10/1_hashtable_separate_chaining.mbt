@@ -13,7 +13,7 @@ priv struct Entry[K, V] {
 
 ///|
 priv struct Bucket[V] {
-  mut val : (V, Bucket[V])? // None = empty list, Some = (head, rest)
+  mut next : (V, Bucket[V])? // None = empty list, Some = (head, rest)
 }
 
 // Hash table with separate chaining
@@ -37,12 +37,12 @@ test {
 
 ///|
 fn[K, V] HT_bucket::make(initial_capacity : Int) -> HT_bucket[K, V] {
-  let values : Array[Bucket[Entry[K, V]]] = Array::make(initial_capacity, {
-    val: None,
+  let values : Array[Bucket[Entry[K, V]]] = Array::makei(initial_capacity, _ => {
+    next: None,
   })
   // Initialize each bucket separately to avoid aliasing
   for i = 0; i < initial_capacity; i = i + 1 {
-    values[i] = { val: None }
+    values[i] = { next: None }
   }
   { values, length: initial_capacity, size: 0 }
 }
@@ -55,33 +55,21 @@ fn[K : Hash + Eq, V] HT_bucket::put(
   key : K,
   value : V,
 ) -> Unit {
-  let index = key.hash().abs() % self.length // Compute index
-  let mut bucket = self.values[index] // Find corresponding bucket
-
-  // Traverse the bucket to find the key
-  for {
-    match bucket.val {
-      Some((entry, rest)) =>
-        if entry.key == key {
-          // Key found, update value
-          entry.value = value
-          break
-        } else {
-          // Continue traversing
-          bucket = rest
-        }
-      None => {
-        // Key not found, add new entry
-        bucket.val = Some(({ key, value }, { val: None }))
-        self.size = self.size + 1
-        break
-      }
+  let index = key.hash().abs() % self.length // 计算对应索引
+  let mut bucket = self.values[index] // 找到对应列表
+  while bucket.next is Some((entry, rest)) { // 遍历列表查找键
+    if entry.key == key { // 找到键，更新值
+      entry.value = value
+      break
+    } else {
+      bucket = rest // 继续查找
     }
+  } else {
+    bucket.next = Some(({ key, value }, { next: None })) // 未找到，添加新键值对
+    self.size = self.size + 1
   }
-
-  // Check if resizing is needed based on load factor
   if self.size.to_double() / self.length.to_double() >= 0.75 {
-    self.resize()
+    self.resize() // 根据负载判断是否需要扩容
   }
 }
 
@@ -91,18 +79,14 @@ fn[K : Hash + Eq, V] HT_bucket::put(
 fn[K : Hash + Eq, V] HT_bucket::get(self : HT_bucket[K, V], key : K) -> V? {
   let index = key.hash().abs() % self.length
   let mut bucket = self.values[index]
-  for {
-    match bucket.val {
-      Some((entry, rest)) =>
-        if entry.key == key {
-          return Some(entry.value)
-        } else {
-          bucket = rest
-        }
-      None => return None
+  while bucket.next is Some((entry, rest)) {
+    if entry.key == key {
+      return Some(entry.value)
+    } else {
+      bucket = rest
     }
   }
-  abort("unreachable")
+  None
 }
 
 // Remove a key-value pair
@@ -111,18 +95,14 @@ fn[K : Hash + Eq, V] HT_bucket::get(self : HT_bucket[K, V], key : K) -> V? {
 fn[K : Hash + Eq, V] HT_bucket::remove(self : HT_bucket[K, V], key : K) -> Unit {
   let index = key.hash().abs() % self.length
   let mut bucket = self.values[index]
-  for {
-    match bucket.val {
-      Some((entry, rest)) =>
-        if entry.key == key {
-          // Found the key, remove it
-          bucket.val = rest.val
-          self.size = self.size - 1
-          break
-        } else {
-          bucket = rest
-        }
-      None => break // Key not found
+  while bucket.next is Some((entry, rest)) {
+    if entry.key == key {
+      // 找到键，删除（通过修改指针）
+      bucket.next = rest.next
+      self.size = self.size - 1
+      break
+    } else {
+      bucket = rest // 继续查找
     }
   }
 }
@@ -132,28 +112,23 @@ fn[K : Hash + Eq, V] HT_bucket::remove(self : HT_bucket[K, V], key : K) -> Unit 
 ///|
 fn[K : Hash, V] HT_bucket::resize(self : HT_bucket[K, V]) -> Unit {
   let new_length = self.length * 2
-  let new_values : Array[Bucket[Entry[K, V]]] = Array::make(new_length, {
-    val: None,
+  let new_values : Array[Bucket[Entry[K, V]]] = Array::makei(new_length, _ => {
+    next: None,
   })
 
   // Initialize each bucket
   for i = 0; i < new_length; i = i + 1 {
-    new_values[i] = { val: None }
+    new_values[i] = { next: None }
   }
 
   // Rehash all existing entries
   for i = 0; i < self.length; i = i + 1 {
     let mut bucket = self.values[i]
-    for {
-      match bucket.val {
-        Some((entry, rest)) => {
-          let new_index = entry.key.hash().abs() % self.length
-          let old_head = new_values[new_index].val
-          new_values[new_index].val = Some((entry, { val: old_head }))
-          bucket = rest
-        }
-        None => break
-      }
+    while bucket.next is Some((entry, rest)) {
+      let new_index = entry.key.hash().abs() % new_length
+      let old_head = new_values[new_index].next
+      new_values[new_index].next = Some((entry, { next: old_head }))
+      bucket = rest
     }
   }
   self.values = new_values

@@ -28,7 +28,7 @@ fn[K, V] HT_open_tombstone::make(
   initial_capacity : Int,
 ) -> HT_open_tombstone[K, V] {
   {
-    values: Array::make(initial_capacity, Empty),
+    values: Array::makei(initial_capacity, _ => Empty),
     length: initial_capacity,
     size: 0,
   }
@@ -46,13 +46,13 @@ fn[K : Hash + Eq, V] HT_open_tombstone::find_slot(
     (Empty, i, -1) => i // 找到第一个空位
     (Empty, _i, empty) => empty // 找到空位，返回第一个空位
     (Deleted, i, empty) => {
-      let new_i = (i + 1).abs() % self.length
+      let new_i = (i + 1) % self.length
       let empty = if empty == -1 { empty } else { i } // 更新空位索引
       continue (self.values[new_i], new_i, empty) // 继续查找
     }
     (Occupied(k, _v), i, _empty) if k == key => i // 键存在
     (Occupied(_), i, empty) => {
-      let new_i = (i + 1).abs() % self.length
+      let new_i = (i + 1) % self.length
       continue (self.values[new_i], new_i, empty)
     }
   }
@@ -114,7 +114,7 @@ fn[K : Hash, V] HT_open_tombstone::resize(
   self : HT_open_tombstone[K, V],
 ) -> Unit {
   let new_length = self.length * 2
-  let new_values = Array::make(new_length, Empty)
+  let new_values = Array::makei(new_length, _ => Empty)
   for i = 0; i < self.length; i = i + 1 {
     match self.values[i] {
       Occupied(key, v) => {
@@ -205,7 +205,7 @@ priv struct Bucket[V] {
 ///|
 fn[K : Hash + Eq, V] Map::hash_bucket() -> Map[K, V] {
   let initial_length = 10
-  let values : Array[Bucket[Entry[K, V]]] = Array::make(initial_length, {
+  let values : Array[Bucket[Entry[K, V]]] = Array::makei(initial_length, _ => {
     val: None,
   })
   for i = 0; i < initial_length; i = i + 1 {
