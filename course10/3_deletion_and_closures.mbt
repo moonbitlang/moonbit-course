@@ -41,19 +41,28 @@ fn[K : Hash + Eq, V] HT_open_tombstone::find_slot(
   self : HT_open_tombstone[K, V],
   key : K,
 ) -> Int {
-  let index = key.hash().abs() % self.length
-  loop (self.values[index], index, -1) { // 第一个空位默认为 -1
-    (Empty, i, -1) => i // 找到第一个空位
-    (Empty, _i, empty) => empty // 找到空位，返回第一个空位
-    (Deleted, i, empty) => {
-      let new_i = (i + 1) % self.length
-      let empty = if empty == -1 { empty } else { i } // 更新空位索引
-      continue (self.values[new_i], new_i, empty) // 继续查找
-    }
-    (Occupied(k, _v), i, _empty) if k == key => i // 键存在
-    (Occupied(_), i, empty) => {
-      let new_i = (i + 1) % self.length
-      continue (self.values[new_i], new_i, empty)
+  // let index = key.hash().abs() % self.length
+  // loop (self.values[index], index, -1) { // 第一个空位默认为 -1
+  //   (Empty, i, -1) => i // 找到第一个空位
+  //   (Empty, _i, empty) => empty // 找到空位，返回第一个空位
+  //   (Deleted, i, empty) => {
+  //     let new_i = (i + 1) % self.length
+  //     let empty = if empty == -1 { empty } else { i } // 更新空位索引
+  //     continue (self.values[new_i], new_i, empty) // 继续查找
+  //   }
+  //   (Occupied(k, _v), i, _empty) if k == key => i // 键存在
+  //   (Occupied(_), i, empty) => {
+  //     let new_i = (i + 1) % self.length
+  //     continue (self.values[new_i], new_i, empty)
+  //   }
+  // }
+  let mut slot = None
+  for index = key.hash().abs() % self.length; ; index = (index + 1) %
+        self.length {
+    match self.values[index] {
+      Empty => return if slot is Some(s) { s } else { index }
+      Deleted => if slot is None { slot = Some(index) }
+      Occupied(k, _v) => if k == key { return index }
     }
   }
 }
@@ -296,10 +305,7 @@ fn[K, V] Map::is_empty(self : Map[K, V]) -> Bool {
 
 ///|
 fn[K, V] Map::contains(self : Map[K, V], key : K) -> Bool {
-  match (self.get)(key) {
-    Some(_) => true
-    None => false
-  }
+  (self.get)(key) is Some(_)
 }
 
 // Tests
