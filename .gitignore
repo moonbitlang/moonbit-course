@@ -8,6 +8,9 @@ lib/
 # draw.io backup and dump
 .$*
 
+# course backups (created during conversion)
+**/_backup_*/
+
 *.pptx
 *.html
 *.mp4
@@ -17,6 +20,7 @@ lib/
 
 # MoonBit
 target/
+_build/
 .mooncakes
 
 # mdcourse output
