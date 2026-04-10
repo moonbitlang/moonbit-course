@@ -46,7 +46,7 @@ headingDivider: 1
 ![height:600px](../pics/geogebra-export.png)
 
 <!-- ssml
-  先画出函数曲线，并选一个初始值，比如<lang xml:lang="en-US">x</lang>等于1，对应数轴上的点<lang xml:lang="en-US">A</lang>。
+  先画出函数曲线，并选一个初始值，比如x等于1，对应数轴上的点a。
   <break time="300ms" />
 -->
 
@@ -54,37 +54,37 @@ headingDivider: 1
 ![height:600px](../pics/geogebra-export%20(1).png)
 
 <!-- ssml
-  把点<lang xml:lang="en-US">A</lang>的横坐标代入函数，
+  把点a的横坐标代入函数，
   <break time="300ms" />
 -->
 # 牛顿迭代法
 ![height:600px](../pics/geogebra-export%20(2).png)
 
 <!-- ssml
-  得到曲线上对应的点<lang xml:lang="en-US">B</lang>。
+  得到曲线上对应的点B。
   <break time="300ms" />
 -->
 # 牛顿迭代法
 ![height:600px](../pics/geogebra-export%20(3).png)
 
 <!-- ssml
-  在点<lang xml:lang="en-US">B</lang>处求导。
+  在点B处求导。
   导数对应这一点切线的斜率。
-  利用导数值画出经过点<lang xml:lang="en-US">B</lang>的切线。
+  利用导数值画出经过点B的切线。
   <break time="300ms" />
 -->
 # 牛顿迭代法
 ![height:600px](../pics/geogebra-export%20(4).png)
 
 <!-- ssml
-  切线与<lang xml:lang="en-US">x</lang>轴的交点给出新的近似值点C。
+  切线与 x 轴的交点给出新的近似值点C。
   <break time="300ms" />
 -->
 # 牛顿迭代法
 ![height:600px](../pics/geogebra-export%20(5).png)
 
 <!-- ssml
-  用新的近似值<lang xml:lang="en-US">C</lang>再次回到曲线上。
+  用新的近似值C再次回到曲线上。
   <break time="300ms" />
 -->
 # 牛顿迭代法
@@ -98,8 +98,8 @@ headingDivider: 1
 ![height:600px](../pics/geogebra-export%20(7).png)
 
 <!-- ssml
-  在点D出重复求导数并作切线。
-  再次取切线与<lang xml:lang="en-US">x</lang>轴交点，得到更接近零点的横坐标。
+  在点D处重复求导数并作切线。
+  再次取切线与x轴交点，得到更接近零点的横坐标。
   <break time="300ms" />
 -->
 # 牛顿迭代法
@@ -258,7 +258,7 @@ test {
 
 <!-- ssml
   最简单的化简过程，就是在构造期间进行化简。
-  比如对于加法：0加<lang xml:lang="en-US">a</lang>等于<lang xml:lang="en-US">a</lang>；
+  比如对于加法：0加a等于a；
   两个常数相加可以直接算出结果；
   还可以把常数统一放到一侧，减少规则的重复。
   这样做可以显著缩短符号微分得到的表达式。
@@ -290,7 +290,7 @@ test {
   0乘任何数都是0，
   1乘任何数是它本身，
   两个常数相乘可以直接计算。
-  经过这些化简后，我们会得到更精简、更可计算的结果。例如，刚刚得到的结果就可以直接化简为10乘<lang xml:lang="en-US">x</lang>零。
+  经过这些化简后，我们会得到更精简、更可计算的结果。例如，刚刚得到的结果就可以直接化简为10乘x零。
   当然真实系统里还会有更多、更复杂的化简策略。
   <break time="500ms" />
 -->
@@ -338,7 +338,7 @@ test {
 	```
 
 <!-- ssml
-  先看前向微分。它会在计算每个中间值的同时，携带并更新导数信息，也就是同时计算<lang xml:lang="en-US">f</lang>(<lang xml:lang="en-US">a</lang>)和<lang xml:lang="en-US">f</lang>对<lang xml:lang="en-US">x</lang>的导数在 a 处的值。
+  先看前向微分。它会在计算每个中间值的同时，携带并更新导数信息，也就是同时计算<lang xml:lang="en-US">f</lang>(a)和<lang xml:lang="en-US">f</lang>对x的导数在 a 处的值。
   直观上，这是因为 求乘法导数时 需要两边的当前值。
   我们可以用一个结构体保存当前值和当前导数，并用一个标记来指定当前变量是否是我们要求导的那个变量。
   这个结构通常叫作对偶数。
@@ -438,7 +438,7 @@ test {
 
 <!-- ssml
   下面我们用一个例子展示如何用前向微分配合牛顿迭代法求零点。
-  先用接口来定义函数<lang xml:lang="en-US">f</lang>等于<lang xml:lang="en-US">x</lang>的三次方减10倍<lang xml:lang="en-US">x</lang>的平方加<lang xml:lang="en-US">x</lang>加1，
+  先用接口来定义函数<lang xml:lang="en-US">f</lang>等于x的三次方减10倍x的平方加x加1，
   <break time="500ms" />
 -->
 
@@ -462,7 +462,7 @@ test {
   ```
 
 <!-- ssml
-  接着写一个循环做牛顿迭代：从初始值<lang xml:lang="en-US">x</lang>等于1开始。
+  接着写一个循环做牛顿迭代：从初始值x等于1开始。
   在第四行，我们每一轮都计算<lang xml:lang="en-US">f</lang>在这个点的值和导数。
   这个值和导数的比值，就是牛顿迭代法的步长。
   每一轮都让 x 减去一个步长，已获得离零点更接近的x值。
@@ -710,7 +710,7 @@ test {
   ```
 
 <!-- ssml
-  迭代过程也和前向微分类似，不同之处在于第七行，我们需要手动调用 backward 函数来执行后向微分计算过程。
+  迭代过程也和前向微分类似，不同之处在于第七行，我们需要手动调用 backward 函数 来执行 后向微分计算过程。
   最终的结果也和前向微分计算的结果完全相同。
   <break time="500ms" />
 -->
